@@ -8,6 +8,20 @@
       "when": 1774717852380,
       "tag": "0000_dizzy_sebastian_shaw",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1774719216679,
+      "tag": "0001_serious_lilith",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1774719693808,
+      "tag": "0002_aberrant_titania",
+      "breakpoints": true
     }
   ]
 }
