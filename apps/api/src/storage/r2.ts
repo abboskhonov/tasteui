@@ -1,21 +1,41 @@
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3"
 
-// R2 configuration
-const R2_ENDPOINT = process.env.R2_ENDPOINT
-const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID
-const R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY
-const R2_BUCKET_NAME = process.env.R2_BUCKET_NAME || "tokenui-designs"
-const R2_PUBLIC_URL = process.env.R2_PUBLIC_URL
-
-// Initialize S3 client for R2
-const s3Client = new S3Client({
-  region: "auto",
-  endpoint: R2_ENDPOINT,
-  credentials: {
-    accessKeyId: R2_ACCESS_KEY_ID || "",
-    secretAccessKey: R2_SECRET_ACCESS_KEY || "",
-  },
+// R2 configuration from env
+const getConfig = () => ({
+  endpoint: process.env.R2_ENDPOINT,
+  accessKeyId: process.env.R2_ACCESS_KEY_ID,
+  secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
+  bucketName: process.env.R2_BUCKET_NAME || "tokenui",
+  publicUrl: process.env.R2_PUBLIC_URL,
 })
+
+// Lazy initialization - S3 client created when first used
+let s3Client: S3Client | null = null
+const getS3Client = (): S3Client => {
+  if (!s3Client) {
+    const config = getConfig()
+    console.log("🔧 Creating S3 client with:")
+    console.log("  Endpoint:", config.endpoint)
+    console.log("  Access Key ID:", config.accessKeyId?.substring(0, 8) + "...")
+    console.log("  Secret Key length:", config.secretAccessKey?.length)
+    console.log("  Bucket:", config.bucketName)
+    
+    if (!config.endpoint || !config.accessKeyId || !config.secretAccessKey) {
+      throw new Error("R2 credentials not configured in environment")
+    }
+    
+    s3Client = new S3Client({
+      region: "auto",
+      endpoint: config.endpoint,
+      credentials: {
+        accessKeyId: config.accessKeyId,
+        secretAccessKey: config.secretAccessKey,
+      },
+      forcePathStyle: true, // Required for R2
+    })
+  }
+  return s3Client
+}
 
 export interface UploadResult {
   url: string
@@ -26,36 +46,34 @@ export interface UploadResult {
 
 /**
  * Upload a file to Cloudflare R2
- * @param buffer - File buffer
- * @param key - Object key (path in bucket)
- * @param contentType - MIME type of the file
- * @returns Upload result with public URL
  */
 export async function uploadFile(
   buffer: Buffer,
   key: string,
   contentType: string
 ): Promise<UploadResult> {
-  if (!R2_ENDPOINT || !R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY) {
+  const config = getConfig()
+  
+  if (!config.endpoint || !config.accessKeyId || !config.secretAccessKey) {
     throw new Error("R2 credentials not configured")
   }
-
+  
   // Upload to R2
   const command = new PutObjectCommand({
-    Bucket: R2_BUCKET_NAME,
+    Bucket: config.bucketName,
     Key: key,
     Body: buffer,
     ContentType: contentType,
-    // Make it publicly readable
-    ACL: "public-read",
   })
 
-  await s3Client.send(command)
+  await getS3Client().send(command)
 
   // Generate public URL
-  const url = R2_PUBLIC_URL
-    ? `${R2_PUBLIC_URL}/${key}`
-    : `${R2_ENDPOINT}/${R2_BUCKET_NAME}/${key}`
+  const url = config.publicUrl 
+    ? `${config.publicUrl}/${key}`
+    : `${config.endpoint}/${config.bucketName}/${key}`
+  
+  console.log("✅ Upload successful:", url)
 
   return {
     url,
@@ -67,9 +85,6 @@ export async function uploadFile(
 
 /**
  * Generate a unique key for design thumbnails
- * @param designId - Design ID
- * @param fileExtension - File extension (e.g., 'jpg', 'png')
- * @returns Unique key string
  */
 export function generateThumbnailKey(
   designId: string,
@@ -77,20 +92,16 @@ export function generateThumbnailKey(
 ): string {
   const timestamp = Date.now()
   const random = Math.random().toString(36).substring(2, 10)
-  return `thumbnails/${designId}/${timestamp}-${random}.${fileExtension}`
+  return `design-previews/${designId}/${timestamp}-${random}.${fileExtension}`
 }
 
 /**
  * Validate file type and size for thumbnails
- * @param contentType - MIME type
- * @param size - File size in bytes
- * @returns Validation result
  */
 export function validateThumbnail(
   contentType: string,
   size: number
 ): { valid: boolean; error?: string } {
-  // Allowed image types
   const allowedTypes = [
     "image/jpeg",
     "image/png",
@@ -106,7 +117,6 @@ export function validateThumbnail(
     }
   }
 
-  // Max 5MB
   const maxSize = 5 * 1024 * 1024
   if (size > maxSize) {
     return {
