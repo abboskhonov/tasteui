@@ -285,8 +285,26 @@ export function HeroSection() {
                 </p>
               </TimelineContent>
 
-              {/* Description */}
+              {/* Search Bar */}
               <TimelineContent animationNum={2}>
+                <div className="max-w-lg mx-auto mt-8 mb-8">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Search designs..."
+                      className="w-full px-4 py-3 bg-muted border border-border rounded-lg font-mono text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-foreground/50 transition-colors"
+                    />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <kbd className="hidden sm:inline-flex items-center justify-center px-2 py-1 rounded bg-card border border-border font-mono text-xs text-muted-foreground">
+                        /
+                      </kbd>
+                    </div>
+                  </div>
+                </div>
+              </TimelineContent>
+
+              {/* Description */}
+              <TimelineContent animationNum={3}>
                 <p className="font-mono text-sm sm:text-base text-muted-foreground text-center mb-12 leading-relaxed max-w-2xl mx-auto">
                   Point your AI agent at any design. We package it and give your agent
                   access to beautiful UI components. Type-safe, customizable, and production-ready.
@@ -294,12 +312,12 @@ export function HeroSection() {
               </TimelineContent>
 
               {/* Install Section */}
-              <TimelineContent animationNum={3}>
+              <TimelineContent animationNum={4}>
                 <div className="space-y-4">
                   {/* Label */}
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-mono uppercase tracking-wider text-muted-foreground">
-                      Install TasteUI
+                      Install TokenUI
                     </span>
                     <div className="flex items-center gap-4 text-xs font-mono">
                       <span className="flex items-center gap-1.5 text-muted-foreground">
@@ -344,7 +362,7 @@ export function HeroSection() {
               ) : designs && designs.length > 0 ? (
                 <div className="grid md:grid-cols-3 grid-cols-2 gap-4">
                   {designs.slice(0, 6).map((design, index) => (
-                    <TimelineContent key={design.id} animationNum={index + 4}>
+                    <TimelineContent key={design.id} animationNum={index + 5}>
                       <div
                         onClick={() => handleDesignClick(design.id)}
                         className="transition-all aspect-video rounded-lg overflow-hidden relative block group cursor-pointer"
