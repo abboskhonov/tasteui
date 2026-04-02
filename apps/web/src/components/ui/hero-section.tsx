@@ -27,7 +27,18 @@ import {
   UserIcon,
   Sun01Icon,
   Moon01Icon,
+  Copy01Icon,
+  Tick02Icon,
 } from "@hugeicons/core-free-icons";
+
+type PackageManager = "npx" | "yarn" | "pnpm" | "bun";
+
+const commands: Record<PackageManager, string> = {
+  npx: "npx tokenui add <design>",
+  yarn: "yarn tokenui add <design>",
+  pnpm: "pnpm tokenui add <design>",
+  bun: "bun tokenui add <design>",
+};
 
 function TimelineContent({
   children,
@@ -76,6 +87,60 @@ function ThemeToggle() {
       />
       <span className="sr-only">Toggle theme</span>
     </Button>
+  )
+}
+
+// Install Command Component
+function InstallCommand() {
+  const [activeTab, setActiveTab] = useState<PackageManager>("npx")
+  const [copied, setCopied] = useState(false)
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(commands[activeTab])
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      console.error("Failed to copy:", err)
+    }
+  }
+
+  return (
+    <div className="space-y-2">
+      {/* Tabs */}
+      <div className="flex items-center gap-1">
+        {(Object.keys(commands) as PackageManager[]).map((pm) => (
+          <button
+            key={pm}
+            onClick={() => setActiveTab(pm)}
+            className={`px-3 py-1.5 font-mono text-xs rounded transition-colors ${
+              activeTab === pm
+                ? "bg-muted text-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {pm}
+          </button>
+        ))}
+      </div>
+
+      {/* Terminal Block */}
+      <div className="relative bg-card border border-border rounded-lg p-4">
+        <div className="flex items-center gap-2 font-mono text-sm">
+          <span className="text-muted-foreground">&gt;</span>
+          <span className="text-foreground">{commands[activeTab]}</span>
+        </div>
+        <button
+          onClick={handleCopy}
+          className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <HugeiconsIcon
+            icon={copied ? Tick02Icon : Copy01Icon}
+            className={`size-4 ${copied ? "text-green-500" : ""}`}
+          />
+        </button>
+      </div>
+    </div>
   )
 }
 
@@ -207,92 +272,115 @@ export function HeroSection() {
             </div>
           </motion.header>
 
-          {/* Hero Content */}
-          <div className="px-4 sm:px-6 lg:px-8 py-16">
-            <article className="w-fit mx-auto max-w-3xl text-center space-y-6 mb-16">
+           {/* Hero Content - Nozomio Style */}
+          <div className="px-4 sm:px-6 lg:px-8 py-20">
+            <div className="max-w-3xl mx-auto">
+              {/* Headline */}
               <TimelineContent animationNum={1}>
-                <div className="flex w-fit mx-auto items-center gap-1 rounded-full bg-primary border border-primary/20 py-0.5 pl-0.5 pr-3 text-xs">
-                  <div className="rounded-full bg-background px-2 py-1 text-xs text-foreground font-medium">
-                    New
-                  </div>
-                  <p className="text-primary-foreground sm:text-base text-xs inline-block">
-                    ✨ Design Components for AI
-                  </p>
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-3 w-3 text-primary-foreground">
-                    <path fillRule="evenodd" d="M12.97 3.97a.75.75 0 0 1 1.06 0l7.5 7.5a.75.75 0 0 1 0 1.06l-7.5 7.5a.75.75 0 1 1-1.06-1.06l6.22-6.22H3a.75.75 0 0 1 0-1.5h16.19l-6.22-6.22a.75.75 0 0 1 0-1.06Z" clipRule="evenodd"/>
-                  </svg>
-                </div>
-              </TimelineContent>
-              
-              <TimelineContent animationNum={2}>
-                <h1 className="text-6xl sm:text-7xl md:text-8xl leading-[110%] font-light tracking-tight">
-                  TasteUI
+                <h1 className="font-mono text-4xl sm:text-5xl md:text-6xl font-normal text-center mb-6 leading-tight">
+                  design components.
+                  <br />
+                  <span className="text-muted-foreground">install instantly.</span>
                 </h1>
               </TimelineContent>
-              
-              <TimelineContent animationNum={3}>
-                <p className="text-lg text-muted-foreground max-w-md mx-auto">
-                  Beautiful components for AI agents
+
+              {/* Description */}
+              <TimelineContent animationNum={2}>
+                <p className="font-mono text-sm sm:text-base text-muted-foreground text-center mb-12 leading-relaxed max-w-2xl mx-auto">
+                  Point your AI agent at any design. We package it and give your agent
+                  access to beautiful UI components. Type-safe, customizable, and production-ready.
                 </p>
               </TimelineContent>
 
-              <TimelineContent animationNum={4}>
-                <div className="flex items-center justify-center gap-3 px-5 py-3 bg-muted rounded-full font-mono text-sm border border-border/50">
-                  <span className="text-muted-foreground">$</span>
-                  <span className="text-foreground">npx tokenui</span>
+              {/* Install Section */}
+              <TimelineContent animationNum={3}>
+                <div className="space-y-4">
+                  {/* Label */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-mono uppercase tracking-wider text-muted-foreground">
+                      Install TasteUI
+                    </span>
+                    <div className="flex items-center gap-4 text-xs font-mono">
+                      <span className="flex items-center gap-1.5 text-muted-foreground">
+                        <HugeiconsIcon icon={CommandLineIcon} className="size-3.5" />
+                        CLI
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Package Manager Tabs */}
+                  <InstallCommand />
+
+                  {/* CTA Buttons */}
+                  <div className="flex flex-wrap items-center justify-center gap-3 pt-4">
+                    <a
+                      href="/docs"
+                      className="inline-flex items-center px-6 py-3 bg-foreground text-background font-mono text-sm rounded hover:bg-foreground/90 transition-colors"
+                    >
+                      get started free
+                    </a>
+                    <a
+                      href="/docs"
+                      className="inline-flex items-center px-6 py-3 border border-border font-mono text-sm rounded text-muted-foreground hover:text-foreground hover:border-foreground/50 transition-colors"
+                    >
+                      read the docs
+                    </a>
+                  </div>
                 </div>
               </TimelineContent>
-            </article>
+            </div>
 
-            {/* Design Grid with Progressive Blur */}
-            {isLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-              </div>
-            ) : error ? (
-              <div className="py-12 text-center">
-                <p className="text-sm text-destructive">Failed to load designs</p>
-              </div>
-            ) : designs && designs.length > 0 ? (
-              <div className="grid md:grid-cols-3 grid-cols-2 gap-4">
-                {designs.slice(0, 6).map((design, index) => (
-                  <TimelineContent key={design.id} animationNum={index + 5}>
-                    <div
-                      onClick={() => handleDesignClick(design.id)}
-                      className="transition-all aspect-video rounded-lg overflow-hidden relative block group cursor-pointer"
-                    >
-                      <figure className="relative h-full w-full">
-                        {design.thumbnailUrl ? (
-                          <img
-                            src={design.thumbnailUrl}
-                            alt={design.name}
-                            className="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-transform duration-500"
-                          />
-                        ) : (
-                          <SkillCard variant="pattern" />
-                        )}
-                      </figure>
-                      <ProgressiveBlur
-                        className="pointer-events-none absolute bottom-0 left-0 h-[40%] w-full"
-                        blurIntensity={0.5}
-                      />
-                      <div className="absolute bottom-3 left-3 right-3">
-                        <h3 className="text-lg font-medium text-white truncate">
-                          {design.name}
-                        </h3>
-                        <p className="text-xs text-white/70 truncate">
-                          {design.description || design.category}
-                        </p>
+            {/* Design Grid */}
+            <div className="mt-20">
+              {isLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                </div>
+              ) : error ? (
+                <div className="py-12 text-center">
+                  <p className="text-sm text-destructive">Failed to load designs</p>
+                </div>
+              ) : designs && designs.length > 0 ? (
+                <div className="grid md:grid-cols-3 grid-cols-2 gap-4">
+                  {designs.slice(0, 6).map((design, index) => (
+                    <TimelineContent key={design.id} animationNum={index + 4}>
+                      <div
+                        onClick={() => handleDesignClick(design.id)}
+                        className="transition-all aspect-video rounded-lg overflow-hidden relative block group cursor-pointer"
+                      >
+                        <figure className="relative h-full w-full">
+                          {design.thumbnailUrl ? (
+                            <img
+                              src={design.thumbnailUrl}
+                              alt={design.name}
+                              className="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-transform duration-500"
+                            />
+                          ) : (
+                            <SkillCard variant="pattern" />
+                          )}
+                        </figure>
+                        <ProgressiveBlur
+                          className="pointer-events-none absolute bottom-0 left-0 h-[40%] w-full"
+                          blurIntensity={0.5}
+                        />
+                        <div className="absolute bottom-3 left-3 right-3">
+                          <h3 className="text-lg font-medium text-white truncate">
+                            {design.name}
+                          </h3>
+                          <p className="text-xs text-white/70 truncate">
+                            {design.description || design.category}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  </TimelineContent>
-                ))}
-              </div>
-            ) : (
-              <div className="py-12 text-center">
-                <p className="text-sm text-muted-foreground">No designs published yet</p>
-              </div>
-            )}
+                    </TimelineContent>
+                  ))}
+                </div>
+              ) : (
+                <div className="py-12 text-center">
+                  <p className="text-sm text-muted-foreground">No designs published yet</p>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Design Detail Dialog */}
