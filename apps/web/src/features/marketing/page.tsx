@@ -1,6 +1,7 @@
 "use client"
 
 import { ThemeProvider } from "@/components/theme-provider"
+import { CallToAction } from "@/components/ui/cta-3"
 import { Header } from "./sections/header"
 import { Hero } from "./sections/hero"
 import { SkillsGallery } from "./sections/skills-gallery"
@@ -17,6 +18,8 @@ export function MarketingPage() {
         <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-8">
           <main className="flex flex-1 flex-col gap-16 py-12 lg:gap-20 lg:py-16">
             <Hero />
+
+            <CallToAction />
 
             <div className="flex gap-8">
               <div className="flex-1 min-w-0">
