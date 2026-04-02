@@ -277,10 +277,10 @@ export function HeroSection() {
             <div className="max-w-3xl mx-auto">
               {/* Headline */}
               <TimelineContent animationNum={1}>
-                <h1 className="font-mono text-4xl sm:text-5xl md:text-6xl font-normal text-center mb-6 leading-tight">
-                  design components.
+                <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold text-center mb-6 leading-[1.1] tracking-tight">
+                  UI components,
                   <br />
-                  <span className="text-muted-foreground">install instantly.</span>
+                  <span className="text-muted-foreground">instantly installed</span>
                 </h1>
               </TimelineContent>
 
