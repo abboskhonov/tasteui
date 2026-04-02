@@ -7,7 +7,7 @@ export const designKeys = {
   all: ["designs"] as const,
   my: () => [...designKeys.all, "my"] as const,
   public: (category?: string) => [...designKeys.all, "public", category] as const,
-  detail: (id: string) => [...designKeys.all, "detail", id] as const,
+  detail: (username: string, slug: string) => [...designKeys.all, "detail", username, slug] as const,
 }
 
 // Upload image to R2
@@ -58,15 +58,15 @@ export function usePublicDesigns(category?: string) {
   })
 }
 
-// Get single design
-export function useDesign(id: string) {
+// Get single design by username and slug
+export function useDesign(username: string, slug: string) {
   return useQuery({
-    queryKey: designKeys.detail(id),
+    queryKey: designKeys.detail(username, slug),
     queryFn: async () => {
-      const response = await api.get<{ design: Design }>(`/api/designs/${id}`)
+      const response = await api.get<{ design: Design }>(`/api/designs/${username}/${slug}`)
       return response.design
     },
-    enabled: !!id,
+    enabled: !!username && !!slug,
   })
 }
 

@@ -4,10 +4,11 @@ import { config } from "dotenv"
 import { auth } from "./auth"
 import { user, design } from "./db/schema"
 import { db } from "./db"
-import { eq, desc } from "drizzle-orm"
+import { eq, desc, and } from "drizzle-orm"
 import { randomUUID } from "crypto"
 import { uploadFile, generateThumbnailKey, validateThumbnail } from "./storage/r2"
 import { extname } from "path"
+import { generateSlug } from "./utils/slugs"
 
 // Load environment variables
 config()
@@ -168,12 +169,34 @@ app.post("/api/designs", async (c) => {
   }
   
   try {
+    // Generate unique slug for this user
+    const baseSlug = generateSlug(body.name.trim())
+    let slug = baseSlug
+    let counter = 1
+    
+    // Check for existing slugs by this user
+    while (true) {
+      const [existing] = await db
+        .select({ id: design.id })
+        .from(design)
+        .where(and(
+          eq(design.userId, session.user.id),
+          eq(design.slug, slug)
+        ))
+        .limit(1)
+      
+      if (!existing) break
+      slug = `${baseSlug}-${counter}`
+      counter++
+    }
+    
     const [designRecord] = await db
       .insert(design)
       .values({
         id: randomUUID(),
         userId: session.user.id,
         name: body.name.trim(),
+        slug: slug,
         description: body.description?.trim() || null,
         category: body.category,
         content: body.content.trim(),
@@ -226,6 +249,7 @@ app.get("/api/designs", async (c) => {
         .select({
           id: design.id,
           name: design.name,
+          slug: design.slug,
           description: design.description,
           category: design.category,
           thumbnailUrl: design.thumbnailUrl,
@@ -235,6 +259,7 @@ app.get("/api/designs", async (c) => {
           userId: design.userId,
           author: {
             name: user.name,
+            username: user.username,
             image: user.image,
           }
         })
@@ -249,6 +274,7 @@ app.get("/api/designs", async (c) => {
         .select({
           id: design.id,
           name: design.name,
+          slug: design.slug,
           description: design.description,
           category: design.category,
           thumbnailUrl: design.thumbnailUrl,
@@ -258,6 +284,7 @@ app.get("/api/designs", async (c) => {
           userId: design.userId,
           author: {
             name: user.name,
+            username: user.username,
             image: user.image,
           }
         })
@@ -274,15 +301,39 @@ app.get("/api/designs", async (c) => {
   }
 })
 
-// Get single design by ID
-app.get("/api/designs/:id", async (c) => {
-  const id = c.req.param("id")
+// Get single design by username and slug
+app.get("/api/designs/:username/:slug", async (c) => {
+  const username = c.req.param("username")
+  const slug = c.req.param("slug")
   
   try {
     const [designRecord] = await db
-      .select()
+      .select({
+        id: design.id,
+        name: design.name,
+        slug: design.slug,
+        description: design.description,
+        category: design.category,
+        content: design.content,
+        demoUrl: design.demoUrl,
+        thumbnailUrl: design.thumbnailUrl,
+        isPublic: design.isPublic,
+        viewCount: design.viewCount,
+        createdAt: design.createdAt,
+        updatedAt: design.updatedAt,
+        userId: design.userId,
+        author: {
+          name: user.name,
+          username: user.username,
+          image: user.image,
+        }
+      })
       .from(design)
-      .where(eq(design.id, id))
+      .leftJoin(user, eq(design.userId, user.id))
+      .where(and(
+        eq(user.username, username),
+        eq(design.slug, slug)
+      ))
       .limit(1)
     
     if (!designRecord) {

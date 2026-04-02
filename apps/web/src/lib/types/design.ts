@@ -2,6 +2,7 @@ export interface Design {
   id: string
   userId: string
   name: string
+  slug: string
   description: string | null
   category: string
   content: string
@@ -13,6 +14,7 @@ export interface Design {
   updatedAt: string
   author?: {
     name: string | null
+    username: string | null
     image: string | null
   }
 }

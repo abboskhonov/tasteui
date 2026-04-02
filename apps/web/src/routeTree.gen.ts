@@ -16,6 +16,7 @@ import { Route as DocsRouteImport } from './routes/docs'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DocsFaqRouteImport } from './routes/docs.faq'
 import { Route as DocsCliRouteImport } from './routes/docs.cli'
+import { Route as UsernameDesignSlugRouteImport } from './routes/$username.$designSlug'
 
 const StudioRoute = StudioRouteImport.update({
   id: '/studio',
@@ -52,6 +53,11 @@ const DocsCliRoute = DocsCliRouteImport.update({
   path: '/cli',
   getParentRoute: () => DocsRoute,
 } as any)
+const UsernameDesignSlugRoute = UsernameDesignSlugRouteImport.update({
+  id: '/$username/$designSlug',
+  path: '/$username/$designSlug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -59,6 +65,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/publish': typeof PublishRoute
   '/studio': typeof StudioRoute
+  '/$username/$designSlug': typeof UsernameDesignSlugRoute
   '/docs/cli': typeof DocsCliRoute
   '/docs/faq': typeof DocsFaqRoute
 }
@@ -68,6 +75,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/publish': typeof PublishRoute
   '/studio': typeof StudioRoute
+  '/$username/$designSlug': typeof UsernameDesignSlugRoute
   '/docs/cli': typeof DocsCliRoute
   '/docs/faq': typeof DocsFaqRoute
 }
@@ -78,6 +86,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/publish': typeof PublishRoute
   '/studio': typeof StudioRoute
+  '/$username/$designSlug': typeof UsernameDesignSlugRoute
   '/docs/cli': typeof DocsCliRoute
   '/docs/faq': typeof DocsFaqRoute
 }
@@ -89,6 +98,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/publish'
     | '/studio'
+    | '/$username/$designSlug'
     | '/docs/cli'
     | '/docs/faq'
   fileRoutesByTo: FileRoutesByTo
@@ -98,6 +108,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/publish'
     | '/studio'
+    | '/$username/$designSlug'
     | '/docs/cli'
     | '/docs/faq'
   id:
@@ -107,6 +118,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/publish'
     | '/studio'
+    | '/$username/$designSlug'
     | '/docs/cli'
     | '/docs/faq'
   fileRoutesById: FileRoutesById
@@ -117,6 +129,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   PublishRoute: typeof PublishRoute
   StudioRoute: typeof StudioRoute
+  UsernameDesignSlugRoute: typeof UsernameDesignSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -170,6 +183,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DocsCliRouteImport
       parentRoute: typeof DocsRoute
     }
+    '/$username/$designSlug': {
+      id: '/$username/$designSlug'
+      path: '/$username/$designSlug'
+      fullPath: '/$username/$designSlug'
+      preLoaderRoute: typeof UsernameDesignSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -191,6 +211,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   PublishRoute: PublishRoute,
   StudioRoute: StudioRoute,
+  UsernameDesignSlugRoute: UsernameDesignSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

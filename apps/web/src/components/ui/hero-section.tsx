@@ -13,7 +13,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SkillCard } from "@/components/marketing/skill-card";
-import { DesignDetailDialog } from "@/components/marketing/design-detail-dialog";
 import { usePublicDesigns } from "@/lib/queries/designs";
 import { useSession, signOut } from "@/lib/auth-client";
 import { SettingsDialog } from "@/components/settings/settings-dialog";
@@ -194,59 +193,60 @@ const CLICopy = memo(function CLICopy() {
 interface DesignCardProps {
   design: Design;
   index: number;
-  onClick: (designId: string) => void;
 }
 
-const DesignCard = memo(function DesignCard({ design, index, onClick }: DesignCardProps) {
-  // Memoize click handler to prevent recreating on each render
-  const handleClick = useCallback(() => {
-    onClick(design.id);
-  }, [design.id, onClick]);
-
-  // Calculate delay once per card
+const DesignCard = memo(function DesignCard({ design, index }: DesignCardProps) {
   const delay = Math.min(0.1 + index * 0.05, 0.5);
 
   return (
     <FadeIn delay={delay}>
-      <div onClick={handleClick} className="group cursor-pointer">
-        {/* Thumbnail - hardware accelerated */}
-        <div 
-          className="relative aspect-video overflow-hidden rounded-xl bg-card/50 ring-1 ring-border transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-lg group-hover:shadow-foreground/10"
-          style={{ willChange: "transform" }}
-        >
-          {design.thumbnailUrl ? (
-            <img
-              src={design.thumbnailUrl}
-              alt={design.name}
-              className="h-full w-full object-cover"
-              loading="lazy"
-              decoding="async"
-            />
-          ) : (
-            <SkillCard variant="pattern" />
-          )}
-        </div>
-        
-        {/* Info below image - hidden by default, shows on hover */}
-        <div className="mt-3 flex items-center gap-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-          {design.author?.image ? (
-            <img
-              src={design.author.image}
-              alt={design.author.name || "Author"}
-              className="h-5 w-5 rounded-full object-cover"
-              loading="lazy"
-              decoding="async"
-            />
-          ) : (
-            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground">
-              {(design.author?.name || design.name).charAt(0).toUpperCase()}
+      <Link to="/$username/$designSlug" params={{ 
+        username: design.author?.username || "unknown", 
+        designSlug: design.slug 
+      }}>
+        <article className="group relative cursor-pointer">
+          {/* Thumbnail Container */}
+          <div className="relative aspect-video overflow-hidden rounded-xl bg-muted ring-1 ring-border/50 transition-all duration-300 ease-out group-hover:-translate-y-2 group-hover:shadow-lg group-hover:shadow-foreground/5 group-hover:ring-border/80">
+            {design.thumbnailUrl ? (
+              <img
+                src={design.thumbnailUrl}
+                alt={design.name}
+                className="h-full w-full object-cover"
+                loading="lazy"
+                decoding="async"
+              />
+            ) : (
+              <SkillCard variant="pattern" />
+            )}
+          </div>
+          
+          {/* Metadata - appears below card on hover */}
+          <div className="absolute -bottom-10 left-0 right-0 flex items-center justify-between px-1 pt-3 opacity-0 transition-all duration-300 ease-out group-hover:opacity-100">
+            <div className="flex items-center gap-2">
+              <div className="relative h-5 w-5">
+                {design.author?.image ? (
+                  <img
+                    src={design.author.image}
+                    alt=""
+                    className="h-full w-full rounded-full object-cover ring-1 ring-border/50"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center rounded-full bg-muted text-[10px] font-medium text-muted-foreground ring-1 ring-border/50">
+                    {(design.author?.name || design.name).charAt(0).toUpperCase()}
+                  </div>
+                )}
+              </div>
+              <h3 className="text-sm font-medium text-foreground tracking-tight">
+                {design.name}
+              </h3>
             </div>
-          )}
-          <h3 className="text-sm font-medium text-foreground">
-            {design.name}
-          </h3>
-        </div>
-      </div>
+            <span className="text-xs font-medium text-muted-foreground/70 tabular-nums">
+              {design.viewCount.toLocaleString()} views
+            </span>
+          </div>
+        </article>
+      </Link>
     </FadeIn>
   );
 });
@@ -315,19 +315,6 @@ const ErrorState = memo(function ErrorState() {
 // Main Hero Section
 export function HeroSection() {
   const { data: designs, isLoading, error } = usePublicDesigns();
-  const [selectedDesignId, setSelectedDesignId] = useState<string | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
-
-  // Memoize event handler to prevent recreating on each render
-  const handleDesignClick = useCallback((designId: string) => {
-    setSelectedDesignId(designId);
-    setDialogOpen(true);
-  }, []);
-
-  // Memoize dialog close handler
-  const handleDialogClose = useCallback((open: boolean) => {
-    setDialogOpen(open);
-  }, []);
 
   return (
     <main className="relative min-h-screen bg-background">
@@ -369,19 +356,38 @@ export function HeroSection() {
         </FadeIn>
 
         {/* Design Grid */}
-        <div className="mt-12 md:mt-16">
-          {/* Search */}
-          <div className="mb-4 flex items-center justify-between">
-            <div className="relative w-64">
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                <HugeiconsIcon icon={Search01Icon} className="size-4" />
-              </div>
+        <div className="mt-16 md:mt-20">
+          {/* Section Title */}
+          <div className="mb-6 flex items-center gap-2">
+            <span className="text-sm font-medium text-muted-foreground">Skills Leaderboard</span>
+          </div>
+
+          {/* Search Bar */}
+          <div className="mb-6 flex items-center gap-4 border-b border-border pb-4">
+            <div className="flex flex-1 items-center gap-3">
+              <HugeiconsIcon icon={Search01Icon} className="size-5 text-muted-foreground" />
               <input
                 type="text"
                 placeholder="Search skills..."
-                className="h-9 w-full rounded-lg bg-muted/50 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground ring-1 ring-border outline-none transition-all focus:bg-muted focus:ring-foreground/20"
+                className="flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
               />
             </div>
+            <div className="flex h-8 w-8 items-center justify-center rounded border border-border text-sm text-muted-foreground">
+              /
+            </div>
+          </div>
+
+          {/* Filter Tabs */}
+          <div className="mb-6 flex items-center gap-6 text-sm">
+            <button className="border-b-2 border-foreground pb-2 font-medium text-foreground">
+              All Time <span className="ml-1 text-muted-foreground">({designs?.length || 0})</span>
+            </button>
+            <button className="pb-2 text-muted-foreground transition-colors hover:text-foreground">
+              Trending (24h)
+            </button>
+            <button className="pb-2 text-muted-foreground transition-colors hover:text-foreground">
+              Hot
+            </button>
           </div>
 
           {isLoading ? (
@@ -389,14 +395,13 @@ export function HeroSection() {
           ) : error ? (
             <ErrorState />
           ) : designs && designs.length > 0 ? (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 pb-12">
               {designs.map((design, index) => (
-                <DesignCard
-                  key={design.id}
-                  design={design}
-                  index={index}
-                  onClick={handleDesignClick}
-                />
+              <DesignCard
+                key={design.id}
+                design={design}
+                index={index}
+              />
               ))}
             </div>
           ) : (
@@ -404,13 +409,6 @@ export function HeroSection() {
           )}
         </div>
       </div>
-
-      {/* Design Detail Dialog */}
-      <DesignDetailDialog
-        designId={selectedDesignId}
-        open={dialogOpen}
-        onOpenChange={handleDialogClose}
-      />
     </main>
   );
 }

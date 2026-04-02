@@ -6,6 +6,7 @@ export const user = pgTable("user", {
   email: text("email").notNull().unique(),
   emailVerified: boolean("email_verified").notNull().default(false),
   name: text("name"),
+  username: text("username").unique(),
   image: text("image"),
   bio: text("bio"),
   website: text("website"),
@@ -14,7 +15,9 @@ export const user = pgTable("user", {
   telegram: text("telegram"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
-})
+}, (table) => [
+  index("user_username_idx").on(table.username),
+])
 
 export const session = pgTable("session", {
   id: text("id").primaryKey(),
@@ -63,6 +66,7 @@ export const design = pgTable("design", {
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
+  slug: text("slug"),
   description: text("description"),
   category: text("category").notNull(),
   content: text("content").notNull(), // The skill/prompt content
@@ -76,4 +80,6 @@ export const design = pgTable("design", {
   index("design_userId_idx").on(table.userId),
   index("design_category_idx").on(table.category),
   index("design_public_idx").on(table.isPublic),
+  index("design_slug_idx").on(table.slug),
+  index("design_userId_slug_idx").on(table.userId, table.slug),
 ])
