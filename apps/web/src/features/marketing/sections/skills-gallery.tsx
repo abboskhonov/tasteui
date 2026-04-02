@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { PlusIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -97,93 +98,121 @@ export function SkillsGallery() {
   }
 
   return (
-    <section className="flex flex-col" id="skills">
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-border/30 pb-3 mb-6">
-        {/* Breadcrumb */}
-        <div className="flex items-center gap-1.5 text-sm">
-          <span className="text-muted-foreground hover:text-foreground cursor-pointer transition-colors">
-            Components
-          </span>
-          <ChevronRight className="size-3 text-muted-foreground/50" />
-          <span className="text-foreground font-medium">All</span>
-        </div>
-        
-        {/* Sort Dropdown */}
-        <DropdownMenu>
-          <DropdownMenuTrigger render={
-            <Button variant="ghost" size="sm" className="gap-2 h-8 text-sm text-muted-foreground hover:text-foreground">
-              <span>Newest</span>
-              <HugeiconsIcon icon={ArrowRight01Icon} className="size-3 rotate-90" />
-            </Button>
-          } />
-          <DropdownMenuContent align="end" className="w-44">
-            <DropdownMenuItem className="gap-2 text-sm">
-              <HugeiconsIcon icon={Clock01Icon} className="size-4" />
-              Newest
-            </DropdownMenuItem>
-            <DropdownMenuItem className="gap-2 text-sm">
-              <HugeiconsIcon icon={Download01Icon} className="size-4" />
-              Most Downloaded
-            </DropdownMenuItem>
-            <DropdownMenuItem className="gap-2 text-sm">
-              <HugeiconsIcon icon={StarIcon} className="size-4" />
-              Best Rated
-            </DropdownMenuItem>
-            <DropdownMenuItem className="gap-2 text-sm">
-              <HugeiconsIcon icon={FireIcon} className="size-4" />
-              Trending
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+    <section className="relative w-full" id="skills">
+      {/* Main bordered container */}
+      <div className="relative mx-auto flex w-full max-w-full flex-col border-y bg-[radial-gradient(35%_80%_at_50%_0%,--theme(--color-foreground/.08),transparent)] px-4 py-8">
+        {/* Corner PlusIcons */}
+        <PlusIcon
+          className="absolute top-[-12.5px] left-[-11.5px] z-1 size-6"
+          strokeWidth={1}
+        />
+        <PlusIcon
+          className="absolute top-[-12.5px] right-[-11.5px] z-1 size-6"
+          strokeWidth={1}
+        />
+        <PlusIcon
+          className="absolute bottom-[-12.5px] left-[-11.5px] z-1 size-6"
+          strokeWidth={1}
+        />
+        <PlusIcon
+          className="absolute right-[-11.5px] bottom-[-12.5px] z-1 size-6"
+          strokeWidth={1}
+        />
 
-      {/* Section Title */}
-      <div className="mb-4">
-        <h2 className="text-sm font-medium text-foreground">Newest</h2>
-      </div>
+        {/* Extended side border lines */}
+        <div className="-inset-y-6 pointer-events-none absolute left-0 w-px border-l" />
+        <div className="-inset-y-6 pointer-events-none absolute right-0 w-px border-r" />
 
-      {/* Loading State */}
-      {isLoading && (
-        <div className="flex items-center justify-center py-12">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-        </div>
-      )}
-
-      {/* Error State */}
-      {error && (
-        <div className="py-12 text-center">
-          <p className="text-sm text-destructive">Failed to load designs</p>
-          <p className="text-xs text-muted-foreground mt-1">Please try again later</p>
-        </div>
-      )}
-
-      {/* Grid - Linear style 4 columns */}
-      {!isLoading && !error && designs && (
-        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-          {designs.length === 0 ? (
-            <div className="col-span-full py-12 text-center">
-              <p className="text-sm text-muted-foreground">No designs published yet</p>
-              <p className="text-xs text-muted-foreground mt-1">Be the first to publish!</p>
+        {/* Content */}
+        <div className="relative z-10 flex flex-col">
+          {/* Header */}
+          <div className="flex items-center justify-between border-b border-border/30 pb-3 mb-6">
+            {/* Breadcrumb */}
+            <div className="flex items-center gap-1.5 text-sm">
+              <span className="text-muted-foreground hover:text-foreground cursor-pointer transition-colors">
+                Components
+              </span>
+              <ChevronRight className="size-3 text-muted-foreground/50" />
+              <span className="text-foreground font-medium">All</span>
             </div>
-          ) : (
-            designs.map((design) => (
-              <DesignCard 
-                key={design.id} 
-                design={design} 
-                onClick={() => handleDesignClick(design.id)}
-              />
-            ))
-          )}
-        </div>
-      )}
+            
+            {/* Sort Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger render={
+                <Button variant="ghost" size="sm" className="gap-2 h-8 text-sm text-muted-foreground hover:text-foreground">
+                  <span>Newest</span>
+                  <HugeiconsIcon icon={ArrowRight01Icon} className="size-3 rotate-90" />
+                </Button>
+              } />
+              <DropdownMenuContent align="end" className="w-44">
+                <DropdownMenuItem className="gap-2 text-sm">
+                  <HugeiconsIcon icon={Clock01Icon} className="size-4" />
+                  Newest
+                </DropdownMenuItem>
+                <DropdownMenuItem className="gap-2 text-sm">
+                  <HugeiconsIcon icon={Download01Icon} className="size-4" />
+                  Most Downloaded
+                </DropdownMenuItem>
+                <DropdownMenuItem className="gap-2 text-sm">
+                  <HugeiconsIcon icon={StarIcon} className="size-4" />
+                  Best Rated
+                </DropdownMenuItem>
+                <DropdownMenuItem className="gap-2 text-sm">
+                  <HugeiconsIcon icon={FireIcon} className="size-4" />
+                  Trending
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
 
-      {/* Design Detail Dialog */}
-      <DesignDetailDialog
-        designId={selectedDesignId}
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-      />
+          {/* Section Title */}
+          <div className="mb-4">
+            <h2 className="text-sm font-medium text-foreground">Newest</h2>
+          </div>
+
+          {/* Loading State */}
+          {isLoading && (
+            <div className="flex items-center justify-center py-12">
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            </div>
+          )}
+
+          {/* Error State */}
+          {error && (
+            <div className="py-12 text-center">
+              <p className="text-sm text-destructive">Failed to load designs</p>
+              <p className="text-xs text-muted-foreground mt-1">Please try again later</p>
+            </div>
+          )}
+
+          {/* Grid - Linear style 4 columns */}
+          {!isLoading && !error && designs && (
+            <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+              {designs.length === 0 ? (
+                <div className="col-span-full py-12 text-center">
+                  <p className="text-sm text-muted-foreground">No designs published yet</p>
+                  <p className="text-xs text-muted-foreground mt-1">Be the first to publish!</p>
+                </div>
+              ) : (
+                designs.map((design) => (
+                  <DesignCard 
+                    key={design.id} 
+                    design={design} 
+                    onClick={() => handleDesignClick(design.id)}
+                  />
+                ))
+              )}
+            </div>
+          )}
+
+          {/* Design Detail Dialog */}
+          <DesignDetailDialog
+            designId={selectedDesignId}
+            open={dialogOpen}
+            onOpenChange={setDialogOpen}
+          />
+        </div>
+      </div>
     </section>
   )
 }
