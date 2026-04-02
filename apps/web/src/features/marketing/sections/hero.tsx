@@ -19,7 +19,7 @@ export function Hero() {
   return (
     <section className="relative w-full">
       {/* Main bordered container with gradient */}
-      <div className="relative mx-auto flex w-full max-w-4xl flex-col items-center justify-center border-y bg-[radial-gradient(35%_80%_at_50%_0%,--theme(--color-foreground/.08),transparent)] px-4 py-20 md:py-28">
+      <div className="relative mx-auto flex w-full max-w-full flex-col items-center justify-center border-y bg-[radial-gradient(35%_80%_at_50%_0%,--theme(--color-foreground/.08),transparent)] px-4 py-20 md:py-28">
         {/* Corner PlusIcons */}
         <PlusIcon
           className="absolute top-[-12.5px] left-[-11.5px] z-1 size-6"
