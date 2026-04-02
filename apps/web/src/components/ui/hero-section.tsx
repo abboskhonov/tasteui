@@ -227,10 +227,10 @@ export function HeroSection() {
               <TimelineContent animationNum={2}>
                 <h1 className="text-5xl sm:text-6xl md:text-7xl leading-[100%] font-bold">
                   Build with{" "}
-                  <span className="bg-gradient-to-r from-red-500 to-orange-500 bg-clip-text text-transparent">
+                  <span className="text-muted-foreground">
                     Beautiful
                   </span>{" "}
-                  <span className="bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
+                  <span className="text-foreground">
                     Designs
                   </span>
                 </h1>
