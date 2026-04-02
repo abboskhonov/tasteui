@@ -1,54 +1,12 @@
 "use client";
 
-import { useRef } from "react";
+import { useState, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { ProgressiveBlur } from "@/components/ui/progressive-blur";
 import { motion } from "framer-motion";
-
-export const blocksDesign = [
-  {
-    id: "minimal",
-    name: "Minimal",
-    url: "#",
-    des: "Clean and minimal design system",
-    imgSrc: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000&auto=format&fit=crop",
-  },
-  {
-    id: "glass",
-    name: "Glass",
-    url: "#",
-    des: "Frosted glass morphism aesthetics",
-    imgSrc: "https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?q=80&w=1000&auto=format&fit=crop",
-  },
-  {
-    id: "neo",
-    name: "Neo",
-    url: "#",
-    des: "Bold neo-brutalist components",
-    imgSrc: "https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?q=80&w=1000&auto=format&fit=crop",
-  },
-  {
-    id: "cyber",
-    name: "Cyber",
-    url: "#",
-    des: "Cyberpunk futuristic interface",
-    imgSrc: "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?q=80&w=1000&auto=format&fit=crop",
-  },
-  {
-    id: "organic",
-    name: "Organic",
-    url: "#",
-    des: "Soft organic shapes and gradients",
-    imgSrc: "https://images.unsplash.com/photo-1614851099518-94c8c7f1fa00?q=80&w=1000&auto=format&fit=crop",
-  },
-  {
-    id: "mono",
-    name: "Mono",
-    url: "#",
-    des: "Monochromatic professional system",
-    imgSrc: "https://images.unsplash.com/photo-1633356122102-3fe601e05bd2?q=80&w=1000&auto=format&fit=crop",
-  },
-];
+import { SkillCard } from "@/components/marketing/skill-card";
+import { DesignDetailDialog } from "@/components/marketing/design-detail-dialog";
+import { usePublicDesigns } from "@/lib/queries/designs";
 
 function TimelineContent({
   children,
@@ -76,6 +34,14 @@ function TimelineContent({
 
 export function HeroSection() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const { data: designs, isLoading, error } = usePublicDesigns();
+  const [selectedDesignId, setSelectedDesignId] = useState<string | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  const handleDesignClick = (designId: string) => {
+    setSelectedDesignId(designId);
+    setDialogOpen(true);
+  };
 
   return (
     <main ref={containerRef} className="relative">
@@ -154,37 +120,62 @@ export function HeroSection() {
           </TimelineContent>
         </article>
 
-        {/* Design Grid */}
-        <div className="grid md:grid-cols-3 grid-cols-2 gap-4">
-          {blocksDesign.map((component, index) => (
-            <TimelineContent key={component.id} animationNum={index + 4}>
-              <a
-                href={component.url}
-                target="_blank"
-                rel="noreferrer"
-                className="transition-all aspect-video rounded-lg overflow-hidden relative block group"
-              >
-                <figure className="relative h-full w-full">
-                  <img
-                    src={component.imgSrc}
-                    alt={component.name}
-                    className="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-transform duration-500"
+        {/* Design Grid with Progressive Blur */}
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          </div>
+        ) : error ? (
+          <div className="py-12 text-center">
+            <p className="text-sm text-destructive">Failed to load designs</p>
+          </div>
+        ) : designs && designs.length > 0 ? (
+          <div className="grid md:grid-cols-3 grid-cols-2 gap-4">
+            {designs.slice(0, 6).map((design, index) => (
+              <TimelineContent key={design.id} animationNum={index + 4}>
+                <div
+                  onClick={() => handleDesignClick(design.id)}
+                  className="transition-all aspect-video rounded-lg overflow-hidden relative block group cursor-pointer"
+                >
+                  <figure className="relative h-full w-full">
+                    {design.thumbnailUrl ? (
+                      <img
+                        src={design.thumbnailUrl}
+                        alt={design.name}
+                        className="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-transform duration-500"
+                      />
+                    ) : (
+                      <SkillCard variant="pattern" />
+                    )}
+                  </figure>
+                  <ProgressiveBlur
+                    className="pointer-events-none absolute bottom-0 left-0 h-[40%] w-full"
+                    blurIntensity={0.5}
                   />
-                </figure>
-                <ProgressiveBlur
-                  className="pointer-events-none absolute bottom-0 left-0 h-[40%] w-full"
-                  blurIntensity={0.5}
-                />
-                <div className="absolute bottom-3 left-3 right-3">
-                  <h3 className="text-lg font-medium text-white">
-                    {component.name}
-                  </h3>
-                  <p className="text-xs text-white/70">{component.des}</p>
+                  <div className="absolute bottom-3 left-3 right-3">
+                    <h3 className="text-lg font-medium text-white truncate">
+                      {design.name}
+                    </h3>
+                    <p className="text-xs text-white/70 truncate">
+                      {design.description || design.category}
+                    </p>
+                  </div>
                 </div>
-              </a>
-            </TimelineContent>
-          ))}
-        </div>
+              </TimelineContent>
+            ))}
+          </div>
+        ) : (
+          <div className="py-12 text-center">
+            <p className="text-sm text-muted-foreground">No designs published yet</p>
+          </div>
+        )}
+
+        {/* Design Detail Dialog */}
+        <DesignDetailDialog
+          designId={selectedDesignId}
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+        />
       </div>
     </main>
   );
