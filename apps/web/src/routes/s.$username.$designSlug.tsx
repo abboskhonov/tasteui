@@ -58,6 +58,14 @@ function SkillDetailPage() {
   const trackView = useTrackView()
   const queryClient = useQueryClient()
 
+  // Debug: log the design ID when loaded
+  useEffect(() => {
+    if (design?.id) {
+      console.log('[VT] Detail page loaded - design.id:', design.id)
+      console.log('[VT] Expected names: thumbnail=design-thumbnail-' + design.id + ', name=design-name-' + design.id)
+    }
+  }, [design?.id])
+
   // Track view when page loads (with deduplication handled by backend)
   useEffect(() => {
     if (design?.id && !isLoading) {
@@ -236,7 +244,13 @@ function SkillDetailPage() {
           <div className="p-6 space-y-6">
             {/* Title Section */}
             <div>
-              <h1 className="text-2xl font-semibold tracking-tight">{design.name.toLowerCase()}</h1>
+              <ViewTransition 
+                name={`design-name-${design.id}`}
+                share="fade-test"
+                default="none"
+              >
+                <h1 className="text-2xl font-semibold tracking-tight">{design.name.toLowerCase()}</h1>
+              </ViewTransition>
               <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
                 {design.description || "A reusable UI component for modern applications."}
               </p>

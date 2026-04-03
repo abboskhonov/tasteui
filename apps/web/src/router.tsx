@@ -8,6 +8,10 @@ export function getRouter() {
     scrollRestoration: true,
     defaultPreload: "intent",
     defaultPreloadStaleTime: 0,
+    // Enable view transitions globally
+    defaultViewTransition: {
+      types: ['nav-forward'],
+    },
   })
 
   return router

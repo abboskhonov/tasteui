@@ -439,6 +439,41 @@
 }
 
 /* ----------------------------------------
+   TEXT MORPH (for shared text elements)
+   ---------------------------------------- */
+
+/* Avoids raster scaling artifacts on text by hiding the old snapshot */
+::view-transition-group(.text-morph) {
+  animation-duration: 400ms;
+}
+
+::view-transition-old(.text-morph) {
+  display: none;
+}
+
+::view-transition-new(.text-morph) {
+  animation: none;
+  object-fit: none;
+  object-position: left top;
+}
+
+/* ----------------------------------------
+   SIMPLE FADE TEST
+   ---------------------------------------- */
+
+::view-transition-group(.fade-test) {
+  animation-duration: 500ms;
+}
+
+::view-transition-old(.fade-test) {
+  animation: fade-out 300ms ease-in forwards;
+}
+
+::view-transition-new(.fade-test) {
+  animation: fade-in 500ms ease-out forwards;
+}
+
+/* ----------------------------------------
    ACCESSIBILITY: REDUCED MOTION
    ---------------------------------------- */
 
