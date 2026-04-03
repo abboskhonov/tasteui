@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { MarketingPage } from "@/features/marketing"
+import { getPublicDesignsServerFn } from "@/lib/api/designs-server"
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -14,9 +15,17 @@ export const Route = createFileRoute("/")({
       },
     ],
   }),
+  loader: async () => {
+    // Fetch designs on the server - this runs server-side during SSR
+    const designs = await getPublicDesignsServerFn()
+    return { designs }
+  },
   component: App,
 })
 
 function App() {
-  return <MarketingPage />
+  // Get the server-fetched designs from the route loader
+  const { designs } = Route.useLoaderData()
+  
+  return <MarketingPage initialDesigns={designs} />
 }

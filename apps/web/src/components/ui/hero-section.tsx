@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, memo, useEffect } from "react";
+import { useState, useCallback, memo } from "react";
 import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -31,39 +31,6 @@ import {
   Tick02Icon,
   UserIcon,
 } from "@hugeicons/core-free-icons";
-
-// FadeIn - memoized to prevent unnecessary re-renders
-interface FadeInProps {
-  children: React.ReactNode;
-  delay?: number;
-  className?: string;
-}
-
-const FadeIn = memo(function FadeIn({ children, delay = 0, className }: FadeInProps) {
-  const [mounted, setMounted] = useState(false);
-  
-  useEffect(() => {
-    // Small delay to ensure animation plays after mount
-    const timer = setTimeout(() => setMounted(true), 50);
-    return () => clearTimeout(timer);
-  }, []);
-  
-  return (
-    <div
-      className={cn(
-        "transition-opacity duration-500",
-        mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4",
-        className
-      )}
-      style={{ 
-        transitionDelay: `${delay}s`,
-        willChange: "opacity, transform"
-      }}
-    >
-      {children}
-    </div>
-  );
-});
 
 // Theme Toggle Component - memoized
 const ThemeToggle = memo(function ThemeToggle() {
@@ -205,96 +172,89 @@ const CLICopy = memo(function CLICopy() {
 // Design Card Component - extracted and memoized for performance
 interface DesignCardProps {
   design: Design;
-  index: number;
 }
 
-const DesignCard = memo(function DesignCard({ design, index }: DesignCardProps) {
-  const delay = Math.min(0.1 + index * 0.05, 0.5);
-
+const DesignCard = memo(function DesignCard({ design }: DesignCardProps) {
   return (
-    <FadeIn delay={delay}>
-      <Link to="/s/$username/$designSlug" params={{ 
-        username: design.author?.username || "unknown", 
-        designSlug: design.slug 
-      }}>
-        <article className="group relative cursor-pointer">
-          {/* Thumbnail Container */}
-          <div className="relative aspect-video overflow-hidden rounded-xl bg-muted ring-1 ring-border/50 transition-all duration-300 ease-out group-hover:-translate-y-2 group-hover:shadow-lg group-hover:shadow-foreground/5 group-hover:ring-border/80">
-            {design.thumbnailUrl ? (
-              <img
-                src={design.thumbnailUrl}
-                alt={design.name}
-                className="h-full w-full object-cover"
-                loading="lazy"
-                decoding="async"
-              />
-            ) : (
-              <SkillCard variant="pattern" />
-            )}
-          </div>
-          
-          {/* Metadata - appears below card on hover */}
-          <div className="absolute -bottom-10 left-0 right-0 flex items-center justify-between px-1 pt-3 opacity-0 transition-all duration-300 ease-out group-hover:opacity-100">
-            <div className="flex items-center gap-2">
-              <div className="relative h-5 w-5">
-                {design.author?.image ? (
-                  <img
-                    src={design.author.image}
-                    alt=""
-                    className="h-full w-full rounded-full object-cover ring-1 ring-border/50"
-                    loading="lazy"
-                  />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center rounded-full bg-muted text-[10px] font-medium text-muted-foreground ring-1 ring-border/50">
-                    {(design.author?.name || design.name).charAt(0).toUpperCase()}
-                  </div>
-                )}
-              </div>
-              <h3 className="text-sm font-medium text-foreground tracking-tight">
-                {design.name}
-              </h3>
+    <Link to="/s/$username/$designSlug" params={{ 
+      username: design.author?.username || "unknown", 
+      designSlug: design.slug 
+    }}>
+      <article className="group relative cursor-pointer">
+        {/* Thumbnail Container */}
+        <div className="relative aspect-video overflow-hidden rounded-xl bg-muted ring-1 ring-border/50 transition-all duration-300 ease-out group-hover:-translate-y-2 group-hover:shadow-lg group-hover:shadow-foreground/5 group-hover:ring-border/80">
+          {design.thumbnailUrl ? (
+            <img
+              src={design.thumbnailUrl}
+              alt={design.name}
+              className="h-full w-full object-cover"
+              loading="lazy"
+              decoding="async"
+            />
+          ) : (
+            <SkillCard variant="pattern" />
+          )}
+        </div>
+        
+        {/* Metadata - appears below card on hover */}
+        <div className="absolute -bottom-10 left-0 right-0 flex items-center justify-between px-1 pt-3 opacity-0 transition-all duration-300 ease-out group-hover:opacity-100">
+          <div className="flex items-center gap-2">
+            <div className="relative h-5 w-5">
+              {design.author?.image ? (
+                <img
+                  src={design.author.image}
+                  alt=""
+                  className="h-full w-full rounded-full object-cover ring-1 ring-border/50"
+                  loading="lazy"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center rounded-full bg-muted text-[10px] font-medium text-muted-foreground ring-1 ring-border/50">
+                  {(design.author?.name || design.name).charAt(0).toUpperCase()}
+                </div>
+              )}
             </div>
-            <span className="text-xs font-medium text-muted-foreground/70 tabular-nums">
-              {design.viewCount.toLocaleString()} views
-            </span>
+            <h3 className="text-sm font-medium text-foreground tracking-tight">
+              {design.name}
+            </h3>
           </div>
-        </article>
-      </Link>
-    </FadeIn>
+          <span className="text-xs font-medium text-muted-foreground/70 tabular-nums">
+            {design.viewCount.toLocaleString()} views
+          </span>
+        </div>
+      </article>
+    </Link>
   );
 });
 
 // Navigation Component - extracted and memoized
 const Navigation = memo(function Navigation() {
   return (
-    <FadeIn>
-      <nav className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
-        <Link to="/" className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-foreground text-background">
-            <HugeiconsIcon icon={CommandLineIcon} className="size-4" />
-          </div>
-          <span className="text-lg font-semibold tracking-tight text-foreground">
-            tokenui
-          </span>
-        </Link>
-        <div className="flex items-center gap-4">
-          <Link
-            to="/docs"
-            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Docs
-          </Link>
-          <Link
-            to="/publish"
-            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Publish
-          </Link>
-          <ThemeToggle />
-          <UserMenu />
+    <nav className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
+      <Link to="/" className="flex items-center gap-2">
+        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-foreground text-background">
+          <HugeiconsIcon icon={CommandLineIcon} className="size-4" />
         </div>
-      </nav>
-    </FadeIn>
+        <span className="text-lg font-semibold tracking-tight text-foreground">
+          tokenui
+        </span>
+      </Link>
+      <div className="flex items-center gap-4">
+        <Link
+          to="/docs"
+          className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+        >
+          Docs
+        </Link>
+        <Link
+          to="/publish"
+          className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+        >
+          Publish
+        </Link>
+        <ThemeToggle />
+        <UserMenu />
+      </div>
+    </nav>
   );
 });
 
@@ -326,8 +286,17 @@ const ErrorState = memo(function ErrorState() {
 });
 
 // Main Hero Section
-export function HeroSection() {
+interface HeroSectionProps {
+  initialDesigns?: Design[]
+}
+
+export function HeroSection({ initialDesigns }: HeroSectionProps) {
+  // Use initial designs from SSR if available, otherwise fetch client-side
   const { data: designs, isLoading, error } = usePublicDesigns();
+  
+  // Use SSR data if available, otherwise fall back to client-fetched data
+  const displayDesigns = initialDesigns || designs;
+  const isLoadingDesigns = !initialDesigns && isLoading;
 
   return (
     <main className="relative min-h-screen bg-background">
@@ -347,79 +316,66 @@ export function HeroSection() {
       <div className="relative z-10 mx-auto max-w-6xl px-6 pt-12 md:pt-16">
         {/* Header */}
         <div className="max-w-2xl">
-          <FadeIn delay={0.1}>
-            <h1 className="text-4xl font-medium leading-tight tracking-tight text-foreground md:text-5xl">
-              The design layer
-              <br />
-              <span className="text-muted-foreground">for your coding agent</span>
-            </h1>
-          </FadeIn>
-          <FadeIn delay={0.2}>
-            <p className="mt-4 text-lg text-muted-foreground">
-              A CLI tool that applies a consistent, beautiful design layer on top of AI-generated code.
-            </p>
-          </FadeIn>
+          <h1 className="text-4xl font-medium leading-tight tracking-tight text-foreground md:text-5xl">
+            The design layer
+            <br />
+            <span className="text-muted-foreground">for your coding agent</span>
+          </h1>
+          <p className="mt-4 text-lg text-muted-foreground">
+            A CLI tool that applies a consistent, beautiful design layer on top of AI-generated code.
+          </p>
         </div>
 
         {/* CLI - Subtle bottom command */}
-        <FadeIn delay={0.3}>
-          <div className="mt-8">
-            <CLICopy />
-          </div>
-        </FadeIn>
+        <div className="mt-8">
+          <CLICopy />
+        </div>
 
         {/* Design Grid */}
         <div className="mt-16 md:mt-20">
           {/* Section Title */}
-          <FadeIn delay={0.35}>
-            <div className="mb-6 flex items-center gap-2">
-              <span className="text-sm font-medium text-muted-foreground">Skills Leaderboard</span>
-            </div>
-          </FadeIn>
+          <div className="mb-6 flex items-center gap-2">
+            <span className="text-sm font-medium text-muted-foreground">Skills Leaderboard</span>
+          </div>
 
           {/* Search Bar */}
-          <FadeIn delay={0.4}>
-            <div className="mb-6 flex items-center gap-4 border-b border-border pb-4">
-              <div className="flex flex-1 items-center gap-3">
-                <HugeiconsIcon icon={Search01Icon} className="size-5 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder="Search skills..."
-                  className="flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
-                />
-              </div>
-              <div className="flex h-8 w-8 items-center justify-center rounded border border-border text-sm text-muted-foreground">
-                /
-              </div>
+          <div className="mb-6 flex items-center gap-4 border-b border-border pb-4">
+            <div className="flex flex-1 items-center gap-3">
+              <HugeiconsIcon icon={Search01Icon} className="size-5 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Search skills..."
+                className="flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+              />
             </div>
-          </FadeIn>
+            <div className="flex h-8 w-8 items-center justify-center rounded border border-border text-sm text-muted-foreground">
+              /
+            </div>
+          </div>
 
           {/* Filter Tabs */}
-          <FadeIn delay={0.45}>
-            <div className="mb-6 flex items-center gap-6 text-sm">
-              <button className="border-b-2 border-foreground pb-2 font-medium text-foreground">
-                All Time <span className="ml-1 text-muted-foreground">({designs?.length || 0})</span>
-              </button>
-              <button className="pb-2 text-muted-foreground transition-colors hover:text-foreground">
-                Trending (24h)
-              </button>
-              <button className="pb-2 text-muted-foreground transition-colors hover:text-foreground">
-                Hot
-              </button>
-            </div>
-          </FadeIn>
+          <div className="mb-6 flex items-center gap-6 text-sm">
+            <button className="border-b-2 border-foreground pb-2 font-medium text-foreground">
+              All Time <span className="ml-1 text-muted-foreground">({displayDesigns?.length || 0})</span>
+            </button>
+            <button className="pb-2 text-muted-foreground transition-colors hover:text-foreground">
+              Trending (24h)
+            </button>
+            <button className="pb-2 text-muted-foreground transition-colors hover:text-foreground">
+              Hot
+            </button>
+          </div>
 
-          {isLoading ? (
+          {isLoadingDesigns ? (
             <LoadingState />
-          ) : error ? (
+          ) : error && !initialDesigns ? (
             <ErrorState />
-          ) : designs && designs.length > 0 ? (
+          ) : displayDesigns && displayDesigns.length > 0 ? (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 pb-12">
-              {designs.map((design, index) => (
+              {displayDesigns.map((design) => (
               <DesignCard
                 key={design.id}
                 design={design}
-                index={index}
               />
               ))}
             </div>

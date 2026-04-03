@@ -192,3 +192,223 @@
 .animate-fade-in {
   animation: fade-in 0.5s cubic-bezier(0.23, 1, 0.32, 1) forwards;
 }
+
+/* ========================================
+   VIEW TRANSITION ANIMATIONS
+   ======================================== */
+
+/* Base: Hide old and new snapshots until animation starts */
+::view-transition-old(*),
+::view-transition-new(*) {
+  animation: none;
+  opacity: 0;
+}
+
+/* Cross-fade (default browser behavior) */
+::view-transition-old(*):only-child,
+::view-transition-new(*):only-child {
+  opacity: 1;
+}
+
+/* ----------------------------------------
+   DIRECTIONAL NAVIGATION SLIDES
+   ---------------------------------------- */
+
+/* Nav forward - slide from right (entering) */
+@keyframes nav-forward-enter {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+::view-transition-new(.nav-forward-enter):only-child {
+  animation: nav-forward-enter 0.35s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+/* Nav forward - slide to left (exiting) */
+@keyframes nav-forward-exit {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+}
+
+::view-transition-old(.nav-forward-exit):only-child {
+  animation: nav-forward-exit 0.3s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+/* Nav back - slide from left (entering) */
+@keyframes nav-back-enter {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+::view-transition-new(.nav-back-enter):only-child {
+  animation: nav-back-enter 0.35s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+/* Nav back - slide to right (exiting) */
+@keyframes nav-back-exit {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+}
+
+::view-transition-old(.nav-back-exit):only-child {
+  animation: nav-back-exit 0.3s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+/* ----------------------------------------
+   FADE ANIMATIONS
+   ---------------------------------------- */
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+::view-transition-new(.fade-in):only-child {
+  animation: fade-in 0.3s ease-out forwards;
+}
+
+::view-transition-old(.fade-out):only-child {
+  animation: fade-out 0.2s ease-in forwards;
+}
+
+/* ----------------------------------------
+   SLIDE UP/DOWN ANIMATIONS
+   ---------------------------------------- */
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+::view-transition-new(.slide-up):only-child {
+  animation: slide-up 0.35s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+::view-transition-new(.slide-down):only-child {
+  animation: slide-down 0.35s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+/* ----------------------------------------
+   SHARED ELEMENT MORPHING
+   ---------------------------------------- */
+
+@keyframes morph-forward {
+  0% {
+    clip-path: inset(0 round 12px);
+  }
+  100% {
+    clip-path: inset(0 round 0px);
+  }
+}
+
+@keyframes morph-back {
+  0% {
+    clip-path: inset(0 round 0px);
+  }
+  100% {
+    clip-path: inset(0 round 12px);
+  }
+}
+
+::view-transition-group(.morph-forward) {
+  animation: morph-forward 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+::view-transition-group(.morph-back) {
+  animation: morph-back 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* Shared element cross-fade with scale */
+@keyframes shared-fade {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+::view-transition-image-pair(.shared-fade) {
+  isolation: isolate;
+}
+
+::view-transition-old(.shared-fade),
+::view-transition-new(.shared-fade) {
+  animation: shared-fade 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+::view-transition-old(.shared-fade) {
+  animation: fade-out 0.3s ease-in forwards;
+}
+
+::view-transition-new(.shared-fade) {
+  animation: fade-in 0.4s ease-out forwards;
+}
+
+/* ----------------------------------------
+   ACCESSIBILITY: REDUCED MOTION
+   ---------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

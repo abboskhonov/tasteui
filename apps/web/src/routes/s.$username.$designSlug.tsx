@@ -18,7 +18,11 @@ import {
   Tick02Icon,
 } from "@hugeicons/core-free-icons"
 import { useState, useCallback } from "react"
+import * as React from "react"
 import { cn } from "@/lib/utils"
+
+// ViewTransition is available in React canary - import from react
+const ViewTransition = (React as { ViewTransition?: React.ComponentType<{ children?: React.ReactNode; name?: string; share?: string | object; enter?: string | object; exit?: string | object; default?: string; update?: string }> }).ViewTransition ?? (({ children }: { children?: React.ReactNode }) => children)
 
 // Route parameter validation
 export const Route = createFileRoute("/s/$username/$designSlug")({
@@ -91,8 +95,13 @@ function SkillDetailPage() {
   const installationCommand = `npx tokenui add ${design.author?.username || username}/${design.slug}`
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      {/* Header */}
+    <ViewTransition 
+      enter={{ 'nav-forward': 'nav-forward-enter', 'nav-back': 'nav-back-enter', default: 'none' }}
+      exit={{ 'nav-forward': 'nav-forward-exit', 'nav-back': 'nav-back-exit', default: 'none' }}
+      default="none"
+    >
+      <div className="min-h-screen bg-background text-foreground">
+        {/* Header */}
       <header className="sticky top-0 z-50 h-14 border-b border-border bg-background/95 backdrop-blur-xl">
         <div className="mx-auto h-full max-w-[1800px] px-4 flex items-center justify-between">
           {/* Left: Menu + Breadcrumb */}
@@ -332,12 +341,18 @@ function SkillDetailPage() {
                   )}
                 >
                   {design.demoUrl ? (
-                    <iframe
-                      src={design.demoUrl}
-                      className="w-full h-full border-0"
-                      sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
-                      title={`${design.name} preview`}
-                    />
+                    <ViewTransition 
+                      name={`design-thumbnail-${design.id}`}
+                      share="morph-forward"
+                      default="none"
+                    >
+                      <iframe
+                        src={design.demoUrl}
+                        className="w-full h-full border-0"
+                        sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+                        title={`${design.name} preview`}
+                      />
+                    </ViewTransition>
                   ) : (
                     <div className="h-full flex items-center justify-center">
                       <div className="text-center space-y-4">
@@ -393,6 +408,7 @@ function SkillDetailPage() {
         </main>
       </div>
     </div>
+    </ViewTransition>
   )
 }
 

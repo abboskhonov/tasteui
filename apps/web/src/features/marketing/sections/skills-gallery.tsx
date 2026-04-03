@@ -1,5 +1,6 @@
 "use client"
 
+import * as React from "react"
 import { PlusIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -21,6 +22,9 @@ import { ChevronRight } from "lucide-react"
 import { usePublicDesigns } from "@/lib/queries/designs"
 import { Link } from "@tanstack/react-router"
 
+// ViewTransition is available in React canary - import from react
+const ViewTransition = (React as { ViewTransition?: React.ComponentType<{ children?: React.ReactNode; name?: string; share?: string; default?: string }> }).ViewTransition ?? (({ children }: { children?: React.ReactNode }) => children)
+
 interface DesignCardProps {
   design: {
     id: string
@@ -41,50 +45,56 @@ interface DesignCardProps {
 }
 
 function DesignCard({ design }: DesignCardProps) {
+  // Unique name for shared element transition (thumbnail morphs to preview)
+  const thumbnailName = `design-thumbnail-${design.id}`
+  const username = design.author?.username || "unknown"
+  
   return (
     <Link to="/s/$username/$designSlug" params={{ 
-      username: design.author?.username || "unknown", 
+      username: username, 
       designSlug: design.slug 
     }}>
       <article className="group relative cursor-pointer">
-        {/* Thumbnail Container */}
+        {/* Thumbnail Container with shared element transition */}
         <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-muted ring-1 ring-border/50 transition-all duration-300 ease-out group-hover:-translate-y-2 group-hover:shadow-lg group-hover:shadow-foreground/5 group-hover:ring-border/80">
-          {design.thumbnailUrl ? (
-            <img 
-              src={design.thumbnailUrl} 
-              alt={design.name}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <SkillCard variant="pattern" />
-          )}
+          <ViewTransition name={thumbnailName} share="morph-forward" default="none">
+            {design.thumbnailUrl ? (
+              <img 
+                src={design.thumbnailUrl} 
+                alt={design.name}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <SkillCard variant="pattern" />
+            )}
+          </ViewTransition>
         </div>
         
         {/* Metadata - appears below card on hover */}
-        <div className="absolute -bottom-10 left-0 right-0 flex items-center justify-between px-1 pt-3 opacity-0 transition-all duration-300 ease-out group-hover:opacity-100">
-          <div className="flex items-center gap-2">
-            <div className="relative h-5 w-5">
-              {design.author?.image ? (
-                <img
-                  src={design.author.image}
-                  alt=""
-                  className="h-full w-full rounded-full object-cover ring-1 ring-border/50"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center rounded-full bg-muted text-[10px] font-medium text-muted-foreground ring-1 ring-border/50">
-                  {(design.author?.name || design.name).charAt(0).toUpperCase()}
-                </div>
-              )}
-            </div>
-            <h3 className="text-sm font-medium text-foreground tracking-tight">
-              {design.name}
-            </h3>
+      <div className="absolute -bottom-10 left-0 right-0 flex items-center justify-between px-1 pt-3 opacity-0 transition-all duration-300 ease-out group-hover:opacity-100">
+        <div className="flex items-center gap-2">
+          <div className="relative h-5 w-5">
+            {design.author?.image ? (
+              <img
+                src={design.author.image}
+                alt=""
+                className="h-full w-full rounded-full object-cover ring-1 ring-border/50"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center rounded-full bg-muted text-[10px] font-medium text-muted-foreground ring-1 ring-border/50">
+                {(design.author?.name || design.name).charAt(0).toUpperCase()}
+              </div>
+            )}
           </div>
-          <span className="text-xs font-medium text-muted-foreground/70 tabular-nums">
-            {design.viewCount.toLocaleString()} views
-          </span>
+          <h3 className="text-sm font-medium text-foreground tracking-tight">
+            {design.name}
+          </h3>
         </div>
-      </article>
+        <span className="text-xs font-medium text-muted-foreground/70 tabular-nums">
+          {design.viewCount.toLocaleString()} views
+        </span>
+      </div>
+    </article>
     </Link>
   )
 }
@@ -190,10 +200,9 @@ export function SkillsGallery() {
                 </div>
               ) : (
                 designs.map((design) => (
-                  <DesignCard 
-                    key={design.id} 
-                    design={design} 
-                  />
+                  <ViewTransition key={design.id} default="none">
+                    <DesignCard design={design} />
+                  </ViewTransition>
                 ))
               )}
             </div>
