@@ -13,6 +13,7 @@ import { getCurrentUserServerFn } from "@/lib/api/auth-server"
 import { QueryProvider } from "@/lib/query-provider"
 import { UserProvider } from "@/lib/user-context"
 import { ThemeProvider } from "@/components/theme-provider"
+import { Toaster } from "@/components/ui/sonner"
 
 export const Route = createRootRoute({
   head: () => ({
@@ -82,6 +83,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         {children}
+        <Toaster position="bottom-right" />
         <TanStackDevtools
           config={{
             position: "bottom-right",

@@ -1,9 +1,15 @@
 "use client";
 
-import { memo } from "react";
+import { memo, useCallback } from "react";
 import { Link } from "@tanstack/react-router";
+import { toast } from "sonner";
 import type { Design } from "@/lib/types/design";
 import { SkillCard } from "@/components/marketing/skill-card";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Bookmark01Icon } from "@hugeicons/core-free-icons";
+import { useBookmarkCheck, useCreateBookmark, useDeleteBookmark } from "@/lib/queries/designs";
+import { useUser } from "@/lib/user-context";
+import { cn } from "@/lib/utils";
 
 /**
  * DesignCard - Displays a design thumbnail with hover metadata
@@ -15,6 +21,46 @@ interface DesignCardProps {
 
 export const DesignCard = memo(function DesignCard({ design }: DesignCardProps) {
   const username = design.author?.username || "unknown";
+  const { user } = useUser();
+  const { data: isBookmarked } = useBookmarkCheck(design.id);
+  const createBookmark = useCreateBookmark();
+  const deleteBookmark = useDeleteBookmark();
+  
+  // Optimistic state for instant feedback
+  const isBookmarkedState = isBookmarked || createBookmark.variables === design.id;
+  const isPending = createBookmark.isPending || deleteBookmark.isPending;
+  
+  const handleBookmarkClick = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!user) {
+      toast.error("Please sign in to save skills");
+      return;
+    }
+    
+    if (isPending) return;
+    
+    if (isBookmarked) {
+      deleteBookmark.mutate(design.id, {
+        onSuccess: () => {
+          toast.success("Removed from saved");
+        },
+        onError: () => {
+          toast.error("Failed to remove");
+        }
+      });
+    } else {
+      createBookmark.mutate(design.id, {
+        onSuccess: () => {
+          toast.success("Saved to your collection");
+        },
+        onError: () => {
+          toast.error("Failed to save");
+        }
+      });
+    }
+  }, [isBookmarked, isPending, design.id, design.name, deleteBookmark, createBookmark, user]);
   
   return (
     <Link 
@@ -55,9 +101,33 @@ export const DesignCard = memo(function DesignCard({ design }: DesignCardProps) 
               {design.name}
             </h3>
           </Link>
-          <span className="text-[10px] font-medium text-muted-foreground/70 tabular-nums shrink-0">
-            {design.viewCount.toLocaleString()}
-          </span>
+          <div className="flex items-center gap-2">
+            {user && (
+              <button
+                onClick={handleBookmarkClick}
+                disabled={isPending}
+                className={cn(
+                  "flex items-center justify-center rounded-md p-1 transition-all duration-200",
+                  isBookmarkedState 
+                    ? "text-primary" 
+                    : "text-muted-foreground/70 hover:text-foreground",
+                  isPending && "opacity-50"
+                )}
+                aria-label={isBookmarkedState ? "Remove bookmark" : "Add bookmark"}
+              >
+                <HugeiconsIcon 
+                  icon={Bookmark01Icon} 
+                  className={cn(
+                    "size-3.5 transition-all duration-200",
+                    isBookmarkedState && "fill-current scale-110"
+                  )} 
+                />
+              </button>
+            )}
+            <span className="text-[10px] font-medium text-muted-foreground/70 tabular-nums shrink-0">
+              {design.viewCount.toLocaleString()}
+            </span>
+          </div>
         </div>
       </article>
     </Link>

@@ -1,7 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { useDesign } from "@/lib/queries/designs"
+import { useQueryClient } from "@tanstack/react-query"
+import { useDesign, useBookmarkCheck, useCreateBookmark, useDeleteBookmark, useTrackView, designKeys } from "@/lib/queries/designs"
 import { Button } from "@/components/ui/button"
 import { HugeiconsIcon } from "@hugeicons/react"
+import { toast } from "sonner"
 import { 
   Copy01Icon, 
   ComputerIcon,
@@ -17,9 +19,10 @@ import {
   MoreVerticalIcon,
   Tick02Icon,
 } from "@hugeicons/core-free-icons"
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import * as React from "react"
 import { cn } from "@/lib/utils"
+import { useUser } from "@/lib/user-context"
 
 // ViewTransition is available in React canary - import from react
 const ViewTransition = (React as { ViewTransition?: React.ComponentType<{ children?: React.ReactNode; name?: string; share?: string | object; enter?: string | object; exit?: string | object; default?: string; update?: string }> }).ViewTransition ?? (({ children }: { children?: React.ReactNode }) => children)
@@ -48,6 +51,63 @@ function SkillDetailPage() {
   const [previewMode, setPreviewMode] = useState<"desktop" | "mobile">("desktop")
   const [previewTheme, setPreviewTheme] = useState<"light" | "dark">("light")
   const [isCopied, setIsCopied] = useState<string | null>(null)
+  const { user } = useUser()
+  const { data: isBookmarked } = useBookmarkCheck(design?.id || "")
+  const createBookmark = useCreateBookmark()
+  const deleteBookmark = useDeleteBookmark()
+  const trackView = useTrackView()
+  const queryClient = useQueryClient()
+
+  // Track view when page loads (with deduplication handled by backend)
+  useEffect(() => {
+    if (design?.id && !isLoading) {
+      trackView.mutate(design.id, {
+        onSuccess: (data) => {
+          if (data.isNewView) {
+            // Invalidate queries to refresh view counts
+            queryClient.invalidateQueries({ queryKey: designKeys.my() })
+            queryClient.invalidateQueries({ queryKey: designKeys.detail(username, designSlug) })
+          }
+        },
+        onError: (error) => {
+          console.error("Failed to track view:", error)
+        }
+      })
+    }
+  }, [design?.id, isLoading, username, designSlug])
+
+  // Optimistic state for instant feedback
+  const isBookmarkedState = isBookmarked || (design && createBookmark.variables === design.id)
+  const isBookmarkPending = createBookmark.isPending || deleteBookmark.isPending
+
+  const handleBookmarkClick = useCallback(() => {
+    if (!user || !design) {
+      toast.error("Please sign in to save skills")
+      return
+    }
+    
+    if (isBookmarkPending) return
+    
+    if (isBookmarked) {
+      deleteBookmark.mutate(design.id, {
+        onSuccess: () => {
+          toast.success("Removed from saved")
+        },
+        onError: () => {
+          toast.error("Failed to remove")
+        }
+      })
+    } else {
+      createBookmark.mutate(design.id, {
+        onSuccess: () => {
+          toast.success("Saved to your collection")
+        },
+        onError: () => {
+          toast.error("Failed to save")
+        }
+      })
+    }
+  }, [isBookmarked, isBookmarkPending, design, deleteBookmark, createBookmark, user])
 
   const handleCopy = useCallback(async (text: string, label: string) => {
     try {
@@ -320,9 +380,28 @@ function SkillDetailPage() {
                   >
                     <HugeiconsIcon icon={CodeIcon} className="size-3.5" />
                   </Button>
-                  <Button variant="ghost" size="icon-sm" className="h-7 w-7">
-                    <HugeiconsIcon icon={Bookmark01Icon} className="size-3.5" />
-                  </Button>
+                  {user && (
+                    <Button 
+                      variant="ghost" 
+                      size="icon-sm" 
+                      className={cn(
+                        "h-7 w-7 transition-all duration-200",
+                        isBookmarkedState && "text-primary",
+                        isBookmarkPending && "opacity-50"
+                      )}
+                      onClick={handleBookmarkClick}
+                      disabled={isBookmarkPending}
+                      aria-label={isBookmarkedState ? "Remove bookmark" : "Add bookmark"}
+                    >
+                      <HugeiconsIcon 
+                        icon={Bookmark01Icon} 
+                        className={cn(
+                          "size-3.5 transition-all duration-200",
+                          isBookmarkedState && "fill-current scale-110"
+                        )} 
+                      />
+                    </Button>
+                  )}
                   <Button variant="ghost" size="icon-sm" className="h-7 w-7">
                     <HugeiconsIcon icon={MoreVerticalIcon} className="size-3.5" />
                   </Button>

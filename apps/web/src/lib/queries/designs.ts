@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from "@tanstack/react-query"
 import { api } from "@/lib/api/client"
-import type { Design, CreateDesignData } from "@/lib/types/design"
+import type { Design, CreateDesignData, Bookmark } from "@/lib/types/design"
 
 // Query keys
 export const designKeys = {
@@ -8,6 +8,9 @@ export const designKeys = {
   my: () => [...designKeys.all, "my"] as const,
   public: (category?: string) => [...designKeys.all, "public", category] as const,
   detail: (username: string, slug: string) => [...designKeys.all, "detail", username, slug] as const,
+  bookmarks: () => [...designKeys.all, "bookmarks"] as const,
+  bookmarkCheck: (designId: string) => [...designKeys.all, "bookmark-check", designId] as const,
+  viewAnalytics: () => [...designKeys.all, "view-analytics"] as const,
 }
 
 // Upload image to R2
@@ -134,6 +137,88 @@ export function useCreateDesign() {
       // Invalidate relevant queries
       queryClient.invalidateQueries({ queryKey: designKeys.my() })
       queryClient.invalidateQueries({ queryKey: designKeys.public() })
+    },
+  })
+}
+
+// Get user's bookmarks
+export function useBookmarks() {
+  return useQuery({
+    queryKey: designKeys.bookmarks(),
+    queryFn: async () => {
+      const response = await api.get<{ bookmarks: Bookmark[] }>("/api/bookmarks")
+      return response.bookmarks
+    },
+  })
+}
+
+// Check if a design is bookmarked
+export function useBookmarkCheck(designId: string) {
+  return useQuery({
+    queryKey: designKeys.bookmarkCheck(designId),
+    queryFn: async () => {
+      const response = await api.get<{ isBookmarked: boolean }>(`/api/bookmarks/check/${designId}`)
+      return response.isBookmarked
+    },
+    enabled: !!designId,
+  })
+}
+
+// Create bookmark mutation
+export function useCreateBookmark() {
+  const queryClient = useQueryClient()
+  
+  return useMutation({
+    mutationFn: async (designId: string) => {
+      const response = await api.post<{ bookmark: { id: string } }>("/api/bookmarks", { designId })
+      return response.bookmark
+    },
+    onSuccess: (_, designId) => {
+      queryClient.invalidateQueries({ queryKey: designKeys.bookmarks() })
+      queryClient.invalidateQueries({ queryKey: designKeys.bookmarkCheck(designId) })
+    },
+  })
+}
+
+// Delete bookmark mutation
+export function useDeleteBookmark() {
+  const queryClient = useQueryClient()
+  
+  return useMutation({
+    mutationFn: async (designId: string) => {
+      await api.delete(`/api/bookmarks/${designId}`)
+    },
+    onSuccess: (_, designId) => {
+      queryClient.invalidateQueries({ queryKey: designKeys.bookmarks() })
+      queryClient.invalidateQueries({ queryKey: designKeys.bookmarkCheck(designId) })
+    },
+  })
+}
+
+// Track view mutation - records a view with 24h deduplication
+export function useTrackView() {
+  return useMutation({
+    mutationFn: async (designId: string) => {
+      const response = await api.post<{ 
+        success: boolean
+        isNewView: boolean
+        viewCount: number 
+      }>(`/api/designs/${designId}/view`, {})
+      return response
+    },
+  })
+}
+
+// Get view analytics (last 7 days)
+export function useViewAnalytics() {
+  return useQuery({
+    queryKey: designKeys.viewAnalytics(),
+    queryFn: async () => {
+      const response = await api.get<{ 
+        dailyViews: number[]
+        totalViews: number 
+      }>("/api/analytics/views")
+      return response
     },
   })
 }

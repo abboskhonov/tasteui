@@ -85,3 +85,38 @@ export const design = pgTable("design", {
   index("design_createdAt_idx").on(table.createdAt), // For sorting
   index("design_public_createdAt_idx").on(table.isPublic, table.createdAt), // For public feed
 ])
+
+// Bookmarks table
+export const bookmark = pgTable("bookmark", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  designId: text("design_id")
+    .notNull()
+    .references(() => design.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => [
+  index("bookmark_userId_idx").on(table.userId),
+  index("bookmark_designId_idx").on(table.designId),
+  index("bookmark_user_design_idx").on(table.userId, table.designId),
+])
+
+// Design views table - for tracking unique views with deduplication
+export const designView = pgTable("design_view", {
+  id: text("id").primaryKey(),
+  designId: text("design_id")
+    .notNull()
+    .references(() => design.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .references(() => user.id, { onDelete: "cascade" }), // null for anonymous
+  ipHash: text("ip_hash"), // hash of IP for anonymous tracking
+  viewedAt: timestamp("viewed_at").notNull().defaultNow(),
+}, (table) => [
+  index("designView_designId_idx").on(table.designId),
+  index("designView_userId_idx").on(table.userId),
+  index("designView_design_user_idx").on(table.designId, table.userId),
+  index("designView_design_ip_idx").on(table.designId, table.ipHash),
+  index("designView_viewedAt_idx").on(table.viewedAt),
+])
+

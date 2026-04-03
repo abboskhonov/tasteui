@@ -59,6 +59,20 @@ export function HeroSection({ initialDesigns, initialCategories }: HeroSectionPr
     return data.pages.flatMap((page) => page.designs);
   }, [data, initialDesigns]);
 
+  // Debug logging
+  useEffect(() => {
+    console.log("Search debug:", {
+      searchQuery,
+      debouncedSearch,
+      searchParam,
+      dataPages: data?.pages?.length,
+      firstPageDesigns: data?.pages?.[0]?.designs?.length,
+      allDesignsCount: allDesigns.length,
+      isLoading,
+      error: error?.message,
+    })
+  }, [searchQuery, debouncedSearch, searchParam, data, allDesigns.length, isLoading, error])
+
   // Get unique categories from ALL designs (not filtered)
   const categories = useMemo(() => {
     const cats = new Set<string>();

@@ -16,6 +16,7 @@ import { signOut } from "@/lib/auth-client";
 import { SettingsDialog } from "@/components/settings/settings-dialog";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
+  Bookmark01Icon,
   Logout01Icon,
   Settings01Icon,
   UserIcon,
@@ -79,6 +80,12 @@ export const UserMenu = memo(function UserMenu() {
             <HugeiconsIcon icon={UserIcon} className="size-4" />
             Profile
           </DropdownMenuItem>
+          <Link to="/bookmarks">
+            <DropdownMenuItem className="gap-2 text-sm cursor-pointer">
+              <HugeiconsIcon icon={Bookmark01Icon} className="size-4" />
+              Saved
+            </DropdownMenuItem>
+          </Link>
           <DropdownMenuItem
             className="gap-2 text-sm"
             onClick={() => setSettingsOpen(true)}

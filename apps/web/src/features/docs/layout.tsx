@@ -1,13 +1,13 @@
 "use client"
 
 import { Outlet } from "@tanstack/react-router"
-import { Header } from "@/features/marketing/sections/header"
+import { Navigation } from "@/components/navigation/main-navigation"
 import { DocsSidebar } from "@/features/docs/sidebar"
 
 export function DocsLayout() {
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <Header />
+      <Navigation />
       
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 pt-24">
         <div className="flex gap-12">

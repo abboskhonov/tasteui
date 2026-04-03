@@ -1,6 +1,7 @@
 import { useMemo } from "react"
 import { StatsCard } from "./StatsCard"
 import type { Design } from "@/lib/types/design"
+import { useViewAnalytics } from "@/lib/queries/designs"
 import {
   EyeIcon,
   CodeIcon,
@@ -14,6 +15,8 @@ interface StudioStatsProps {
 }
 
 export function StudioStats({ designs }: StudioStatsProps) {
+  const { data: viewAnalytics } = useViewAnalytics()
+  
   const stats = useMemo(() => {
     if (!designs) {
       return { published: 0, drafts: 0, views: 0, bookmarks: 0 }
@@ -21,10 +24,10 @@ export function StudioStats({ designs }: StudioStatsProps) {
     return {
       published: designs.filter((d) => d.isPublic).length,
       drafts: designs.filter((d) => !d.isPublic).length,
-      views: designs.reduce((sum, d) => sum + d.viewCount, 0),
+      views: viewAnalytics?.totalViews || designs.reduce((sum, d) => sum + d.viewCount, 0),
       bookmarks: 0, // Not implemented yet
     }
-  }, [designs])
+  }, [designs, viewAnalytics])
 
   return (
     <>
@@ -54,6 +57,7 @@ export function StudioStats({ designs }: StudioStatsProps) {
           label="Views"
           value={stats.views}
           icon={<HugeiconsIcon icon={EyeIcon} className="size-4" />}
+          chartData={viewAnalytics?.dailyViews}
         />
         <StatsCard
           label="Code Copies"

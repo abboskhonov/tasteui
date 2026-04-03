@@ -2,9 +2,9 @@ import { Hono } from "hono"
 import { cors } from "hono/cors"
 import { config } from "dotenv"
 import { auth } from "./auth"
-import { user, design } from "./db/schema"
+import { user, design, bookmark, designView } from "./db/schema"
 import { db } from "./db"
-import { eq, desc, and, count, like, or } from "drizzle-orm"
+import { eq, desc, and, count, like, or, sql } from "drizzle-orm"
 import { randomUUID } from "crypto"
 import { uploadFile, generateThumbnailKey, validateThumbnail, generateHtmlKey } from "./storage/r2"
 import { extname } from "path"
@@ -275,6 +275,8 @@ app.get("/api/designs", async (c) => {
   const limit = Math.min(parseInt(c.req.query("limit") || "20"), 50) // Max 50
   const offset = parseInt(c.req.query("offset") || "0")
   
+  console.log("API /api/designs received:", { category, search, limit, offset })
+  
   try {
     const conditions: (import("drizzle-orm").SQL | undefined)[] = [eq(design.isPublic, true)]
     
@@ -284,6 +286,7 @@ app.get("/api/designs", async (c) => {
     
     if (search) {
       const searchPattern = `%${search.toLowerCase()}%`
+      console.log("Search pattern:", searchPattern)
       conditions.push(
         or(
           like(design.name, searchPattern),
@@ -292,6 +295,8 @@ app.get("/api/designs", async (c) => {
         )
       )
     }
+    
+    console.log("Query conditions count:", conditions.length)
     
     const designs = await db
       .select({
@@ -317,6 +322,11 @@ app.get("/api/designs", async (c) => {
       .orderBy(desc(design.createdAt))
       .limit(limit)
       .offset(offset)
+    
+    console.log("Query returned designs count:", designs.length)
+    if (designs.length > 0) {
+      console.log("First design name:", designs[0].name)
+    }
     
     return c.json({ designs, pagination: { limit, offset, hasMore: designs.length === limit } })
   } catch (error) {
@@ -431,6 +441,172 @@ app.get("/api/designs/:username/:slug", async (c) => {
   } catch (error) {
     console.error("Error fetching design:", error)
     return c.json({ error: "Failed to fetch design" }, 500)
+  }
+})
+
+// Record a view for a design (with deduplication - 24h window)
+app.post("/api/designs/:id/view", async (c) => {
+  const designId = c.req.param("id")
+  
+  try {
+    // Check if design exists and is public
+    const [designRecord] = await db
+      .select({ id: design.id, isPublic: design.isPublic, userId: design.userId })
+      .from(design)
+      .where(eq(design.id, designId))
+      .limit(1)
+    
+    if (!designRecord) {
+      return c.json({ error: "Design not found" }, 404)
+    }
+    
+    // Get current user session (optional - anonymous views allowed)
+    const session = await auth.api.getSession({
+      headers: c.req.raw.headers,
+    })
+    
+    const userId = session?.user?.id
+    
+    // Calculate 24 hours ago
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
+    
+    // Check if this user/ip has viewed in the last 24 hours
+    let existingView
+    
+    if (userId) {
+      // For logged-in users: check by userId - get most recent view
+      [existingView] = await db
+        .select()
+        .from(designView)
+        .where(and(
+          eq(designView.designId, designId),
+          eq(designView.userId, userId)
+        ))
+        .orderBy(desc(designView.viewedAt))
+        .limit(1)
+      
+      // Check if the last view was within 24h
+      if (existingView && existingView.viewedAt > twentyFourHoursAgo) {
+        return c.json({ 
+          success: true, 
+          isNewView: false,
+          viewCount: designRecord.isPublic ? await getPublicViewCount(designId) : 0 
+        })
+      }
+    }
+    
+    // Record the new view
+    await db.insert(designView).values({
+      id: randomUUID(),
+      designId,
+      userId: userId || null,
+      viewedAt: new Date(),
+    })
+    
+    // Increment the design view count
+    await db
+      .update(design)
+      .set({ 
+        viewCount: sql`${design.viewCount} + 1`,
+        updatedAt: new Date()
+      })
+      .where(eq(design.id, designId))
+    
+    // Get updated count
+    const viewCount = designRecord.isPublic ? await getPublicViewCount(designId) : 0
+    
+    return c.json({ 
+      success: true, 
+      isNewView: true,
+      viewCount 
+    })
+  } catch (error) {
+    console.error("Error recording view:", error)
+    return c.json({ error: "Failed to record view" }, 500)
+  }
+})
+
+// Helper to get view count
+async function getPublicViewCount(designId: string): Promise<number> {
+  const [result] = await db
+    .select({ count: count() })
+    .from(designView)
+    .where(eq(designView.designId, designId))
+  
+  return Number(result?.count || 0)
+}
+
+// Get view analytics for user's designs (last 7 days)
+app.get("/api/analytics/views", async (c) => {
+  const session = await auth.api.getSession({
+    headers: c.req.raw.headers,
+  })
+  
+  if (!session) {
+    return c.json({ error: "Unauthorized" }, 401)
+  }
+  
+  try {
+    // Get user's designs first
+    const userDesigns = await db
+      .select({ id: design.id })
+      .from(design)
+      .where(eq(design.userId, session.user.id))
+    
+    const designIds = userDesigns.map(d => d.id)
+    
+    if (designIds.length === 0) {
+      return c.json({ 
+        dailyViews: Array(7).fill(0),
+        totalViews: 0
+      })
+    }
+    
+    // Calculate last 7 days
+    const days = []
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date()
+      date.setDate(date.getDate() - i)
+      date.setHours(0, 0, 0, 0)
+      days.push(date)
+    }
+    
+    // Get views for each day using raw SQL with proper parameter binding
+    const dailyViews = await Promise.all(
+      days.map(async (day) => {
+        const nextDay = new Date(day)
+        nextDay.setDate(nextDay.getDate() + 1)
+        
+        // Use raw query with proper date formatting
+        const dayStr = day.toISOString()
+        const nextDayStr = nextDay.toISOString()
+        
+        const result = await db.execute(sql`
+          SELECT COUNT(*) as count 
+          FROM design_view 
+          WHERE design_id IN (${sql.join(designIds.map(id => sql`${id}`), sql`, `)})
+            AND viewed_at >= ${dayStr}::timestamp
+            AND viewed_at < ${nextDayStr}::timestamp
+        `)
+        
+        return Number(result.rows[0]?.count || 0)
+      })
+    )
+    
+    // Get total views
+    const totalResult = await db.execute(sql`
+      SELECT COUNT(*) as count 
+      FROM design_view 
+      WHERE design_id IN (${sql.join(designIds.map(id => sql`${id}`), sql`, `)})
+    `)
+    
+    return c.json({
+      dailyViews,
+      totalViews: Number(totalResult.rows[0]?.count || 0)
+    })
+  } catch (error) {
+    console.error("Error fetching view analytics:", error)
+    return c.json({ error: "Failed to fetch analytics" }, 500)
   }
 })
 
@@ -746,6 +922,163 @@ app.post("/api/upload/html", async (c) => {
       { error: error instanceof Error ? error.message : "Failed to upload HTML" },
       500
     )
+  }
+})
+
+// Get user's bookmarks
+app.get("/api/bookmarks", async (c) => {
+  const session = await auth.api.getSession({
+    headers: c.req.raw.headers,
+  })
+  
+  if (!session) {
+    return c.json({ error: "Unauthorized" }, 401)
+  }
+  
+  try {
+    const bookmarks = await db
+      .select({
+        id: bookmark.id,
+        createdAt: bookmark.createdAt,
+        designId: design.id,
+        designName: design.name,
+        designSlug: design.slug,
+        designDescription: design.description,
+        designCategory: design.category,
+        designThumbnailUrl: design.thumbnailUrl,
+        designViewCount: design.viewCount,
+        designCreatedAt: design.createdAt,
+        authorName: user.name,
+        authorUsername: user.username,
+        authorImage: user.image,
+      })
+      .from(bookmark)
+      .innerJoin(design, eq(bookmark.designId, design.id))
+      .innerJoin(user, eq(design.userId, user.id))
+      .where(eq(bookmark.userId, session.user.id))
+      .orderBy(desc(bookmark.createdAt))
+    
+    return c.json({ bookmarks })
+  } catch (error) {
+    console.error("Error fetching bookmarks:", error)
+    return c.json({ error: "Failed to fetch bookmarks" }, 500)
+  }
+})
+
+// Check if a design is bookmarked
+app.get("/api/bookmarks/check/:designId", async (c) => {
+  const session = await auth.api.getSession({
+    headers: c.req.raw.headers,
+  })
+  
+  if (!session) {
+    return c.json({ error: "Unauthorized" }, 401)
+  }
+  
+  const designId = c.req.param("designId")
+  
+  try {
+    const [existingBookmark] = await db
+      .select()
+      .from(bookmark)
+      .where(and(
+        eq(bookmark.userId, session.user.id),
+        eq(bookmark.designId, designId)
+      ))
+      .limit(1)
+    
+    return c.json({ isBookmarked: !!existingBookmark })
+  } catch (error) {
+    console.error("Error checking bookmark:", error)
+    return c.json({ error: "Failed to check bookmark" }, 500)
+  }
+})
+
+// Create a bookmark
+app.post("/api/bookmarks", async (c) => {
+  const session = await auth.api.getSession({
+    headers: c.req.raw.headers,
+  })
+  
+  if (!session) {
+    return c.json({ error: "Unauthorized" }, 401)
+  }
+  
+  const body = await c.req.json()
+  const { designId } = body
+  
+  if (!designId) {
+    return c.json({ error: "Design ID is required" }, 400)
+  }
+  
+  try {
+    // Check if design exists
+    const [designRecord] = await db
+      .select()
+      .from(design)
+      .where(eq(design.id, designId))
+      .limit(1)
+    
+    if (!designRecord) {
+      return c.json({ error: "Design not found" }, 404)
+    }
+    
+    // Check if already bookmarked
+    const [existingBookmark] = await db
+      .select()
+      .from(bookmark)
+      .where(and(
+        eq(bookmark.userId, session.user.id),
+        eq(bookmark.designId, designId)
+      ))
+      .limit(1)
+    
+    if (existingBookmark) {
+      return c.json({ bookmark: existingBookmark })
+    }
+    
+    // Create bookmark
+    const [newBookmark] = await db
+      .insert(bookmark)
+      .values({
+        id: randomUUID(),
+        userId: session.user.id,
+        designId: designId,
+        createdAt: new Date(),
+      })
+      .returning()
+    
+    return c.json({ bookmark: newBookmark }, 201)
+  } catch (error) {
+    console.error("Error creating bookmark:", error)
+    return c.json({ error: "Failed to create bookmark" }, 500)
+  }
+})
+
+// Delete a bookmark
+app.delete("/api/bookmarks/:designId", async (c) => {
+  const session = await auth.api.getSession({
+    headers: c.req.raw.headers,
+  })
+  
+  if (!session) {
+    return c.json({ error: "Unauthorized" }, 401)
+  }
+  
+  const designId = c.req.param("designId")
+  
+  try {
+    await db
+      .delete(bookmark)
+      .where(and(
+        eq(bookmark.userId, session.user.id),
+        eq(bookmark.designId, designId)
+      ))
+    
+    return c.json({ success: true })
+  } catch (error) {
+    console.error("Error deleting bookmark:", error)
+    return c.json({ error: "Failed to delete bookmark" }, 500)
   }
 })
 

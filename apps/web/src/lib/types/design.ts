@@ -28,3 +28,19 @@ export interface CreateDesignData {
   thumbnailUrl?: string
   isPublic?: boolean
 }
+
+export interface Bookmark {
+  id: string
+  createdAt: string
+  designId: string
+  designName: string
+  designSlug: string
+  designDescription: string | null
+  designCategory: string
+  designThumbnailUrl: string | null
+  designViewCount: number
+  designCreatedAt: string
+  authorName: string | null
+  authorUsername: string | null
+  authorImage: string | null
+}
