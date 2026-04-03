@@ -98,38 +98,39 @@
   --foreground: oklch(0.985 0 0);
   --brand: oklch(0.72 0.12 240);
   --brand-foreground: oklch(0.165 0 0);
-  --card: oklch(0.205 0 0);
+  --card: oklch(0.145 0 0);
   --card-foreground: oklch(0.985 0 0);
-  --surface-elevated: oklch(0.235 0.01 255);
-  --surface-strong: oklch(0.285 0.012 255);
-  --popover: oklch(0.205 0 0);
+  --surface-elevated: oklch(0.17 0.002 270);
+  --surface-strong: oklch(0.22 0.005 270);
+  --popover: oklch(0.145 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
+  --primary: oklch(0.985 0 0);
   --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
+  --secondary: oklch(0.22 0 0);
   --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
+  --muted: oklch(0.22 0 0);
   --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
+  --accent: oklch(0.22 0 0);
   --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --grid: oklch(0.34 0.01 255 / 0.5);
-  --chart-1: oklch(0.87 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.269 0 0);
+  --input: oklch(0.269 0 0);
+  --ring: oklch(0.439 0 0);
+  --grid: oklch(0.35 0.01 270 / 0.55);
+  --chart-1: oklch(0.439 0 0);
   --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
+  --chart-3: oklch(0.708 0 0);
+  --chart-4: oklch(0.84 0 0);
+  --chart-5: oklch(0.985 0 0);
+  --radius: 0.45rem;
+  --sidebar: oklch(0.145 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-primary: oklch(0.985 0 0);
+  --sidebar-primary-foreground: oklch(0.205 0 0);
+  --sidebar-accent: oklch(0.22 0 0);
   --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar-border: oklch(0.269 0 0);
+  --sidebar-ring: oklch(0.439 0 0);
 }
 
 @layer base {
@@ -139,312 +140,81 @@
   body {
     @apply bg-background text-foreground;
   }
-  html {
-    @apply font-sans;
-  }
 }
 
-@layer components {
-  .tokenui-shell {
-    background-image:
-      radial-gradient(
-        circle at top,
-        color-mix(in oklch, var(--foreground) 4%, transparent) 0%,
-        transparent 34%
-      ),
-      linear-gradient(
-        180deg,
-        color-mix(in oklch, var(--background) 100%, transparent) 0%,
-        color-mix(in oklch, var(--background) 100%, transparent) 100%
-      );
-  }
+/* ============================================
+   VIEW TRANSITIONS - CSS Recipes
+   ============================================ */
 
-  .tokenui-preview {
-    background: linear-gradient(
-      180deg,
-      color-mix(in oklch, var(--surface-elevated) 70%, transparent) 0%,
-      color-mix(in oklch, var(--surface-strong) 92%, transparent) 100%
-    );
-    box-shadow:
-      inset 0 1px 0 color-mix(in oklch, var(--foreground) 8%, transparent),
-      0 18px 40px color-mix(in oklch, var(--foreground) 10%, transparent);
-  }
-
-  .tokenui-wordmark {
-    text-shadow:
-      1px 1px 0 color-mix(in oklch, var(--foreground) 12%, transparent),
-      2px 2px 0 color-mix(in oklch, var(--foreground) 7%, transparent);
-  }
+/* Timing Variables */
+:root {
+  --duration-exit: 150ms;
+  --duration-enter: 210ms;
+  --duration-move: 400ms;
 }
 
-/* Optimized fade-in animation using transform instead of top/left */
-@keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* Shared Keyframes */
+@keyframes fade {
+  from { filter: blur(3px); opacity: 0; }
+  to { filter: blur(0); opacity: 1; }
 }
 
-.animate-fade-in {
-  animation: fade-in 0.5s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+@keyframes slide {
+  from { translate: var(--slide-offset); }
+  to { translate: 0; }
 }
 
-/* ----------------------------------------
-   CUSTOM MINIMALIST SCROLLBAR
-   ---------------------------------------- */
-
-/* WebKit browsers (Chrome, Safari, Edge) */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+@keyframes slide-y {
+  from { transform: translateY(var(--slide-y-offset, 10px)); }
+  to { transform: translateY(0); }
 }
 
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
+/* Directional Navigation - nav-forward */
+::view-transition-old(.nav-forward) {
+  --slide-offset: -60px;
+  animation:
+    var(--duration-exit) ease-in both fade reverse,
+    var(--duration-move) ease-in-out both slide reverse;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 2px;
+::view-transition-new(.nav-forward) {
+  --slide-offset: 60px;
+  animation:
+    var(--duration-enter) ease-out var(--duration-exit) both fade,
+    var(--duration-move) ease-in-out both slide;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: var(--muted-foreground);
+/* Directional Navigation - nav-back */
+::view-transition-old(.nav-back) {
+  --slide-offset: 60px;
+  animation:
+    var(--duration-exit) ease-in both fade reverse,
+    var(--duration-move) ease-in-out both slide reverse;
 }
 
-/* Firefox */
-.custom-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: var(--border) transparent;
+::view-transition-new(.nav-back) {
+  --slide-offset: -60px;
+  animation:
+    var(--duration-enter) ease-out var(--duration-exit) both fade,
+    var(--duration-move) ease-in-out both slide;
 }
 
-/* Hide scrollbar when not needed but keep functionality */
-.custom-scrollbar-hidden {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+/* Shared Element Morph */
+::view-transition-group(.morph) {
+  animation-duration: var(--duration-move);
 }
 
-.custom-scrollbar-hidden::-webkit-scrollbar {
-  display: none;
+::view-transition-image-pair(.morph) {
+  animation-name: via-blur;
 }
 
-/* ========================================
-   VIEW TRANSITION ANIMATIONS
-   ======================================== */
-
-/* Base: Hide old and new snapshots until animation starts */
-::view-transition-old(*),
-::view-transition-new(*) {
-  animation: none;
-  opacity: 0;
+@keyframes via-blur {
+  30% { filter: blur(3px); }
 }
 
-/* Cross-fade (default browser behavior) */
-::view-transition-old(*):only-child,
-::view-transition-new(*):only-child {
-  opacity: 1;
-}
-
-/* ----------------------------------------
-   DIRECTIONAL NAVIGATION SLIDES
-   ---------------------------------------- */
-
-/* Nav forward - slide from right (entering) */
-@keyframes nav-forward-enter {
-  from {
-    opacity: 0;
-    transform: translateX(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-::view-transition-new(.nav-forward-enter):only-child {
-  animation: nav-forward-enter 0.35s cubic-bezier(0.23, 1, 0.32, 1) forwards;
-}
-
-/* Nav forward - slide to left (exiting) */
-@keyframes nav-forward-exit {
-  from {
-    opacity: 1;
-    transform: translateX(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateX(-30px);
-  }
-}
-
-::view-transition-old(.nav-forward-exit):only-child {
-  animation: nav-forward-exit 0.3s cubic-bezier(0.23, 1, 0.32, 1) forwards;
-}
-
-/* Nav back - slide from left (entering) */
-@keyframes nav-back-enter {
-  from {
-    opacity: 0;
-    transform: translateX(-30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-::view-transition-new(.nav-back-enter):only-child {
-  animation: nav-back-enter 0.35s cubic-bezier(0.23, 1, 0.32, 1) forwards;
-}
-
-/* Nav back - slide to right (exiting) */
-@keyframes nav-back-exit {
-  from {
-    opacity: 1;
-    transform: translateX(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateX(30px);
-  }
-}
-
-::view-transition-old(.nav-back-exit):only-child {
-  animation: nav-back-exit 0.3s cubic-bezier(0.23, 1, 0.32, 1) forwards;
-}
-
-/* ----------------------------------------
-   FADE ANIMATIONS
-   ---------------------------------------- */
-
-@keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes fade-out {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
-}
-
-::view-transition-new(.fade-in):only-child {
-  animation: fade-in 0.3s ease-out forwards;
-}
-
-::view-transition-old(.fade-out):only-child {
-  animation: fade-out 0.2s ease-in forwards;
-}
-
-/* ----------------------------------------
-   SLIDE UP/DOWN ANIMATIONS
-   ---------------------------------------- */
-
-@keyframes slide-up {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slide-down {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-::view-transition-new(.slide-up):only-child {
-  animation: slide-up 0.35s cubic-bezier(0.23, 1, 0.32, 1) forwards;
-}
-
-::view-transition-new(.slide-down):only-child {
-  animation: slide-down 0.35s cubic-bezier(0.23, 1, 0.32, 1) forwards;
-}
-
-/* ----------------------------------------
-   SHARED ELEMENT MORPHING
-   ---------------------------------------- */
-
-@keyframes morph-forward {
-  0% {
-    clip-path: inset(0 round 12px);
-  }
-  100% {
-    clip-path: inset(0 round 0px);
-  }
-}
-
-@keyframes morph-back {
-  0% {
-    clip-path: inset(0 round 0px);
-  }
-  100% {
-    clip-path: inset(0 round 12px);
-  }
-}
-
-::view-transition-group(.morph-forward) {
-  animation: morph-forward 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-::view-transition-group(.morph-back) {
-  animation: morph-back 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-/* Shared element cross-fade with scale */
-@keyframes shared-fade {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-
-::view-transition-image-pair(.shared-fade) {
-  isolation: isolate;
-}
-
-::view-transition-old(.shared-fade),
-::view-transition-new(.shared-fade) {
-  animation: shared-fade 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
-}
-
-::view-transition-old(.shared-fade) {
-  animation: fade-out 0.3s ease-in forwards;
-}
-
-::view-transition-new(.shared-fade) {
-  animation: fade-in 0.4s ease-out forwards;
-}
-
-/* ----------------------------------------
-   TEXT MORPH (for shared text elements)
-   ---------------------------------------- */
-
-/* Avoids raster scaling artifacts on text by hiding the old snapshot */
+/* Text Morph */
 ::view-transition-group(.text-morph) {
-  animation-duration: 400ms;
+  animation-duration: var(--duration-move);
 }
 
 ::view-transition-old(.text-morph) {
@@ -457,78 +227,25 @@
   object-position: left top;
 }
 
-/* ----------------------------------------
-   SIMPLE FADE TEST
-   ---------------------------------------- */
-
-::view-transition-group(.fade-test) {
-  animation-duration: 500ms;
+/* Slide animations for Suspense reveals */
+::view-transition-old(.slide-down) {
+  animation:
+    var(--duration-exit) ease-out both fade reverse,
+    var(--duration-exit) ease-out both slide-y reverse;
 }
 
-::view-transition-old(.fade-test) {
-  animation: fade-out 300ms ease-in forwards;
+::view-transition-new(.slide-up) {
+  animation:
+    var(--duration-enter) ease-in var(--duration-exit) both fade,
+    var(--duration-move) ease-in both slide-y;
 }
 
-::view-transition-new(.fade-test) {
-  animation: fade-in 500ms ease-out forwards;
-}
-
-/* ----------------------------------------
-   ACCESSIBILITY: REDUCED MOTION
-   ---------------------------------------- */
-
+/* Reduced Motion */
 @media (prefers-reduced-motion: reduce) {
-  ::view-transition-group(*),
   ::view-transition-old(*),
-  ::view-transition-new(*) {
-    animation: none !important;
-    opacity: 1 !important;
-    transform: none !important;
-  }
-}
-
-/* ----------------------------------------
-   SKILL GALLERY VIEW TRANSITIONS
-   ---------------------------------------- */
-
-/* 
-   View Transitions API creates pseudo-elements based on the view-transition-name value.
-   Since we have dynamic names (design-thumbnail-${id}), we can't target them individually
-   in CSS. Instead, we rely on the browser's default View Transition behavior with
-   optimized timing.
-
-   The browser will automatically animate elements with matching view-transition-name
-   values between the old and new page.
-*/
-
-/* Default: fast, snappy transitions for all view transitions */
-::view-transition-group(*) {
-  animation-duration: 300ms;
-}
-
-::view-transition-old(*) {
-  animation: vt-fade-out 250ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-::view-transition-new(*) {
-  animation: vt-fade-in 300ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-/* Fast fade animations */
-@keyframes vt-fade-out {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
-}
-
-@keyframes vt-fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
   }
 }

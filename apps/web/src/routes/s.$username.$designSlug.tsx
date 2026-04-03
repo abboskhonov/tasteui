@@ -19,9 +19,16 @@ import {
   MoreVerticalIcon,
   Tick02Icon,
 } from "@hugeicons/core-free-icons"
-import { useState, useCallback, useEffect } from "react"
+import { useState, useCallback, useEffect, startTransition } from "react"
+import * as React from "react"
 import { cn } from "@/lib/utils"
 import { useUser } from "@/lib/user-context"
+
+// ViewTransition from React 19 canary
+const ViewTransition = (React as { ViewTransition?: React.ComponentType<{ children?: React.ReactNode; name?: string; share?: string; default?: string; enter?: string | object; exit?: string | object }> }).ViewTransition ?? (({ children }: { children?: React.ReactNode }) => children)
+
+// addTransitionType is available in React canary
+const addTransitionType = (React as unknown as { addTransitionType?: (type: string) => void }).addTransitionType ?? (() => {})
 
 // Route parameter validation
 export const Route = createFileRoute("/s/$username/$designSlug")({
@@ -162,20 +169,48 @@ function SkillDetailPage() {
   const installationCommand = design ? `npx tokenui add ${design.author?.username || username}/${design.slug}` : ""
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      {/* Header */}
+    <ViewTransition
+      enter={{
+        'nav-forward': 'nav-forward',
+        'nav-back': 'nav-back',
+        default: 'none',
+      }}
+      exit={{
+        'nav-forward': 'nav-forward',
+        'nav-back': 'nav-back',
+        default: 'none',
+      }}
+      default="none"
+    >
+      <div className="min-h-screen bg-background text-foreground">
+        {/* Header */}
         <header className="sticky top-0 z-50 h-14 border-b border-border bg-background/95 backdrop-blur-xl">
           <div className="mx-auto h-full max-w-[1800px] px-4 flex items-center justify-between">
             {/* Left: Menu + Breadcrumb */}
             <div className="flex items-center gap-4">
-              <Link to="/">
+              <Link 
+                to="/"
+                onClick={() => {
+                  startTransition(() => {
+                    addTransitionType('nav-back')
+                  })
+                }}
+              >
                 <Button variant="ghost" size="icon-sm" className="h-8 w-8 -ml-2">
                   <HugeiconsIcon icon={Menu01Icon} className="size-4" />
                 </Button>
               </Link>
               
               <div className="flex items-center gap-2 text-sm">
-                <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link 
+                  to="/" 
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  onClick={() => {
+                    startTransition(() => {
+                      addTransitionType('nav-back')
+                    })
+                  }}
+                >
                   Skills
                 </Link>
                 <span className="text-muted-foreground">/</span>
@@ -231,268 +266,267 @@ function SkillDetailPage() {
             </div>
           </div>
         </header>
-      {/* Main Content */}
-      <div className="flex">
-        {/* Left Sidebar */}
-        <aside className="w-[320px] min-h-[calc(100vh-56px)] border-r border-border bg-card/30 hidden lg:block">
-          <div className="p-6 space-y-6">
-            {/* Title Section */}
-            <div>
-              <h1 
-                className="text-2xl font-semibold tracking-tight"
-                style={{ viewTransitionName: `design-name-${design.id}` }}
-              >
-                {design.name.toLowerCase()}
-              </h1>
-              <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
-                {design.description || "A reusable UI component for modern applications."}
-              </p>
-            </div>
 
-            {/* Created by */}
-            <Link to="/u/$username" params={{ username }} className="flex items-center gap-3 group cursor-pointer">
-              {design.author?.image ? (
-                <img
-                  src={design.author.image}
-                  alt={design.author.name || "Author"}
-                  className="h-10 w-10 rounded-full object-cover ring-2 ring-border group-hover:ring-primary/50 transition-all"
-                />
-              ) : (
-                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-brand to-brand/70 flex items-center justify-center text-primary-foreground font-medium">
-                  {(design.author?.name || design.name).charAt(0).toUpperCase()}
-                </div>
-              )}
+        {/* Main Content */}
+        <div className="flex">
+          {/* Left Sidebar */}
+          <aside className="w-[320px] min-h-[calc(100vh-56px)] border-r border-border bg-card/30 hidden lg:block">
+            <div className="p-6 space-y-6">
+              {/* Title Section */}
               <div>
-                <p className="font-medium group-hover:text-primary transition-colors">{design.author?.name || username}</p>
-                <p className="text-xs text-muted-foreground">@{username}</p>
-              </div>
-            </Link>
-
-            {/* Installation */}
-            <div className="space-y-2">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Install
-              </p>
-              <div 
-                className="group relative rounded-lg bg-muted/50 px-3 py-2.5 font-mono text-xs cursor-pointer hover:bg-muted transition-colors border border-border/50"
-                onClick={() => handleCopy(installationCommand, "install")}
-              >
-                <span className="text-muted-foreground">$</span>{" "}
-                <span className="text-foreground">{installationCommand}</span>
-                <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <HugeiconsIcon 
-                    icon={isCopied === "install" ? Tick02Icon : Copy01Icon} 
-                    className={cn("size-3.5", isCopied === "install" && "text-green-500")}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Stats */}
-            <div className="flex items-center gap-4 pt-4 border-t border-border">
-              <div className="text-center">
-                <p className="text-lg font-semibold">{design.viewCount.toLocaleString()}</p>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Views</p>
-              </div>
-              <div className="h-8 w-px bg-border" />
-              <div className="text-center">
-                <p className="text-lg font-semibold">
-                  {Math.max(1, Math.floor(design.viewCount * 0.1)).toLocaleString()}
+                <ViewTransition name={`design-name-${design.id}`} share="morph">
+                  <h1 className="text-2xl font-semibold tracking-tight">
+                    {design.name.toLowerCase()}
+                  </h1>
+                </ViewTransition>
+                <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+                  {design.description || "A reusable UI component for modern applications."}
                 </p>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Copies</p>
+              </div>
+
+              {/* Created by */}
+              <Link to="/u/$username" params={{ username }} className="flex items-center gap-3 group cursor-pointer">
+                {design.author?.image ? (
+                  <img
+                    src={design.author.image}
+                    alt={design.author.name || "Author"}
+                    className="h-10 w-10 rounded-full object-cover ring-2 ring-border group-hover:ring-primary/50 transition-all"
+                  />
+                ) : (
+                  <div className="h-10 w-10 rounded-full bg-gradient-to-br from-brand to-brand/70 flex items-center justify-center text-primary-foreground font-medium">
+                    {(design.author?.name || design.name).charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div>
+                  <p className="font-medium group-hover:text-primary transition-colors">{design.author?.name || username}</p>
+                  <p className="text-xs text-muted-foreground">@{username}</p>
+                </div>
+              </Link>
+
+              {/* Installation */}
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Install
+                </p>
+                <div 
+                  className="group relative rounded-lg bg-muted/50 px-3 py-2.5 font-mono text-xs cursor-pointer hover:bg-muted transition-colors border border-border/50"
+                  onClick={() => handleCopy(installationCommand, "install")}
+                >
+                  <span className="text-muted-foreground">$</span>{" "}
+                  <span className="text-foreground">{installationCommand}</span>
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <HugeiconsIcon 
+                      icon={isCopied === "install" ? Tick02Icon : Copy01Icon} 
+                      className={cn("size-3.5", isCopied === "install" && "text-green-500")}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Stats */}
+              <div className="flex items-center gap-4 pt-4 border-t border-border">
+                <div className="text-center">
+                  <p className="text-lg font-semibold">{design.viewCount.toLocaleString()}</p>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Views</p>
+                </div>
+                <div className="h-8 w-px bg-border" />
+                <div className="text-center">
+                  <p className="text-lg font-semibold">
+                    {Math.max(1, Math.floor(design.viewCount * 0.1)).toLocaleString()}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Copies</p>
+                </div>
+              </div>
+
+              {/* Created date */}
+              <div className="pt-4 border-t border-border">
+                <p className="text-xs text-muted-foreground">
+                  Created on {new Date(design.createdAt).toLocaleDateString("en-US", { 
+                    month: "long", 
+                    day: "numeric", 
+                    year: "numeric" 
+                  })}
+                </p>
               </div>
             </div>
+          </aside>
 
-            {/* Created date */}
-            <div className="pt-4 border-t border-border">
-              <p className="text-xs text-muted-foreground">
-                Created on {new Date(design.createdAt).toLocaleDateString("en-US", { 
-                  month: "long", 
-                  day: "numeric", 
-                  year: "numeric" 
-                })}
-              </p>
-            </div>
-          </div>
-        </aside>
+          {/* Main Preview Area */}
+          <main className="flex-1 min-h-[calc(100vh-56px)] bg-muted/30">
+            {activeTab === "preview" ? (
+              <div className="h-full flex flex-col">
+                {/* Preview Toolbar */}
+                <div className="h-12 border-b border-border flex items-center justify-between px-4 bg-background/50">
+                  <div className="flex items-center gap-1">
+                    {/* Device Toggle */}
+                    <div className="flex items-center bg-muted rounded-lg p-0.5">
+                      <button
+                        onClick={() => setPreviewMode("desktop")}
+                        className={cn(
+                          "px-2.5 py-1 rounded text-xs font-medium transition-all flex items-center gap-1.5",
+                          previewMode === "desktop" 
+                            ? "bg-background text-foreground shadow-sm" 
+                            : "text-muted-foreground hover:text-foreground"
+                        )}
+                      >
+                        <HugeiconsIcon icon={ComputerIcon} className="size-3.5" />
+                        <span className="hidden sm:inline">Desktop</span>
+                      </button>
+                      <button
+                        onClick={() => setPreviewMode("mobile")}
+                        className={cn(
+                          "px-2.5 py-1 rounded text-xs font-medium transition-all flex items-center gap-1.5",
+                          previewMode === "mobile" 
+                            ? "bg-background text-foreground shadow-sm" 
+                            : "text-muted-foreground hover:text-foreground"
+                        )}
+                      >
+                        <HugeiconsIcon icon={ComputerIcon} className="size-3.5 rotate-90" />
+                        <span className="hidden sm:inline">Mobile</span>
+                      </button>
+                    </div>
 
-        {/* Main Preview Area */}
-        <main className="flex-1 min-h-[calc(100vh-56px)] bg-muted/30">
-          {activeTab === "preview" ? (
-            <div className="h-full flex flex-col">
-              {/* Preview Toolbar */}
-              <div className="h-12 border-b border-border flex items-center justify-between px-4 bg-background/50">
-                <div className="flex items-center gap-1">
-                  {/* Device Toggle */}
-                  <div className="flex items-center bg-muted rounded-lg p-0.5">
-                    <button
-                      onClick={() => setPreviewMode("desktop")}
-                      className={cn(
-                        "px-2.5 py-1 rounded text-xs font-medium transition-all flex items-center gap-1.5",
-                        previewMode === "desktop" 
-                          ? "bg-background text-foreground shadow-sm" 
-                          : "text-muted-foreground hover:text-foreground"
-                      )}
-                    >
-                      <HugeiconsIcon icon={ComputerIcon} className="size-3.5" />
-                      <span className="hidden sm:inline">Desktop</span>
-                    </button>
-                    <button
-                      onClick={() => setPreviewMode("mobile")}
-                      className={cn(
-                        "px-2.5 py-1 rounded text-xs font-medium transition-all flex items-center gap-1.5",
-                        previewMode === "mobile" 
-                          ? "bg-background text-foreground shadow-sm" 
-                          : "text-muted-foreground hover:text-foreground"
-                      )}
-                    >
-                      <HugeiconsIcon icon={ComputerIcon} className="size-3.5 rotate-90" />
-                      <span className="hidden sm:inline">Mobile</span>
-                    </button>
-                  </div>
+                    <div className="h-4 w-px bg-border mx-2" />
 
-                  <div className="h-4 w-px bg-border mx-2" />
-
-                  {/* Theme Toggle */}
-                  <Button 
-                    variant="ghost" 
-                    size="icon-sm" 
-                    className="h-7 w-7"
-                    onClick={togglePreviewTheme}
-                  >
-                    <HugeiconsIcon 
-                      icon={previewTheme === "dark" ? Sun01Icon : Moon01Icon} 
-                      className="size-3.5" 
-                    />
-                  </Button>
-
-                  {/* Refresh */}
-                  <Button 
-                    variant="ghost" 
-                    size="icon-sm" 
-                    className="h-7 w-7"
-                    onClick={refreshPreview}
-                  >
-                    <HugeiconsIcon icon={ReloadIcon} className="size-3.5" />
-                  </Button>
-                </div>
-
-                {/* Right Toolbar */}
-                <div className="flex items-center gap-1">
-                  <Button 
-                    variant="ghost" 
-                    size="icon-sm" 
-                    className="h-7 w-7"
-                    onClick={() => setActiveTab("code")}
-                  >
-                    <HugeiconsIcon icon={CodeIcon} className="size-3.5" />
-                  </Button>
-                  {user && (
+                    {/* Theme Toggle */}
                     <Button 
                       variant="ghost" 
                       size="icon-sm" 
-                      className={cn(
-                        "h-7 w-7 transition-all duration-200",
-                        isBookmarkedState && "text-primary",
-                        isBookmarkPending && "opacity-50"
-                      )}
-                      onClick={handleBookmarkClick}
-                      disabled={isBookmarkPending}
-                      aria-label={isBookmarkedState ? "Remove bookmark" : "Add bookmark"}
+                      className="h-7 w-7"
+                      onClick={togglePreviewTheme}
                     >
                       <HugeiconsIcon 
-                        icon={Bookmark01Icon} 
-                        className={cn(
-                          "size-3.5 transition-all duration-200",
-                          isBookmarkedState && "fill-current scale-110"
-                        )} 
+                        icon={previewTheme === "dark" ? Sun01Icon : Moon01Icon} 
+                        className="size-3.5" 
                       />
                     </Button>
-                  )}
-                  <Button variant="ghost" size="icon-sm" className="h-7 w-7">
-                    <HugeiconsIcon icon={MoreVerticalIcon} className="size-3.5" />
-                  </Button>
-                </div>
-              </div>
 
-              {/* Preview Content */}
-              <div className={cn(
-                "flex-1 overflow-hidden min-h-0",
-                previewTheme === "dark" ? "bg-[#0d1117]" : "bg-background"
-              )}>
-                <div 
-                  className={cn(
-                    "w-full h-full transition-all duration-300",
-                    previewMode === "mobile" ? "max-w-[375px] mx-auto" : "w-full"
-                  )}
-                >
-                  {design.demoUrl ? (
-                    <div 
-                      className="w-full h-full"
-                      style={{ viewTransitionName: `design-thumbnail-${design.id}` }}
+                    {/* Refresh */}
+                    <Button 
+                      variant="ghost" 
+                      size="icon-sm" 
+                      className="h-7 w-7"
+                      onClick={refreshPreview}
                     >
-                      <iframe
-                        src={design.demoUrl}
-                        className="w-full h-full border-0"
-                        sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
-                        title={`${design.name} preview`}
-                      />
-                    </div>
-                  ) : (
-                    <div className="h-full flex items-center justify-center">
-                      <div className="text-center space-y-4">
-                        <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto">
-                          <HugeiconsIcon icon={File01Icon} className="size-8 text-muted-foreground" />
+                      <HugeiconsIcon icon={ReloadIcon} className="size-3.5" />
+                    </Button>
+                  </div>
+
+                  {/* Right Toolbar */}
+                  <div className="flex items-center gap-1">
+                    <Button 
+                      variant="ghost" 
+                      size="icon-sm" 
+                      className="h-7 w-7"
+                      onClick={() => setActiveTab("code")}
+                    >
+                      <HugeiconsIcon icon={CodeIcon} className="size-3.5" />
+                    </Button>
+                    {user && (
+                      <Button 
+                        variant="ghost" 
+                        size="icon-sm" 
+                        className={cn(
+                          "h-7 w-7 transition-all duration-200",
+                          isBookmarkedState && "text-primary",
+                          isBookmarkPending && "opacity-50"
+                        )}
+                        onClick={handleBookmarkClick}
+                        disabled={isBookmarkPending}
+                        aria-label={isBookmarkedState ? "Remove bookmark" : "Add bookmark"}
+                      >
+                        <HugeiconsIcon 
+                          icon={Bookmark01Icon} 
+                          className={cn(
+                            "size-3.5 transition-all duration-200",
+                            isBookmarkedState && "fill-current scale-110"
+                          )} 
+                        />
+                      </Button>
+                    )}
+                    <Button variant="ghost" size="icon-sm" className="h-7 w-7">
+                      <HugeiconsIcon icon={MoreVerticalIcon} className="size-3.5" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Preview Content */}
+                <div className={cn(
+                  "flex-1 overflow-hidden min-h-0",
+                  previewTheme === "dark" ? "bg-[#0d1117]" : "bg-background"
+                )}>
+                  <div 
+                    className={cn(
+                      "w-full h-full transition-all duration-300",
+                      previewMode === "mobile" ? "max-w-[375px] mx-auto" : "w-full"
+                    )}
+                  >
+                    {design.demoUrl ? (
+                      <ViewTransition name={`design-thumbnail-${design.id}`} share="morph">
+                        <div className="w-full h-full">
+                          <iframe
+                            src={design.demoUrl}
+                            className="w-full h-full border-0"
+                            sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+                            title={`${design.name} preview`}
+                          />
                         </div>
-                        <p className="text-sm text-muted-foreground">
-                          No preview available for this skill
-                        </p>
+                      </ViewTransition>
+                    ) : (
+                      <div className="h-full flex items-center justify-center">
+                        <div className="text-center space-y-4">
+                          <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto">
+                            <HugeiconsIcon icon={File01Icon} className="size-8 text-muted-foreground" />
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            No preview available for this skill
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ) : (
-            /* Code View */
-            (<div className="h-full flex flex-col">
-              <div className="h-12 border-b border-border flex items-center justify-between px-4 bg-background/50">
-                <div className="flex items-center gap-2">
+            ) : (
+              <div className="h-full flex flex-col">
+                <div className="h-12 border-b border-border flex items-center justify-between px-4 bg-background/50">
+                  <div className="flex items-center gap-2">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="gap-2 h-8 text-xs"
+                      onClick={() => setActiveTab("preview")}
+                    >
+                      <HugeiconsIcon icon={ArrowLeftIcon} className="size-3.5" />
+                      Back to preview
+                    </Button>
+                  </div>
                   <Button 
-                    variant="ghost" 
+                    variant="outline" 
                     size="sm" 
                     className="gap-2 h-8 text-xs"
-                    onClick={() => setActiveTab("preview")}
+                    onClick={handleCopyCode}
                   >
-                    <HugeiconsIcon icon={ArrowLeftIcon} className="size-3.5" />
-                    Back to preview
+                    <HugeiconsIcon 
+                      icon={isCopied === "code" ? Tick02Icon : Copy01Icon} 
+                      className={cn("size-3.5", isCopied === "code" && "text-green-500")}
+                    />
+                    {isCopied === "code" ? "Copied!" : "Copy code"}
                   </Button>
                 </div>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="gap-2 h-8 text-xs"
-                  onClick={handleCopyCode}
-                >
-                  <HugeiconsIcon 
-                    icon={isCopied === "code" ? Tick02Icon : Copy01Icon} 
-                    className={cn("size-3.5", isCopied === "code" && "text-green-500")}
-                  />
-                  {isCopied === "code" ? "Copied!" : "Copy code"}
-                </Button>
-              </div>
-              <div className="flex-1 overflow-auto bg-[#0d1117]">
-                <div className="max-w-4xl mx-auto p-6">
-                  <pre className="text-sm font-mono text-white/90 whitespace-pre-wrap">
-                    {design.content || "// No code available"}
-                  </pre>
+                <div className="flex-1 overflow-auto bg-[#0d1117]">
+                  <div className="max-w-4xl mx-auto p-6">
+                    <pre className="text-sm font-mono text-white/90 whitespace-pre-wrap">
+                      {design.content || "// No code available"}
+                    </pre>
+                  </div>
                 </div>
               </div>
-            </div>)
-          )}
-        </main>
+            )}
+          </main>
+        </div>
       </div>
-    </div>
+    </ViewTransition>
   )
 }
 

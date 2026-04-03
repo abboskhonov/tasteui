@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useCallback } from "react"
+import { useCallback, startTransition } from "react"
 import { PlusIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -25,6 +25,12 @@ import { useNavigate } from "@tanstack/react-router"
 import { useQueryClient } from "@tanstack/react-query"
 import { api } from "@/lib/api/client"
 import type { Design } from "@/lib/types/design"
+
+// ViewTransition from React 19 canary
+const ViewTransition = (React as { ViewTransition?: React.ComponentType<{ children?: React.ReactNode; name?: string; share?: string; default?: string }> }).ViewTransition ?? (({ children }: { children?: React.ReactNode }) => children)
+
+// addTransitionType is available in React canary
+const addTransitionType = (React as unknown as { addTransitionType?: (type: string) => void }).addTransitionType ?? (() => {})
 
 interface DesignCardProps {
   design: {
@@ -66,72 +72,88 @@ function DesignCard({ design, queryClient }: DesignCardProps) {
   }, [design, queryClient])
   
   const handleCardClick = useCallback(() => {
-    navigate({
-      to: "/s/$username/$designSlug",
-      params: { username, designSlug: design.slug }
+    startTransition(() => {
+      addTransitionType('nav-forward')
+      navigate({
+        to: "/s/$username/$designSlug",
+        params: { username, designSlug: design.slug }
+      })
     })
   }, [navigate, username, design.slug])
   
   const handleAuthorClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation()
-    navigate({
-      to: "/u/$username",
-      params: { username }
+    startTransition(() => {
+      navigate({
+        to: "/u/$username",
+        params: { username }
+      })
     })
   }, [navigate, username])
   
   return (
-    <article 
-      className="group relative cursor-pointer z-0 hover:z-50"
-      onClick={handleCardClick}
-      onMouseEnter={handleMouseEnter}
-    >
-      {/* Thumbnail Container - moves up on hover */}
-      <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-muted ring-1 ring-border/50 transition-all duration-300 ease-out group-hover:-translate-y-3 group-hover:shadow-lg group-hover:shadow-foreground/5 group-hover:ring-border group-hover:scale-[1.02]">
-        <div style={{ viewTransitionName: `design-thumbnail-${design.id}` }}>
-          {design.thumbnailUrl ? (
-            <img 
-              src={design.thumbnailUrl} 
-              alt={design.name}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <SkillCard variant="pattern" />
-          )}
-        </div>
-      </div>
-      
-      {/* Metadata - appears below the card on hover */}
-      <div className="absolute -bottom-3 left-0 right-0 flex items-center justify-between px-1 pt-3 opacity-0 transition-all duration-300 ease-out group-hover:opacity-100">
-        <div 
-          className="flex items-center gap-3 min-w-0 cursor-pointer"
-          onClick={handleAuthorClick}
-        >
-          <div className="relative h-6 w-6 shrink-0">
-            {design.author?.image ? (
-              <img
-                src={design.author.image}
-                alt=""
-                className="h-full w-full rounded-full object-cover ring-1 ring-border/50"
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center rounded-full bg-muted text-[10px] font-medium text-muted-foreground ring-1 ring-border/50">
-                {(design.author?.name || design.name).charAt(0).toUpperCase()}
-              </div>
-            )}
-          </div>
-          <h3 
-            className="text-sm font-medium text-foreground tracking-tight truncate hover:text-primary transition-colors"
-            style={{ viewTransitionName: `design-name-${design.id}` }}
+    <ViewTransition>
+      <article 
+        className="group relative cursor-pointer z-0 hover:z-50"
+        onClick={handleCardClick}
+        onMouseEnter={handleMouseEnter}
+      >
+        {/* Thumbnail Container - moves up on hover */}
+        <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-muted ring-1 ring-border/50 transition-all duration-300 ease-out group-hover:-translate-y-3 group-hover:shadow-lg group-hover:shadow-foreground/5 group-hover:ring-border group-hover:scale-[1.02]">
+          <ViewTransition 
+            name={`design-thumbnail-${design.id}`}
+            share="morph"
+            default="none"
           >
-            {design.name}
-          </h3>
+            <div className="h-full w-full">
+              {design.thumbnailUrl ? (
+                <img 
+                  src={design.thumbnailUrl} 
+                  alt={design.name}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <SkillCard variant="pattern" />
+              )}
+            </div>
+          </ViewTransition>
         </div>
-        <span className="text-xs font-medium text-muted-foreground/70 tabular-nums shrink-0">
-          {design.viewCount.toLocaleString()}
-        </span>
-      </div>
-    </article>
+        
+        {/* Metadata - appears below the card on hover */}
+        <div className="absolute -bottom-3 left-0 right-0 flex items-center justify-between px-1 pt-3 opacity-0 transition-all duration-300 ease-out group-hover:opacity-100">
+          <div 
+            className="flex items-center gap-3 min-w-0 cursor-pointer"
+            onClick={handleAuthorClick}
+          >
+            <div className="relative h-6 w-6 shrink-0">
+              {design.author?.image ? (
+                <img
+                  src={design.author.image}
+                  alt=""
+                  className="h-full w-full rounded-full object-cover ring-1 ring-border/50"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center rounded-full bg-muted text-[10px] font-medium text-muted-foreground ring-1 ring-border/50">
+                  {(design.author?.name || design.name).charAt(0).toUpperCase()}
+                </div>
+              )}
+            </div>
+            <ViewTransition
+              name={`design-name-${design.id}`}
+              share="morph"
+              default="none"
+            >
+              <h3 className="text-sm font-medium text-foreground tracking-tight truncate hover:text-primary transition-colors">
+                {design.name}
+              </h3>
+            </ViewTransition>
+          </div>
+          <span className="text-xs font-medium text-muted-foreground/70 tabular-nums shrink-0">
+            {design.viewCount.toLocaleString()}
+          </span>
+        </div>
+      </article>
+    </ViewTransition>
   )
 }
 
