@@ -202,11 +202,11 @@ export function PublishPage() {
     }
 
     try {
-      const result = await createDesign.mutateAsync(data)
+      const newDesign = await createDesign.mutateAsync(data)
       // Redirect to edit mode with the new draft ID
       navigate({ 
         to: "/publish", 
-        search: { edit: result.design.id } 
+        search: { edit: newDesign.id } 
       })
     } catch {
       alert("Failed to save draft. Please try again.")
