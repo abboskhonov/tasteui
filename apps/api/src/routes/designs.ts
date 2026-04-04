@@ -31,7 +31,7 @@ function parseFiles(filesJson: string | null): unknown[] | null {
   }
 }
 
-// Create a new design
+// Create a new design (with optional draft mode)
 app.post("/", async (c) => {
   const session = await auth.api.getSession({
     headers: c.req.raw.headers,
@@ -43,22 +43,27 @@ app.post("/", async (c) => {
 
   const body = await c.req.json()
 
-  // Validation
-  if (!body.name || !body.name.trim()) {
-    return badRequest(c, "Name is required")
-  }
+  // Validation only for non-draft publications
+  const isDraft = body.status === "draft"
+  
+  if (!isDraft) {
+    if (!body.name || !body.name.trim()) {
+      return badRequest(c, "Name is required")
+    }
 
-  if (!body.category) {
-    return badRequest(c, "Category is required")
-  }
+    if (!body.category) {
+      return badRequest(c, "Category is required")
+    }
 
-  if (!body.content || !body.content.trim()) {
-    return badRequest(c, "Content is required")
+    if (!body.content || !body.content.trim()) {
+      return badRequest(c, "Content is required")
+    }
   }
 
   try {
     // Generate unique slug for this user
-    const baseSlug = generateSlug(body.name.trim())
+    const name = body.name?.trim() || "untitled"
+    const baseSlug = generateSlug(name)
     let slug = baseSlug
     let counter = 1
 
@@ -82,14 +87,14 @@ app.post("/", async (c) => {
       .values({
         id: randomUUID(),
         userId: session.user.id,
-        name: body.name.trim(),
+        name: name,
         slug: slug,
         description: body.description?.trim() || null,
-        category: body.category,
-        content: body.content.trim(),
+        category: body.category || "uncategorized",
+        content: body.content?.trim() || "",
         demoUrl: body.demoUrl?.trim() || null,
         thumbnailUrl: body.thumbnailUrl?.trim() || null,
-        status: body.status ?? "draft", // Default to draft
+        status: body.status ?? "draft",
         files: body.files ? JSON.stringify(body.files) : null,
         createdAt: new Date(),
         updatedAt: new Date(),
