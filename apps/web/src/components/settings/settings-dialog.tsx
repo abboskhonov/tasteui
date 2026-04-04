@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
-import { useUserProfile, useUpdateProfile, useUploadImage } from "@/lib/queries/auth"
+import { useUserProfile, useUpdateProfile, useUploadImage, useCheckUsername } from "@/lib/queries/auth"
 import { useTheme } from "@/components/theme-provider"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { 
@@ -24,6 +24,7 @@ import {
   LinkIcon,
   Mail01Icon,
   ImageUploadIcon,
+  Alert01Icon,
 } from "@hugeicons/core-free-icons"
 import type { ProfileUpdateData } from "@/lib/types/auth"
 import { cn } from "@/lib/utils"
@@ -47,7 +48,15 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const [formData, setFormData] = useState<ProfileUpdateData>({})
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
   const [isSaving, setIsSaving] = useState(false)
+  const [usernameError, setUsernameError] = useState<string | null>(null)
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  
+  // Debounced username for availability check
+  const [debouncedUsername, setDebouncedUsername] = useState<string>("")
+  const usernameDebounceRef = useRef<NodeJS.Timeout | null>(null)
+  
+  // Check username availability
+  const { data: usernameCheck, isLoading: isCheckingUsername } = useCheckUsername(debouncedUsername)
 
   useEffect(() => {
     if (user) {
@@ -61,12 +70,14 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
         telegram: user.telegram || "",
         image: user.image || "",
       })
+      setDebouncedUsername(user.username || "")
     }
   }, [user])
 
   useEffect(() => {
     return () => {
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
+      if (usernameDebounceRef.current) clearTimeout(usernameDebounceRef.current)
     }
   }, [])
 
@@ -74,21 +85,45 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
     if (!user) return
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
     
+    // Don't save if username is taken
+    if (usernameCheck && !usernameCheck.available && !usernameCheck.current) {
+      setUsernameError("Username already taken")
+      return
+    }
+    
     saveTimeoutRef.current = setTimeout(() => {
       setIsSaving(true)
+      setUsernameError(null)
       updateProfile.mutate(data, {
         onSuccess: () => {
           setLastSaved(new Date())
           setIsSaving(false)
         },
-        onError: () => setIsSaving(false),
+        onError: (error: any) => {
+          setIsSaving(false)
+          if (error.status === 409) {
+            setUsernameError("Username already taken")
+          }
+        },
       })
     }, 1000)
-  }, [user, updateProfile])
+  }, [user, updateProfile, usernameCheck])
 
   const handleChange = (field: keyof ProfileUpdateData, value: string) => {
     const newData = { ...formData, [field]: value }
     setFormData(newData)
+    
+    // Special handling for username field
+    if (field === "username") {
+      setUsernameError(null)
+      
+      // Debounce username availability check
+      if (usernameDebounceRef.current) clearTimeout(usernameDebounceRef.current)
+      usernameDebounceRef.current = setTimeout(() => {
+        setDebouncedUsername(value)
+      }, 500)
+    }
+    
     triggerSave(newData)
   }
 
@@ -296,12 +331,40 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                       value={formData.username || ""}
                       onChange={(e) => handleChange("username", e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ""))}
                       placeholder="username"
-                      className="pl-7"
+                      className={cn(
+                        "pl-7",
+                        (usernameError || (usernameCheck && !usernameCheck.available && !usernameCheck.current)) && "border-red-500 focus-visible:ring-red-500",
+                        usernameCheck?.available && !usernameCheck.current && !usernameError && "border-green-500 focus-visible:ring-green-500"
+                      )}
                     />
+                    {/* Status indicator */}
+                    {formData.username && formData.username.length >= 3 && (
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                        {isCheckingUsername ? (
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
+                        ) : usernameError || (usernameCheck && !usernameCheck.available && !usernameCheck.current) ? (
+                          <HugeiconsIcon icon={Alert01Icon} className="size-4 text-red-500" />
+                        ) : usernameCheck?.available && !usernameCheck.current && !usernameError ? (
+                          <HugeiconsIcon icon={Tick02Icon} className="size-4 text-green-500" />
+                        ) : null}
+                      </div>
+                    )}
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Your public URL: tokenui.dev/@{formData.username || "username"}
-                  </p>
+                  
+                  {/* Error or success message */}
+                  {usernameError || (usernameCheck && !usernameCheck.available && !usernameCheck.current) ? (
+                    <p className="text-xs text-red-500">
+                      {usernameError || "Username already taken"}
+                    </p>
+                  ) : usernameCheck?.available && !usernameCheck.current && formData.username && formData.username.length >= 3 && !usernameError ? (
+                    <p className="text-xs text-green-500">
+                      Username available
+                    </p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">
+                      Your public URL: tokenui.dev/@{formData.username || "username"}
+                    </p>
+                  )}
                 </div>
 
                 <Separator />

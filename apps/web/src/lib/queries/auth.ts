@@ -10,15 +10,34 @@ interface UploadImageResponse {
   contentType: string
 }
 
+interface CheckUsernameResponse {
+  available: boolean
+  username: string
+  current: boolean
+}
+
 // Query keys
 export const authKeys = {
   all: ["auth"] as const,
   session: () => [...authKeys.all, "session"] as const,
   user: () => [...authKeys.all, "user"] as const,
   profile: () => [...authKeys.all, "profile"] as const,
+  usernameCheck: (username: string) => [...authKeys.all, "username-check", username] as const,
 }
 
-// Upload image to R2
+// Check username availability
+export function useCheckUsername(username: string) {
+  return useQuery({
+    queryKey: authKeys.usernameCheck(username),
+    queryFn: async (): Promise<CheckUsernameResponse> => {
+      const response = await api.get<CheckUsernameResponse>(`/api/user/check-username/${username}`)
+      return response
+    },
+    enabled: username.length >= 3, // Only check if username is at least 3 characters
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    retry: false,
+  })
+}
 export function useUploadImage() {
   return useMutation({
     mutationFn: async (file: File): Promise<UploadImageResponse> => {
@@ -78,8 +97,17 @@ export function useUpdateProfile() {
         return old
       })
       
-      // Invalidate all designs queries to refetch with new author image
-      queryClient.invalidateQueries({ queryKey: ["designs"] })
+      // Invalidate and refetch all designs queries to update author usernames
+      queryClient.invalidateQueries({ 
+        queryKey: ["designs"], 
+        refetchType: "all" 
+      })
+      
+      // Immediately refetch active design queries to prevent stale links
+      queryClient.refetchQueries({ 
+        queryKey: ["designs"],
+        type: "active" 
+      })
     },
   })
 }

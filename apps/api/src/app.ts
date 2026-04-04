@@ -155,6 +155,31 @@ app.put("/api/user/profile", async (c) => {
     }
   }
   
+  // Check username uniqueness if being updated
+  if (updateData.username) {
+    // Get current user's username to allow keeping their own username
+    const [currentUserRecord] = await db
+      .select({ username: user.username })
+      .from(user)
+      .where(eq(user.id, session.user.id))
+      .limit(1)
+    
+    const currentUsername = currentUserRecord?.username
+    
+    // Only check if username is different from current
+    if (updateData.username !== currentUsername) {
+      const [existingUser] = await db
+        .select({ id: user.id })
+        .from(user)
+        .where(eq(user.username, updateData.username))
+        .limit(1)
+      
+      if (existingUser) {
+        return c.json({ error: "Username already taken" }, 409)
+      }
+    }
+  }
+  
   try {
     const [updated] = await db
       .update(user)
@@ -169,6 +194,47 @@ app.put("/api/user/profile", async (c) => {
   } catch (error) {
     console.error("Error updating profile:", error)
     return c.json({ error: "Failed to update profile" }, 500)
+  }
+})
+
+// Check if username is available
+app.get("/api/user/check-username/:username", async (c) => {
+  const username = c.req.param("username")
+  const session = await auth.api.getSession({
+    headers: c.req.raw.headers,
+  })
+  
+  try {
+    // Get current user's username if logged in
+    let currentUsername: string | null = null
+    if (session) {
+      const [currentUserRecord] = await db
+        .select({ username: user.username })
+        .from(user)
+        .where(eq(user.id, session.user.id))
+        .limit(1)
+      currentUsername = currentUserRecord?.username ?? null
+    }
+    
+    // Don't flag as taken if it's the user's current username
+    if (username === currentUsername) {
+      return c.json({ available: true, username, current: true })
+    }
+    
+    const [existingUser] = await db
+      .select({ id: user.id })
+      .from(user)
+      .where(eq(user.username, username))
+      .limit(1)
+    
+    return c.json({ 
+      available: !existingUser, 
+      username,
+      current: false 
+    })
+  } catch (error) {
+    console.error("Error checking username:", error)
+    return c.json({ error: "Failed to check username" }, 500)
   }
 })
 
