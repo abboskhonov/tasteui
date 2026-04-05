@@ -1,0 +1,55 @@
+{
+  "name": "tokenui.sh",
+  "version": "1.0.1",
+  "description": "CLI for installing design system skills to coding agents (Claude, Cursor, etc.)",
+  "type": "module",
+  "bin": {
+    "tokenui.sh": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "dev": "bun run src/index.ts",
+    "build": "bun build src/index.ts --outdir ./dist --target node",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "bun run build"
+  },
+  "dependencies": {
+    "@clack/prompts": "^0.11.0",
+    "picocolors": "^1.1.1",
+    "yaml": "^2.8.3"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/node": "^22.10.0",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT",
+  "keywords": [
+    "tokenui",
+    "design-system",
+    "skills",
+    "ai",
+    "claude",
+    "cursor",
+    "agents",
+    "claude-code",
+    "windsurf",
+    "cline"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/abboskhonov/tokenui.git",
+    "directory": "apps/cli"
+  },
+  "bugs": {
+    "url": "https://github.com/abboskhonov/tokenui/issues"
+  },
+  "homepage": "https://tokenui.dev"
+}

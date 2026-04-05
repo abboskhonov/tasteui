@@ -1,0 +1,18 @@
+# Source files
+src/
+
+# TypeScript config
+tsconfig.json
+
+# Development
+.gitignore
+
+# Testing artifacts
+*.test.ts
+*.spec.ts
+
+# CI/CD
+.github/
+
+# Documentation (published separately)
+# README.md and LICENSE are included via files array
