@@ -29,24 +29,18 @@ name:
 description: 
 ---
 
-# Component Name
+# Skill Name
 
-Describe your component here...
+Describe what this skill does and how it helps AI agents...
 
 ## Usage
 
-\`\`\`tsx
-import { Component } from "./component"
-
-export default function App() {
-  return <Component />
-}
-\`\`\`
+	tell ai agent to use it like this: "use the <skill-name> skill to..."
 
 ## API Reference
 
-| Prop | Type | Description |
-|------|------|-------------|
+| Option | Type | Description |
+|--------|------|-------------|
 | | | |
 `
 
@@ -56,13 +50,13 @@ const DEFAULT_DEMO_HTML = `<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Component Demo</title>
+  <title>Skill Demo</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="p-8">
-  <!-- Add your component demo here -->
+  <!-- Add your skill demo here -->
   <div class="text-center">
-    <h1 class="text-2xl font-bold">Component Demo</h1>
+    <h1 class="text-2xl font-bold">Skill Demo</h1>
     <p class="text-gray-600 mt-2">Your preview will appear here</p>
   </div>
 </body>
@@ -307,7 +301,7 @@ export function PublishPage() {
             <HugeiconsIcon icon={ArrowLeft01Icon} className="size-4" />
           </Button>
           <span className="text-sm font-medium text-muted-foreground">
-            {isEditing ? "Edit Draft" : "New Component"}
+            {isEditing ? "Edit Draft" : "New Skill"}
             {step === 2 && " - Info"}
           </span>
         </div>

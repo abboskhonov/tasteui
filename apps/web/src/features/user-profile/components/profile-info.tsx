@@ -1,4 +1,10 @@
 import type { UserProfile, UserStats } from "@/lib/queries/users"
+import { useState } from "react"
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 interface ProfileInfoProps {
   user: UserProfile
@@ -7,54 +13,77 @@ interface ProfileInfoProps {
 }
 
 export function ProfileInfo({ user, username, stats }: ProfileInfoProps) {
+  const [showAvatarOverlay, setShowAvatarOverlay] = useState(false)
+
   return (
-    <div className="flex items-start gap-5 mb-8 pb-6 border-b border-border">
-      {/* Avatar */}
-      <div className="shrink-0">
-        {user.image ? (
-          <img
-            src={user.image}
-            alt={user.name || username}
-            className="h-16 w-16 rounded-2xl object-cover ring-1 ring-border"
-          />
-        ) : (
-          <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-brand to-brand/70 flex items-center justify-center text-primary-foreground text-2xl font-semibold">
-            {(user.name || username).charAt(0).toUpperCase()}
+    <>
+      <div className="flex items-start gap-5 mb-8 pb-6 border-b border-border">
+        {/* Avatar - Clickable */}
+        <button
+          onClick={() => user.image && setShowAvatarOverlay(true)}
+          className="shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
+        >
+          {user.image ? (
+            <img
+              src={user.image}
+              alt={user.name || username}
+              className="h-16 w-16 rounded-2xl object-cover ring-1 ring-border"
+            />
+          ) : (
+            <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-brand to-brand/70 flex items-center justify-center text-primary-foreground text-2xl font-semibold">
+              {(user.name || username).charAt(0).toUpperCase()}
+            </div>
+          )}
+        </button>
+
+        {/* Info */}
+        <div className="flex-1 min-w-0">
+          <h1 className="text-xl font-semibold tracking-tight">
+            {user.name || username}
+          </h1>
+          <p className="text-sm text-muted-foreground mt-0.5">@{username}</p>
+          
+          {user.bio && (
+            <p className="text-sm text-foreground mt-2 max-w-md">{user.bio}</p>
+          )}
+
+          {/* Social Links */}
+          <div className="flex items-center gap-3 mt-3">
+            {user.x && <XLink handle={user.x} />}
+            {user.github && <GitHubLink handle={user.github} />}
+            {user.website && <WebsiteLink url={user.website} />}
           </div>
-        )}
-      </div>
+        </div>
 
-      {/* Info */}
-      <div className="flex-1 min-w-0">
-        <h1 className="text-xl font-semibold tracking-tight">
-          {user.name || username}
-        </h1>
-        <p className="text-sm text-muted-foreground mt-0.5">@{username}</p>
-        
-        {user.bio && (
-          <p className="text-sm text-foreground mt-2 max-w-md">{user.bio}</p>
-        )}
-
-        {/* Social Links */}
-        <div className="flex items-center gap-3 mt-3">
-          {user.x && <XLink handle={user.x} />}
-          {user.github && <GitHubLink handle={user.github} />}
-          {user.website && <WebsiteLink url={user.website} />}
+        {/* Stats */}
+        <div className="flex items-center gap-6 text-sm shrink-0">
+          <div className="text-center">
+            <span className="block text-xl font-semibold">{stats.components}</span>
+            <span className="text-xs text-muted-foreground">skills</span>
+          </div>
+          <div className="text-center">
+            <span className="block text-xl font-semibold">{stats.followers}</span>
+            <span className="text-xs text-muted-foreground">followers</span>
+          </div>
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="flex items-center gap-6 text-sm shrink-0">
-        <div className="text-center">
-          <span className="block text-xl font-semibold">{stats.components}</span>
-          <span className="text-xs text-muted-foreground">skills</span>
-        </div>
-        <div className="text-center">
-          <span className="block text-xl font-semibold">{stats.followers}</span>
-          <span className="text-xs text-muted-foreground">followers</span>
-        </div>
-      </div>
-    </div>
+      {/* Avatar Overlay Dialog */}
+      <Dialog open={showAvatarOverlay} onOpenChange={setShowAvatarOverlay}>
+        <DialogContent className="max-w-lg p-0 bg-background/95 backdrop-blur-xl border-0 overflow-hidden">
+          <DialogTitle className="sr-only">
+            {user.name || username}&apos;s Profile Picture
+          </DialogTitle>
+          {user.image && (
+            <img
+              src={user.image}
+              alt={user.name || username}
+              className="w-full h-auto max-h-[80vh] object-contain"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }
 

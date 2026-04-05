@@ -46,21 +46,20 @@ export const sidebarItems: SidebarItem[] = [
 ]
 
 export const categories: Category[] = [
-  { name: "Marketing Blocks", count: 10 },
-  { name: "Announcements", count: 10 },
-  { name: "Backgrounds", count: 33 },
-  { name: "Borders", count: 12 },
-  { name: "Calls to Action", count: 34 },
-  { name: "Clients", count: 16 },
-  { name: "Comparisons", count: 6 },
-  { name: "Docks", count: 6 },
-  { name: "Features", count: 36 },
-  { name: "Footers", count: 14 },
-  { name: "Heroes", count: 73 },
-  { name: "Hooks", count: 31 },
-  { name: "Images", count: 26 },
-  { name: "Maps", count: 2 },
+  { name: "Minimalist", count: 0 },
+  { name: "Neobrutalist", count: 0 },
+  { name: "Glassmorphism", count: 0 },
+  { name: "Cyberpunk", count: 0 },
+  { name: "Claymorphism", count: 0 },
+  { name: "Neumorphism", count: 0 },
+  { name: "Retro", count: 0 },
+  { name: "3D", count: 0 },
+  { name: "Animated", count: 0 },
+  { name: "Gradient", count: 0 },
 ]
+
+// Export for type checking against backend
+export const VALID_CATEGORIES = categories.map(c => c.name)
 
 export const skills: Skill[] = [
   {

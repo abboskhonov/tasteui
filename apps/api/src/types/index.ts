@@ -86,3 +86,20 @@ export interface DesignFilters {
   category?: string
   search?: string
 }
+
+// Valid skill categories (design styles/aesthetics)
+// These should match the frontend categories
+export const VALID_CATEGORIES = [
+  "Minimalist",
+  "Neobrutalist",
+  "Glassmorphism",
+  "Cyberpunk",
+  "Claymorphism",
+  "Neumorphism",
+  "Retro",
+  "3D",
+  "Animated",
+  "Gradient",
+] as const
+
+export type DesignCategory = (typeof VALID_CATEGORIES)[number]

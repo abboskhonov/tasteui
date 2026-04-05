@@ -96,7 +96,7 @@ export function ComponentInfoSidebar({
             </SelectTrigger>
             <SelectContent>
               {categories.map((cat) => (
-                <SelectItem key={cat.name} value={cat.name.toLowerCase()}>
+                <SelectItem key={cat.name} value={cat.name}>
                   {cat.name}
                 </SelectItem>
               ))}

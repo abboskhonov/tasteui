@@ -1,9 +1,9 @@
 import { Hono } from "hono"
-import { eq, and, desc, count, like, or, sql } from "drizzle-orm"
+import { eq, and, desc, count, like, or, sql, gte } from "drizzle-orm"
 import { randomUUID } from "crypto"
 import { auth } from "../auth"
 import { db } from "../db"
-import { user, design, designView } from "../db/schema"
+import { user, design, designView, star } from "../db/schema"
 import type { AuthContext } from "../types"
 import { generateSlug } from "../utils/slugs"
 import { success, created, unauthorized, notFound, internalError, badRequest, forbidden, logError } from "../utils/errors"
@@ -189,6 +189,179 @@ app.get("/", async (c) => {
   } catch (error) {
     logError("FetchDesigns", error)
     return internalError(c, "Failed to fetch designs")
+  }
+})
+
+// Get trending skills (most views in last 7 days)
+app.get("/leaderboard/trending", async (c) => {
+  const limit = Math.min(parseInt(c.req.query("limit") || "20"), 50)
+  const offset = parseInt(c.req.query("offset") || "0")
+
+  try {
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+
+    // Get designs with most recent views
+    const trendingDesigns = await db
+      .select({
+        id: design.id,
+        name: design.name,
+        slug: design.slug,
+        description: design.description,
+        category: design.category,
+        thumbnailUrl: design.thumbnailUrl,
+        viewCount: design.viewCount,
+        createdAt: design.createdAt,
+        userId: design.userId,
+        author: {
+          name: user.name,
+          username: user.username,
+          image: user.image,
+        },
+        recentViews: count(designView.id)
+      })
+      .from(design)
+      .leftJoin(user, eq(design.userId, user.id))
+      .leftJoin(designView, eq(design.id, designView.designId))
+      .where(and(
+        eq(design.status, "approved"),
+        gte(designView.viewedAt, sevenDaysAgo)
+      ))
+      .groupBy(design.id, user.name, user.username, user.image)
+      .orderBy(desc(count(designView.id)))
+      .limit(limit)
+      .offset(offset)
+
+    return success(c, {
+      designs: trendingDesigns,
+      pagination: { limit, offset, hasMore: trendingDesigns.length === limit }
+    })
+  } catch (error) {
+    logError("FetchTrending", error)
+    return internalError(c, "Failed to fetch trending designs")
+  }
+})
+
+// Get top rated skills (most stars)
+app.get("/leaderboard/top", async (c) => {
+  const limit = Math.min(parseInt(c.req.query("limit") || "20"), 50)
+  const offset = parseInt(c.req.query("offset") || "0")
+
+  try {
+    const topDesigns = await db
+      .select({
+        id: design.id,
+        name: design.name,
+        slug: design.slug,
+        description: design.description,
+        category: design.category,
+        thumbnailUrl: design.thumbnailUrl,
+        viewCount: design.viewCount,
+        createdAt: design.createdAt,
+        userId: design.userId,
+        author: {
+          name: user.name,
+          username: user.username,
+          image: user.image,
+        },
+        starCount: count(star.id)
+      })
+      .from(design)
+      .leftJoin(user, eq(design.userId, user.id))
+      .leftJoin(star, eq(design.id, star.designId))
+      .where(eq(design.status, "approved"))
+      .groupBy(design.id, user.name, user.username, user.image)
+      .orderBy(desc(count(star.id)), desc(design.viewCount))
+      .limit(limit)
+      .offset(offset)
+
+    return success(c, {
+      designs: topDesigns,
+      pagination: { limit, offset, hasMore: topDesigns.length === limit }
+    })
+  } catch (error) {
+    logError("FetchTopRated", error)
+    return internalError(c, "Failed to fetch top rated designs")
+  }
+})
+
+// Get newest skills
+app.get("/leaderboard/newest", async (c) => {
+  const limit = Math.min(parseInt(c.req.query("limit") || "20"), 50)
+  const offset = parseInt(c.req.query("offset") || "0")
+
+  try {
+    const newestDesigns = await db
+      .select({
+        id: design.id,
+        name: design.name,
+        slug: design.slug,
+        description: design.description,
+        category: design.category,
+        thumbnailUrl: design.thumbnailUrl,
+        viewCount: design.viewCount,
+        createdAt: design.createdAt,
+        userId: design.userId,
+        author: {
+          name: user.name,
+          username: user.username,
+          image: user.image,
+        }
+      })
+      .from(design)
+      .leftJoin(user, eq(design.userId, user.id))
+      .where(eq(design.status, "approved"))
+      .orderBy(desc(design.createdAt))
+      .limit(limit)
+      .offset(offset)
+
+    return success(c, {
+      designs: newestDesigns,
+      pagination: { limit, offset, hasMore: newestDesigns.length === limit }
+    })
+  } catch (error) {
+    logError("FetchNewest", error)
+    return internalError(c, "Failed to fetch newest designs")
+  }
+})
+
+// Get top contributors (users with most skills and stars)
+app.get("/leaderboard/contributors", async (c) => {
+  const limit = Math.min(parseInt(c.req.query("limit") || "10"), 20)
+
+  try {
+    // Get users with their design count and total stars
+    const contributors = await db
+      .select({
+        userId: user.id,
+        name: user.name,
+        username: user.username,
+        image: user.image,
+        skillCount: count(design.id),
+        totalStars: count(star.id),
+        totalViews: sql<number>`COALESCE(SUM(${design.viewCount}), 0)`.as("totalViews"),
+      })
+      .from(user)
+      .leftJoin(design, and(
+        eq(design.userId, user.id),
+        eq(design.status, "approved")
+      ))
+      .leftJoin(star, eq(star.designId, design.id))
+      .groupBy(user.id, user.name, user.username, user.image)
+      .having(sql`${count(design.id)} > 0`)
+      .orderBy(desc(count(star.id)), desc(count(design.id)))
+      .limit(limit)
+
+    return success(c, {
+      contributors: contributors.map(c => ({
+        ...c,
+        skillCount: Number(c.skillCount),
+        totalStars: Number(c.totalStars),
+        totalViews: Number(c.totalViews),
+      }))
+    })
+  } catch (error) {
+    logError("FetchContributors", error)
+    return internalError(c, "Failed to fetch top contributors")
   }
 })
 

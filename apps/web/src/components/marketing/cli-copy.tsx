@@ -40,7 +40,7 @@ export const CLICopy = memo(function CLICopy({
       className={cn(
         "group inline-flex items-center gap-2.5 rounded-lg border border-border",
         "bg-muted/50 px-4 py-2.5 font-mono text-sm text-muted-foreground",
-        "transition-all hover:border-foreground/30 hover:bg-muted hover:text-foreground",
+        "hover:border-foreground/30 hover:bg-muted hover:text-foreground",
         className
       )}
       aria-label={`Copy command: ${command}`}

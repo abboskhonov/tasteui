@@ -7,6 +7,9 @@ export const designKeys = {
   all: ["designs"] as const,
   my: () => [...designKeys.all, "my"] as const,
   public: (category?: string) => [...designKeys.all, "public", category] as const,
+  trending: () => [...designKeys.all, "trending"] as const,
+  topRated: () => [...designKeys.all, "top-rated"] as const,
+  newest: () => [...designKeys.all, "newest"] as const,
   detail: (username: string, slug: string) => [...designKeys.all, "detail", username, slug] as const,
   bookmarks: () => [...designKeys.all, "bookmarks"] as const,
   bookmarkCheck: (designId: string) => [...designKeys.all, "bookmark-check", designId] as const,
@@ -14,6 +17,7 @@ export const designKeys = {
   starCheck: (designId: string) => [...designKeys.all, "star-check", designId] as const,
   starCount: (designId: string) => [...designKeys.all, "star-count", designId] as const,
   viewAnalytics: () => [...designKeys.all, "view-analytics"] as const,
+  contributors: () => [...designKeys.all, "contributors"] as const,
 }
 
 // Upload image to R2
@@ -112,6 +116,45 @@ export function usePublicDesignsInfinite(category?: string, search?: string) {
     },
     initialPageParam: 0,
     staleTime: 1000 * 60 * 2,
+  })
+}
+
+// Leaderboard: Trending skills (most views in last 7 days)
+export function useTrendingDesigns() {
+  return useQuery({
+    queryKey: designKeys.trending(),
+    queryFn: async () => {
+      const response = await api.get<{ designs: Design[]; pagination: { limit: number; offset: number; hasMore: boolean } }>("/api/designs/leaderboard/trending")
+      return response.designs
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 10,
+  })
+}
+
+// Leaderboard: Top rated skills (most stars)
+export function useTopRatedDesigns() {
+  return useQuery({
+    queryKey: designKeys.topRated(),
+    queryFn: async () => {
+      const response = await api.get<{ designs: Design[]; pagination: { limit: number; offset: number; hasMore: boolean } }>("/api/designs/leaderboard/top")
+      return response.designs
+    },
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 10,
+  })
+}
+
+// Leaderboard: Newest skills
+export function useNewestDesigns() {
+  return useQuery({
+    queryKey: designKeys.newest(),
+    queryFn: async () => {
+      const response = await api.get<{ designs: Design[]; pagination: { limit: number; offset: number; hasMore: boolean } }>("/api/designs/leaderboard/newest")
+      return response.designs
+    },
+    staleTime: 1000 * 60 * 2,
+    gcTime: 1000 * 60 * 5,
   })
 }
 
@@ -291,5 +334,29 @@ export function useViewAnalytics() {
       }>("/api/analytics/views")
       return response
     },
+  })
+}
+
+// Top contributor type
+export interface TopContributor {
+  userId: string
+  name: string | null
+  username: string
+  image: string | null
+  skillCount: number
+  totalStars: number
+  totalViews: number
+}
+
+// Leaderboard: Top contributors (users with most skills and stars)
+export function useTopContributors(limit = 5) {
+  return useQuery({
+    queryKey: designKeys.contributors(),
+    queryFn: async () => {
+      const response = await api.get<{ contributors: TopContributor[] }>(`/api/designs/leaderboard/contributors?limit=${limit}`)
+      return response.contributors
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 10,
   })
 }
