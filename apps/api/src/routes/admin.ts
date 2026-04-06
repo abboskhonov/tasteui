@@ -1,7 +1,7 @@
 import { Hono } from "hono"
 import { eq, desc, count, sql, and } from "drizzle-orm"
 import { db } from "../db"
-import { design, user, bookmark } from "../db/schema"
+import { design, user, bookmark, cliInstall, designView } from "../db/schema"
 import type { AuthContext } from "../types"
 
 const adminRoutes = new Hono<AuthContext>()

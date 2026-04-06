@@ -17,6 +17,7 @@ export const designKeys = {
   starCheck: (designId: string) => [...designKeys.all, "star-check", designId] as const,
   starCount: (designId: string) => [...designKeys.all, "star-count", designId] as const,
   viewAnalytics: () => [...designKeys.all, "view-analytics"] as const,
+  cliAnalytics: () => [...designKeys.all, "cli-analytics"] as const,
   contributors: () => [...designKeys.all, "contributors"] as const,
 }
 
@@ -358,5 +359,23 @@ export function useTopContributors(limit = 5) {
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
     gcTime: 1000 * 60 * 10,
+  })
+}
+
+// CLI Analytics type
+export interface CliAnalytics {
+  dailyInstalls: number[]
+  totalInstalls: number
+  uniqueInstalls: number
+}
+
+// Get CLI install analytics (last 7 days) - admin only
+export function useCliAnalytics() {
+  return useQuery({
+    queryKey: designKeys.cliAnalytics(),
+    queryFn: async () => {
+      const response = await api.get<CliAnalytics>("/api/cli/analytics")
+      return response
+    },
   })
 }

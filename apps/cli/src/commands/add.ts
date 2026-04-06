@@ -3,8 +3,19 @@ import c from 'picocolors';
 import { getConfig, DEFAULT_API_URL } from '../utils/config.js';
 import { makeApiRequest } from '../utils/api.js';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
-import { join } from 'path';
+import { join, dirname } from 'path';
 import { banner } from '../utils/banner.js';
+
+// File node type matching the web app
+interface FileNode {
+  id: string;
+  name: string;
+  path: string;
+  content: string;
+  type: "file" | "folder";
+  isOpen?: boolean;
+  children?: FileNode[];
+}
 
 interface SkillDetail {
   id: string;
@@ -12,7 +23,7 @@ interface SkillDetail {
   description: string;
   slug: string;
   content: string;
-  files: string | null;
+  files: FileNode[] | null;
   demoUrl: string | null;
   thumbnailUrl: string | null;
   category: string;
@@ -39,6 +50,54 @@ function sanitizeSkillName(name: string): string {
     .replace(/[^a-z0-9-]/g, '-')   // Replace non-alphanumeric chars with hyphens
     .replace(/-+/g, '-')            // Collapse multiple hyphens
     .replace(/^-|-$/g, '');         // Trim leading/trailing hyphens
+}
+
+// Recursively write files and folders from file tree
+function writeFileTree(
+  baseDir: string,
+  files: FileNode[],
+  installedPaths: string[]
+): void {
+  for (const node of files) {
+    const nodePath = join(baseDir, node.path);
+
+    if (node.type === "folder") {
+      // Create folder
+      if (!existsSync(nodePath)) {
+        mkdirSync(nodePath, { recursive: true });
+      }
+      installedPaths.push(nodePath);
+
+      // Recursively process children
+      if (node.children && node.children.length > 0) {
+        writeFileTree(baseDir, node.children, installedPaths);
+      }
+    } else {
+      // Create parent directories if needed
+      const parentDir = dirname(nodePath);
+      if (!existsSync(parentDir)) {
+        mkdirSync(parentDir, { recursive: true });
+      }
+
+      // Write file
+      writeFileSync(nodePath, node.content, 'utf-8');
+      installedPaths.push(nodePath);
+    }
+  }
+}
+
+// Get all files count from file tree
+function countFiles(files: FileNode[]): number {
+  let count = 0;
+  for (const node of files) {
+    if (node.type === "file") {
+      count++;
+    }
+    if (node.children) {
+      count += countFiles(node.children);
+    }
+  }
+  return count;
 }
 
 export async function addCommand(identifier: string) {
@@ -149,6 +208,7 @@ export async function addCommand(identifier: string) {
     console.log();
     console.log(c.bold('Installation Summary:'));
     console.log(`  ${c.gray('Skill:')} ${skill.name}`);
+    console.log(`  ${c.gray('Files:')} ${skill.files && skill.files.length > 0 ? countFiles(skill.files) + 1 : 1} file(s)`);
     console.log(`  ${c.gray('Primary:')} ./.agents/skills/`);
     if (additionalCount > 0) {
       console.log(`  ${c.gray('Additional:')} ${additionalAgents.map(id => 
@@ -179,8 +239,15 @@ export async function addCommand(identifier: string) {
     if (!existsSync(primaryDir)) {
       mkdirSync(primaryDir, { recursive: true });
     }
+
+    // Write the main SKILL.md
     writeFileSync(join(primaryDir, 'SKILL.md'), skill.content, 'utf-8');
-    installedPaths.push(`./.agents/skills/${skillName}/`);
+    installedPaths.push(join(primaryDir, 'SKILL.md'));
+
+    // Write additional files from the file tree
+    if (skill.files && skill.files.length > 0) {
+      writeFileTree(primaryDir, skill.files, installedPaths);
+    }
 
     // Install to additional selected agents
     if (additionalAgents.length > 0) {
@@ -189,23 +256,33 @@ export async function addCommand(identifier: string) {
         if (!agent) continue;
 
         const agentDir = join(process.cwd(), agent.localPath, skillName);
-        
+
         if (!existsSync(agentDir)) {
           mkdirSync(agentDir, { recursive: true });
         }
 
         // Write the SKILL.md file
         writeFileSync(join(agentDir, 'SKILL.md'), skill.content, 'utf-8');
-        installedPaths.push(`./${agent.localPath}/${skillName}/`);
+
+        // Write additional files
+        if (skill.files && skill.files.length > 0) {
+          writeFileTree(agentDir, skill.files, installedPaths);
+        }
       }
     }
 
-    installSpinner.stop(c.green(`Installed to ${installedPaths.length} location(s)!`));
+    const fileCount = skill.files ? countFiles(skill.files) : 0;
+    installSpinner.stop(c.green(`Installed ${fileCount + 1} file(s) to ${1 + additionalAgents.length} location(s)!`));
     console.log();
     
+    // Show installed locations (not every file)
     console.log(c.bold('Installed to:'));
-    for (const path of installedPaths) {
-      console.log(`  ${c.cyan('✓')} ${path}`);
+    console.log(`  ${c.cyan('✓')} ./.agents/skills/${skillName}/`);
+    for (const agentId of additionalAgents) {
+      const agent = ADDITIONAL_AGENTS.find(a => a.id === agentId);
+      if (agent) {
+        console.log(`  ${c.cyan('✓')} ./${agent.localPath}/${skillName}/`);
+      }
     }
     console.log();
     

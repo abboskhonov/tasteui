@@ -1,6 +1,6 @@
 {
   "name": "tokenui.sh",
-  "version": "1.0.1",
+  "version": "1.0.4",
   "description": "CLI for installing design system skills to coding agents (Claude, Cursor, etc.)",
   "type": "module",
   "bin": {

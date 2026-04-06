@@ -15,6 +15,7 @@ import uploadRoutes from "./routes/uploads"
 import bookmarkRoutes from "./routes/bookmarks"
 import starRoutes from "./routes/stars"
 import adminRoutes from "./routes/admin"
+import cliRoutes from "./routes/cli"
 
 // Load environment variables
 config()
@@ -42,5 +43,6 @@ app.route("/api/upload", uploadRoutes)
 app.route("/api/bookmarks", bookmarkRoutes)
 app.route("/api/stars", starRoutes)
 app.route("/api/admin", adminRoutes)
+app.route("/api/cli", cliRoutes)
 
 export default app
