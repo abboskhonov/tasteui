@@ -83,7 +83,7 @@ function SkillDetailPage() {
   }, [design?.content, handleCopy])
 
   const handleCopyInstall = useCallback(() => {
-    const command = design ? `npx tokenui add ${design.author?.username || username}/${design.slug}` : ""
+    const command = design ? `npx tokenui.sh add ${design.author?.username || username}/${design.slug}` : ""
     handleCopy(command, "install")
   }, [design, username, handleCopy])
 

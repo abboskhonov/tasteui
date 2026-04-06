@@ -79,7 +79,7 @@ export function DocsOverviewPage() {
                   </p>
                   
                   <CodeBlock 
-                    command="npx tokenui add <skill-name>"
+                    command="npx tokenui.sh add <skill-name>"
                     description="Add any skill to your project instantly"
                   />
                   
@@ -149,7 +149,7 @@ export function DocsOverviewPage() {
                           Use the CLI to add skills to your project. The CLI handles dependencies, 
                           file structure, and configuration automatically.
                         </p>
-                        <CodeBlock command="npx tokenui add button" />
+                        <CodeBlock command="npx tokenui.sh add button" />
                       </div>
                     </div>
 

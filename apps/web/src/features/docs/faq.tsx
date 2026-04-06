@@ -95,7 +95,7 @@ export function DocsFAQPage() {
           <p>
             No installation required for basic usage. You can use npx to run the CLI directly:
           </p>
-          <CodeBlock command="npx tokenui add <skill-name>" />
+          <CodeBlock command="npx tokenui.sh add <skill-name>" />
           <p>
             If you prefer, you can install the CLI globally with npm install -g tokenui.
           </p>
@@ -117,7 +117,7 @@ export function DocsFAQPage() {
           <p>
             Browse the gallery, find a skill you like, and run:
           </p>
-          <CodeBlock command="npx tokenui add <skill-name>" />
+          <CodeBlock command="npx tokenui.sh add <skill-name>" />
           <p>
             The CLI will install the skill and all its dependencies to your project.
           </p>
@@ -164,11 +164,11 @@ export function DocsFAQPage() {
           <p>
             Use the update command to get the latest version:
           </p>
-          <CodeBlock command="npx tokenui update <skill-name>" />
+          <CodeBlock command="npx tokenui.sh update <skill-name>" />
           <p>
             Or update all skills at once:
           </p>
-          <CodeBlock command="npx tokenui update --all" />
+          <CodeBlock command="npx tokenui.sh update --all" />
         </FAQItem>
       </section>
 
@@ -180,7 +180,7 @@ export function DocsFAQPage() {
           <p>
             Click the "Publish" button in the navigation, or run:
           </p>
-          <CodeBlock command="npx tokenui publish" />
+          <CodeBlock command="npx tokenui.sh publish" />
           <p>
             Fill out the form with your skill details, upload a preview screenshot, 
             and submit. All submissions are reviewed before appearing in the gallery.

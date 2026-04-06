@@ -171,7 +171,7 @@ export function HeroSection({ initialDesigns }: HeroSectionProps) {
         </div>
 
         <div className="mt-8">
-          <CLICopy command="npx tokenui add <skill>" />
+          <CLICopy command="npx tokenui.sh add <skill>" />
         </div>
 
         <section className="mt-16 md:mt-20">

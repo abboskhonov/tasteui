@@ -14,10 +14,10 @@ interface CLICopyProps {
  * CLICopy - A CLI command copy button with visual feedback
  * 
  * @example
- * <CLICopy command="npx tokenui add button" />
+ * <CLICopy command="npx tokenui.sh add button" />
  */
 export const CLICopy = memo(function CLICopy({ 
-  command = "npx tokenui add <skill>", 
+  command = "npx tokenui.sh add <skill>", 
   className 
 }: CLICopyProps) {
   const [copied, setCopied] = useState(false);

@@ -85,7 +85,7 @@ export function DocsCLIPage() {
         
         <div className="space-y-4">
           <CodeBlock 
-            command="npx tokenui <command>"
+            command="npx tokenui.sh <command>"
             description="Run without installing (recommended)"
           />
           <CodeBlock 
@@ -102,8 +102,8 @@ export function DocsCLIPage() {
         <CommandSection
           title="add"
           description="Add a skill to your project. Installs the skill and all its dependencies."
-          command="npx tokenui add <skill-name>"
-          example="npx tokenui add button"
+          command="npx tokenui.sh add <skill-name>"
+          example="npx tokenui.sh add button"
           options={[
             { flag: "--path, -p", description: "Custom installation path" },
             { flag: "--force, -f", description: "Overwrite existing files" },
@@ -114,8 +114,8 @@ export function DocsCLIPage() {
         <CommandSection
           title="list"
           description="List all available skills in the gallery. Filter by category or search term."
-          command="npx tokenui list"
-          example="npx tokenui list --category forms"
+          command="npx tokenui.sh list"
+          example="npx tokenui.sh list --category forms"
           options={[
             { flag: "--category, -c", description: "Filter by category" },
             { flag: "--search, -s", description: "Search by keyword" },
@@ -126,15 +126,15 @@ export function DocsCLIPage() {
         <CommandSection
           title="info"
           description="Show detailed information about a specific skill."
-          command="npx tokenui info <skill-name>"
-          example="npx tokenui info modal"
+          command="npx tokenui.sh info <skill-name>"
+          example="npx tokenui.sh info modal"
         />
 
         <CommandSection
           title="remove"
           description="Remove a skill from your project."
-          command="npx tokenui remove <skill-name>"
-          example="npx tokenui remove button"
+          command="npx tokenui.sh remove <skill-name>"
+          example="npx tokenui.sh remove button"
           options={[
             { flag: "--force, -f", description: "Skip confirmation prompt" },
           ]}
@@ -143,8 +143,8 @@ export function DocsCLIPage() {
         <CommandSection
           title="update"
           description="Update skills to their latest versions."
-          command="npx tokenui update"
-          example="npx tokenui update button"
+          command="npx tokenui.sh update"
+          example="npx tokenui.sh update button"
           options={[
             { flag: "--all, -a", description: "Update all skills" },
           ]}
@@ -153,7 +153,7 @@ export function DocsCLIPage() {
         <CommandSection
           title="publish"
           description="Publish a skill to the TokenUI gallery. Opens the publish page in your browser."
-          command="npx tokenui publish"
+          command="npx tokenui.sh publish"
           options={[
             { flag: "--draft", description: "Save as draft instead of publishing" },
           ]}
@@ -162,8 +162,8 @@ export function DocsCLIPage() {
         <CommandSection
           title="init"
           description="Initialize a new TokenUI-compatible project. Sets up the directory structure and configuration."
-          command="npx tokenui init"
-          example="npx tokenui init my-app"
+          command="npx tokenui.sh init"
+          example="npx tokenui.sh init my-app"
           options={[
             { flag: "--template, -t", description: "Use a starter template" },
             { flag: "--yes, -y", description: "Skip prompts with defaults" },
@@ -245,22 +245,22 @@ export function DocsCLIPage() {
         <div className="space-y-4">
           <div>
             <p className="font-medium mb-2">Add multiple skills at once:</p>
-            <CodeBlock command="npx tokenui add button card modal input" />
+            <CodeBlock command="npx tokenui.sh add button card modal input" />
           </div>
 
           <div>
             <p className="font-medium mb-2">Search and add skills interactively:</p>
-            <CodeBlock command="npx tokenui list --search form | npx tokenui add" />
+            <CodeBlock command="npx tokenui.sh list --search form | npx tokenui.sh add" />
           </div>
 
           <div>
             <p className="font-medium mb-2">Update all skills in your project:</p>
-            <CodeBlock command="npx tokenui update --all" />
+            <CodeBlock command="npx tokenui.sh update --all" />
           </div>
 
           <div>
             <p className="font-medium mb-2">Install to a custom directory:</p>
-            <CodeBlock command="npx tokenui add button --path ./app/ui" />
+            <CodeBlock command="npx tokenui.sh add button --path ./app/ui" />
           </div>
         </div>
       </section>

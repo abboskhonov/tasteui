@@ -25,7 +25,7 @@ export function SkillDetailSidebar({
   onViewCode,
   onCopyInstall,
 }: SkillDetailSidebarProps) {
-  const installationCommand = `npx tokenui add ${design.author?.username || username}/${design.slug}`
+  const installationCommand = `npx tokenui.sh add ${design.author?.username || username}/${design.slug}`
   
   return (
     <aside className="w-[320px] min-h-[calc(100vh-56px)] border-r border-border bg-card/30 hidden lg:block">
