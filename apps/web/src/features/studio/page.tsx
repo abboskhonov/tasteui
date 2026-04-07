@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react"
 import { useNavigate } from "@tanstack/react-router"
 import { useStudioDesigns, useDeleteStudioDesign } from "./queries"
+import { useViewAnalytics, useCliAnalytics } from "@/lib/queries/designs"
 import { Navigation } from "@/components/navigation/main-navigation"
 import { StudioStats } from "./components/StudioStats"
 import { StudioFilters } from "./components/StudioFilters"
@@ -19,7 +20,12 @@ import { Button } from "@/components/ui/button"
 
 export function StudioPage() {
   const navigate = useNavigate()
-  const { data: designs, isLoading } = useStudioDesigns()
+  
+  // Fire all queries in parallel for maximum speed
+  const { data: designs, isLoading: isDesignsLoading } = useStudioDesigns()
+  const { data: viewAnalytics, isLoading: isViewAnalyticsLoading } = useViewAnalytics()
+  const { data: cliAnalytics, isLoading: isCliAnalyticsLoading } = useCliAnalytics()
+  
   const deleteMutation = useDeleteStudioDesign()
   
   const [activeTab, setActiveTab] = useState<"approved" | "pending" | "draft" | "rejected">("approved")
@@ -58,10 +64,16 @@ export function StudioPage() {
       <Navigation />
 
       <main className="mx-auto max-w-7xl px-6 py-8">
-        {/* Stats */}
-        <StudioStats designs={designs} />
+        {/* Stats - shows skeleton while loading */}
+        <StudioStats 
+          designs={designs} 
+          viewAnalytics={viewAnalytics}
+          cliAnalytics={cliAnalytics}
+          isViewLoading={isViewAnalyticsLoading}
+          isCliLoading={isCliAnalyticsLoading}
+        />
 
-        {/* Filters */}
+        {/* Filters - shows immediately */}
         <StudioFilters
           designs={designs}
           activeTab={activeTab}
@@ -70,10 +82,10 @@ export function StudioPage() {
           onSearchChange={setSearchQuery}
         />
 
-        {/* Designs Table */}
+        {/* Designs Table - shows immediately with its own loading state */}
         <DesignsTable
           designs={filteredDesigns}
-          isLoading={isLoading}
+          isLoading={isDesignsLoading}
           activeTab={activeTab}
           onEdit={handleEdit}
           onDelete={handleDeleteClick}

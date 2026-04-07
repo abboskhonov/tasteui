@@ -42,10 +42,10 @@ export function PreviewToolbar({
   onBookmarkClick,
 }: PreviewToolbarProps) {
   return (
-    <div className="h-10 border-b border-border flex items-center justify-between px-3 bg-background/50">
+    <div className="h-10 flex items-center justify-between px-3 bg-background/80 backdrop-blur-sm">
       <div className="flex items-center gap-1">
         {/* Device Toggle - minimal */}
-        <div className="flex items-center bg-muted rounded-md p-0.5">
+        <div className="flex items-center bg-muted/80 rounded-md p-0.5">
           <button
             onClick={() => onSetPreviewMode("desktop")}
             className={cn(
@@ -74,7 +74,7 @@ export function PreviewToolbar({
         <Button 
           variant="ghost" 
           size="icon-sm" 
-          className="h-7 w-7 ml-1"
+          className="h-7 w-7 ml-1 hover:bg-muted/80"
           onClick={onToggleTheme}
         >
           <HugeiconsIcon 
@@ -89,7 +89,7 @@ export function PreviewToolbar({
         <Button 
           variant="ghost" 
           size="icon-sm" 
-          className="h-7 w-7"
+          className="h-7 w-7 hover:bg-muted/80"
           onClick={onViewCode}
         >
           <HugeiconsIcon icon={CodeIcon} className="size-3.5" />

@@ -9,6 +9,46 @@ interface StatsCardProps {
   chartData?: number[]
 }
 
+interface StatsCardSkeletonProps {
+  icon: React.ReactNode
+}
+
+function SimpleBarChartSkeleton() {
+  const days = ["M", "T", "W", "T", "F", "S", "S"]
+  
+  return (
+    <div className="mt-3 flex gap-2 h-24">
+      {/* Y-axis labels placeholder */}
+      <div className="flex flex-col justify-between text-[9px] text-muted-foreground/30 w-5 text-right pr-1 py-1">
+        <span>—</span>
+        <span>—</span>
+        <span>—</span>
+        <span>—</span>
+      </div>
+      
+      {/* Chart area with animated bars */}
+      <div className="flex-1 flex items-end justify-between gap-1.5 relative py-1">
+        {days.map((day, i) => (
+          <div key={i} className="flex flex-col items-center gap-1 flex-1 h-full justify-end">
+            {/* Animated skeleton bar */}
+            <div 
+              className="w-full rounded-t-sm bg-primary/20 animate-pulse"
+              style={{ 
+                height: `${20 + Math.random() * 30}%`,
+                animationDelay: `${i * 100}ms`
+              }}
+            />
+            {/* Day label */}
+            <span className="text-[10px] font-medium text-muted-foreground/40">
+              {day}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function SimpleBarChart({ data }: { data: number[] }) {
   const days = ["M", "T", "W", "T", "F", "S", "S"]
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
@@ -98,6 +138,21 @@ function SimpleBarChart({ data }: { data: number[] }) {
           )
         })}
       </div>
+    </div>
+  )
+}
+
+export function StatsCardSkeleton({ icon }: StatsCardSkeletonProps) {
+  return (
+    <div className="rounded-xl bg-card/50 p-4 ring-1 ring-border">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 text-muted-foreground/50">
+          {icon}
+          <span className="text-sm bg-muted rounded w-16 h-4 animate-pulse" />
+        </div>
+        <div className="h-7 w-12 bg-muted rounded animate-pulse" />
+      </div>
+      <SimpleBarChartSkeleton />
     </div>
   )
 }

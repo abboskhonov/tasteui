@@ -2,8 +2,6 @@
 
 import { memo } from "react";
 import { Link } from "@tanstack/react-router";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { CommandLineIcon } from "@hugeicons/core-free-icons";
 import { ThemeToggle } from "./theme-toggle";
 import { UserMenu } from "./user-menu";
 import { useGitHubStars } from "@/lib/queries/github";
@@ -19,9 +17,11 @@ export const Navigation = memo(function Navigation() {
     <div className="sticky top-0 z-50 bg-background border-b border-border">
       <nav className="relative z-10 mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
         <Link to="/" className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-foreground text-background">
-            <HugeiconsIcon icon={CommandLineIcon} className="size-4" />
-          </div>
+          <img
+            src="/logo.webp"
+            alt="TokenUI"
+            className="h-7 w-7 rounded-lg object-cover"
+          />
           <span className="text-lg font-semibold tracking-tight text-foreground">
             tokenui
           </span>

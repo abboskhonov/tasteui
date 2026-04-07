@@ -168,6 +168,8 @@ export function useDesign(username: string, slug: string) {
       return response.design
     },
     enabled: !!username && !!slug,
+    staleTime: 1000 * 60 * 2, // Match prefetch staleTime - 2 minutes
+    gcTime: 1000 * 60 * 5, // Keep in cache for 5 minutes
   })
 }
 

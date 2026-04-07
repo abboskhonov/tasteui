@@ -21,7 +21,7 @@ import {
 } from "@hugeicons/core-free-icons"
 import { ChevronRight } from "lucide-react"
 import { usePublicDesigns, designKeys } from "@/lib/queries/designs"
-import { useNavigate } from "@tanstack/react-router"
+import { useNavigate, useRouter } from "@tanstack/react-router"
 import { useQueryClient } from "@tanstack/react-query"
 import { api } from "@/lib/api/client"
 import type { Design } from "@/lib/types/design"
@@ -51,13 +51,21 @@ interface DesignCardProps {
 
 function DesignCard({ design, queryClient }: DesignCardProps) {
   const navigate = useNavigate()
+  const router = useRouter()
   const username = design.author?.username || "unknown"
   
-  // Prefetch design data on hover for instant navigation
+  // Prefetch design data AND route on hover for instant navigation
   const handleMouseEnter = useCallback(() => {
     const username = design.author?.username || "unknown"
     const slug = design.slug
     
+    // Prefetch the route itself (code split chunks)
+    router.preloadRoute({
+      to: "/s/$username/$designSlug",
+      params: { username, designSlug: slug }
+    })
+    
+    // Prefetch the design data
     queryClient.prefetchQuery({
       queryKey: designKeys.detail(username, slug),
       queryFn: async () => {
@@ -66,7 +74,7 @@ function DesignCard({ design, queryClient }: DesignCardProps) {
       },
       staleTime: 1000 * 60 * 2,
     })
-  }, [design, queryClient])
+  }, [design, queryClient, router])
   
   const handleCardClick = useCallback(() => {
     navigate({
@@ -84,33 +92,32 @@ function DesignCard({ design, queryClient }: DesignCardProps) {
   }, [navigate, username])
   
   return (
-    <ViewTransition>
-      <article 
-        className="group relative cursor-pointer z-0 hover:z-50"
-        onClick={handleCardClick}
-        onMouseEnter={handleMouseEnter}
-      >
-        {/* Thumbnail Container - moves up on hover */}
-        <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-muted ring-1 ring-border/50 transition-all duration-300 ease-out group-hover:-translate-y-3 group-hover:shadow-lg group-hover:shadow-foreground/5 group-hover:ring-border group-hover:scale-[1.02]">
-          <ViewTransition 
-            name={`design-thumbnail-${design.id}`}
-            share="morph"
-            default="none"
-          >
-              <div className="h-full w-full">
-                {design.thumbnailUrl ? (
-                  <img 
-                    src={design.thumbnailUrl} 
-                    alt={design.name}
-                    loading="lazy"
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <SkillCard variant="pattern" />
-                )}
-              </div>
-          </ViewTransition>
-        </div>
+    <article 
+      className="group relative cursor-pointer z-0 hover:z-50"
+      onClick={handleCardClick}
+      onMouseEnter={handleMouseEnter}
+    >
+      {/* Thumbnail Container - moves up on hover */}
+      <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-muted ring-1 ring-border/50 transition-all duration-300 ease-out group-hover:-translate-y-3 group-hover:shadow-lg group-hover:shadow-foreground/5 group-hover:ring-border group-hover:scale-[1.02]">
+        <ViewTransition 
+          name={`design-thumbnail-${design.id}`}
+          share="morph"
+          default="none"
+        >
+            <div className="h-full w-full">
+              {design.thumbnailUrl ? (
+                <img 
+                  src={design.thumbnailUrl} 
+                  alt={design.name}
+                  loading="lazy"
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <SkillCard variant="pattern" />
+              )}
+            </div>
+        </ViewTransition>
+      </div>
         
         {/* Metadata - appears below the card on hover with more space */}
         <div className="absolute -bottom-8 left-0 right-0 flex items-center justify-between px-1 pt-3 opacity-0 transition-all duration-300 ease-out group-hover:opacity-100">
@@ -147,7 +154,6 @@ function DesignCard({ design, queryClient }: DesignCardProps) {
           </span>
         </div>
       </article>
-    </ViewTransition>
   )
 }
 
@@ -245,7 +251,7 @@ export function SkillsGallery() {
 
           {/* Grid - Linear style 4 columns */}
           {!isLoading && !error && designs && (
-            <div className="grid gap-8 grid-cols-2 lg:grid-cols-4 pb-12 isolate">
+            <div className="grid gap-8 grid-cols-2 lg:grid-cols-4 pb-24 isolate">
               {designs.length === 0 ? (
                 <div className="col-span-full py-12 text-center">
                   <p className="text-sm text-muted-foreground">No designs published yet</p>

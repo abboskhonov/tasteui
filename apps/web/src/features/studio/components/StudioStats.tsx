@@ -1,7 +1,7 @@
 import { useMemo } from "react"
-import { StatsCard } from "./StatsCard"
+import { StatsCard, StatsCardSkeleton } from "./StatsCard"
 import type { Design } from "@/lib/types/design"
-import { useViewAnalytics, useCliAnalytics } from "@/lib/queries/designs"
+import type { CliAnalytics } from "@/lib/queries/designs"
 import {
   EyeIcon,
   CodeIcon,
@@ -12,11 +12,19 @@ import { HugeiconsIcon } from "@hugeicons/react"
 
 interface StudioStatsProps {
   designs: Design[] | undefined
+  viewAnalytics?: { dailyViews: number[]; totalViews: number }
+  cliAnalytics?: CliAnalytics
+  isViewLoading?: boolean
+  isCliLoading?: boolean
 }
 
-export function StudioStats({ designs }: StudioStatsProps) {
-  const { data: viewAnalytics } = useViewAnalytics()
-  const { data: cliAnalytics } = useCliAnalytics()
+export function StudioStats({ 
+  designs, 
+  viewAnalytics, 
+  cliAnalytics,
+  isViewLoading = false,
+  isCliLoading = false,
+}: StudioStatsProps) {
   
   const stats = useMemo(() => {
     if (!designs) {
@@ -56,28 +64,39 @@ export function StudioStats({ designs }: StudioStatsProps) {
 
       {/* Stats Cards */}
       <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatsCard
-          label="Views"
-          value={stats.views}
-          icon={<HugeiconsIcon icon={EyeIcon} className="size-4" />}
-          chartData={viewAnalytics?.dailyViews}
-        />
+        {isViewLoading ? (
+          <StatsCardSkeleton icon={<HugeiconsIcon icon={EyeIcon} className="size-4" />} />
+        ) : (
+          <StatsCard
+            label="Views"
+            value={stats.views}
+            icon={<HugeiconsIcon icon={EyeIcon} className="size-4" />}
+            chartData={viewAnalytics?.dailyViews}
+          />
+        )}
+        
         <StatsCard
           label="Code Copies"
           value={0}
           icon={<HugeiconsIcon icon={CodeIcon} className="size-4" />}
         />
+        
         <StatsCard
           label="Prompt Copies"
           value={0}
           icon={<HugeiconsIcon icon={Copy01Icon} className="size-4" />}
         />
-        <StatsCard
-          label="CLI Runs"
-          value={stats.cliRuns}
-          icon={<HugeiconsIcon icon={Download01Icon} className="size-4" />}
-          chartData={cliAnalytics?.dailyRuns}
-        />
+        
+        {isCliLoading ? (
+          <StatsCardSkeleton icon={<HugeiconsIcon icon={Download01Icon} className="size-4" />} />
+        ) : (
+          <StatsCard
+            label="CLI Runs"
+            value={stats.cliRuns}
+            icon={<HugeiconsIcon icon={Download01Icon} className="size-4" />}
+            chartData={cliAnalytics?.dailyRuns}
+          />
+        )}
       </div>
     </>
   )

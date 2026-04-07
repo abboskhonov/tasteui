@@ -6,16 +6,41 @@ import { useDesignActions } from "@/features/design-detail/hooks"
 import {
   SkillDetailHeader,
   SkillDetailSidebar,
-  PreviewToolbar,
   PreviewContent,
   CodeView,
   SkillDetailSkeleton,
   SkillDetailError,
   SkillNotFound,
 } from "@/features/design-detail/components"
+import type { Design } from "@/lib/types/design"
+import { api } from "@/lib/api/client"
+
+// Loader function to prefetch design data during route resolution
+async function designLoader({ params }: { params: { username: string; designSlug: string } }) {
+  const { username, designSlug } = params
+  
+  // Fetch the design data immediately
+  const response = await api.get<{ design: Design }>(`/api/designs/${username}/${designSlug}`)
+  
+  // Prefetch the demo URL HTML content if available
+  if (response.design.demoUrl) {
+    const link = document.createElement("link")
+    link.rel = "prefetch"
+    link.href = response.design.demoUrl
+    link.as = "document"
+    document.head.appendChild(link)
+  }
+  
+  return {
+    design: response.design,
+    username,
+    designSlug,
+  }
+}
 
 export const Route = createFileRoute("/s/$username/$designSlug")({
   component: SkillDetailPage,
+  loader: designLoader,
   head: ({ params }) => ({
     meta: [
       {
@@ -31,7 +56,15 @@ type TabType = "preview" | "code"
 
 function SkillDetailPage() {
   const { username, designSlug } = Route.useParams()
+  const loaderData = Route.useLoaderData()
   const queryClient = useQueryClient()
+  
+  // Hydrate React Query cache with loader data immediately
+  useEffect(() => {
+    if (loaderData?.design) {
+      queryClient.setQueryData(designKeys.detail(username, designSlug), loaderData.design)
+    }
+  }, [loaderData, queryClient, username, designSlug])
   
   const { data: design, isLoading, error } = useDesign(username, designSlug)
   const trackView = useTrackView()
@@ -76,9 +109,10 @@ function SkillDetailPage() {
     }
   }, [design?.content, handleCopy])
 
-  const handleCopyCode = useCallback(() => {
-    if (design?.content) {
-      handleCopy(design.content, "code")
+  const handleCopyCode = useCallback((content?: string) => {
+    const textToCopy = content || design?.content || ""
+    if (textToCopy) {
+      handleCopy(textToCopy, "code")
     }
   }, [design?.content, handleCopy])
 
@@ -118,34 +152,27 @@ function SkillDetailPage() {
           onCopyInstall={handleCopyInstall}
         />
 
-        <main className="flex-1 min-h-[calc(100vh-56px)] bg-muted/30">
+        <main className="flex-1 h-[calc(100vh-56px)] bg-muted/30 overflow-hidden">
           {activeTab === "preview" ? (
-            <div className="h-full flex flex-col">
-              <PreviewToolbar
-                previewMode={previewMode}
-                previewTheme={previewTheme}
-                isStarredState={!!isStarredState}
-                isStarPending={isStarPending}
-                isBookmarkedState={!!isBookmarkedState}
-                isBookmarkPending={isBookmarkPending}
-                user={user}
-                onSetPreviewMode={setPreviewMode}
-                onToggleTheme={togglePreviewTheme}
-                onViewCode={() => setActiveTab("code")}
-                onStarClick={handleStarClick}
-                onBookmarkClick={handleBookmarkClick}
-              />
-              <PreviewContent
-                designId={design.id}
-                designName={design.name}
-                demoUrl={design.demoUrl}
-                previewMode={previewMode}
-                previewTheme={previewTheme}
-              />
-            </div>
+            <PreviewContent
+              designName={design.name}
+              demoUrl={design.demoUrl}
+              previewMode={previewMode}
+              previewTheme={previewTheme}
+              isStarredState={!!isStarredState}
+              isStarPending={isStarPending}
+              isBookmarkedState={!!isBookmarkedState}
+              isBookmarkPending={isBookmarkPending}
+              user={user}
+              onSetPreviewMode={setPreviewMode}
+              onToggleTheme={togglePreviewTheme}
+              onViewCode={() => setActiveTab("code")}
+              onStarClick={handleStarClick}
+              onBookmarkClick={handleBookmarkClick}
+            />
           ) : (
             <CodeView
-              content={design.content}
+              design={design}
               isCopied={isCopied === "code"}
               onBackToPreview={() => setActiveTab("preview")}
               onCopyCode={handleCopyCode}
