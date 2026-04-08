@@ -9,11 +9,18 @@ export function DocsLayout() {
     <div className="min-h-screen bg-background text-foreground">
       <Navigation />
       
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 pt-24">
-        <div className="flex gap-12">
-          <DocsSidebar />
+      {/* Match header width exactly: max-w-7xl with px-6 padding */}
+      <div className="mx-auto max-w-7xl px-6 py-8 pt-6">
+        <div className="flex gap-8">
+          {/* Left Sidebar - Fixed width */}
+          <aside className="w-[200px] shrink-0 hidden md:block">
+            <div className="sticky top-24">
+              <DocsSidebar />
+            </div>
+          </aside>
           
-          <main className="flex-1 min-w-0 max-w-3xl">
+          {/* Main Content - Pages include their own TOC */}
+          <main className="flex-1 min-w-0">
             <Outlet />
           </main>
         </div>

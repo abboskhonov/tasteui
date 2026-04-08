@@ -2,6 +2,9 @@
 
 import { useState } from "react"
 import { cn } from "@/lib/utils"
+import { DocsPage } from "../components/doc-page"
+import { Section, Heading } from "../components/typography"
+import type { TOCItem } from "../components/table-of-contents"
 
 interface FAQItemProps {
   question: string
@@ -46,21 +49,29 @@ function CodeBlock({ command }: { command: string }) {
   )
 }
 
+const tocItems: TOCItem[] = [
+  { id: "general", text: "General", level: 2 },
+  { id: "getting-started", text: "Getting Started", level: 2 },
+  { id: "skills-components", text: "Skills & Components", level: 2 },
+  { id: "publishing", text: "Publishing", level: 2 },
+  { id: "ai-agents", text: "AI & Agents", level: 2 },
+  { id: "troubleshooting", text: "Troubleshooting", level: 2 }
+]
+
 export function DocsFAQPage() {
   return (
-    <div className="space-y-12">
-      {/* Hero */}
-      <div className="space-y-4">
-        <h1 className="text-4xl font-bold tracking-tight">FAQ</h1>
-        <p className="text-lg text-muted-foreground">
-          Frequently asked questions about TokenUI. Can't find what you're looking for? 
-          Reach out to us on Discord or GitHub.
-        </p>
-      </div>
-
+    <DocsPage
+      title="FAQ"
+      description="Frequently asked questions about TokenUI. Can't find what you're looking for? Reach out to us on Discord or GitHub."
+      breadcrumbItems={[
+        { label: "Docs", href: "/docs" },
+        { label: "FAQ" }
+      ]}
+      tocItems={tocItems}
+    >
       {/* General */}
-      <section className="space-y-2">
-        <h2 className="text-xl font-semibold mb-6">General</h2>
+      <Section id="general">
+        <Heading>General</Heading>
         
         <FAQItem question="What is TokenUI?" defaultOpen={true}>
           <p>
@@ -85,11 +96,11 @@ export function DocsFAQPage() {
             which are displayed on their detail pages.
           </p>
         </FAQItem>
-      </section>
+      </Section>
 
       {/* Getting Started */}
-      <section className="space-y-2">
-        <h2 className="text-xl font-semibold mb-6">Getting Started</h2>
+      <Section id="getting-started">
+        <Heading>Getting Started</Heading>
         
         <FAQItem question="Do I need to install anything?">
           <p>
@@ -122,11 +133,11 @@ export function DocsFAQPage() {
             The CLI will install the skill and all its dependencies to your project.
           </p>
         </FAQItem>
-      </section>
+      </Section>
 
       {/* Skills & Components */}
-      <section className="space-y-2">
-        <h2 className="text-xl font-semibold mb-6">Skills & Components</h2>
+      <Section id="skills-components">
+        <Heading>Skills & Components</Heading>
         
         <FAQItem question="What is a skill?">
           <p>
@@ -170,11 +181,11 @@ export function DocsFAQPage() {
           </p>
           <CodeBlock command="npx tokenui.sh update --all" />
         </FAQItem>
-      </section>
+      </Section>
 
       {/* Publishing */}
-      <section className="space-y-2">
-        <h2 className="text-xl font-semibold mb-6">Publishing</h2>
+      <Section id="publishing">
+        <Heading>Publishing</Heading>
         
         <FAQItem question="How do I publish a skill?">
           <p>
@@ -215,11 +226,11 @@ export function DocsFAQPage() {
             You can remove your skills from the gallery at any time.
           </p>
         </FAQItem>
-      </section>
+      </Section>
 
       {/* AI & Agents */}
-      <section className="space-y-2">
-        <h2 className="text-xl font-semibold mb-6">AI & Agents</h2>
+      <Section id="ai-agents">
+        <Heading>AI & Agents</Heading>
         
         <FAQItem question="Can AI agents use TokenUI?">
           <p>
@@ -253,11 +264,11 @@ export function DocsFAQPage() {
             <li>Understand component-based architectures</li>
           </ul>
         </FAQItem>
-      </section>
+      </Section>
 
       {/* Troubleshooting */}
-      <section className="space-y-2">
-        <h2 className="text-xl font-semibold mb-6">Troubleshooting</h2>
+      <Section id="troubleshooting">
+        <Heading>Troubleshooting</Heading>
         
         <FAQItem question="The CLI command isn't working">
           <p>
@@ -307,7 +318,7 @@ export function DocsFAQPage() {
             For skill-specific bugs, leave a comment on the skill's detail page.
           </p>
         </FAQItem>
-      </section>
+      </Section>
 
       {/* Still have questions */}
       <section className="rounded-lg bg-muted p-6">
@@ -340,6 +351,6 @@ export function DocsFAQPage() {
           </a>
         </div>
       </section>
-    </div>
+    </DocsPage>
   )
 }

@@ -1,0 +1,7 @@
+export { DocsOverviewPage } from "./overview"
+export { DocsPlatformPage } from "./platform"
+export { DocsInstallingPage } from "./installing"
+export { DocsPublishingPage } from "./publishing"
+export { DocsFormatPage } from "./format"
+export { DocsCLIPage } from "./cli"
+export { DocsFAQPage } from "./faq"

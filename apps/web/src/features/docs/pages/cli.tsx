@@ -1,23 +1,17 @@
 "use client"
 
-function CodeBlock({ 
-  command, 
-  description
-}: { 
-  command: string
-  description?: string
-}) {
-  return (
-    <div className="my-4">
-      {description && (
-        <p className="mb-2 text-sm text-muted-foreground">{description}</p>
-      )}
-      <div className="rounded-lg bg-muted p-4 overflow-x-auto">
-        <code className="text-sm font-mono">{command}</code>
-      </div>
-    </div>
-  )
-}
+import { DocsPage } from "../components/doc-page"
+import { CodeBlock } from "../components/code-block"
+import { Section, Heading, SubHeading, Paragraph } from "../components/typography"
+import type { TOCItem } from "../components/table-of-contents"
+
+const tocItems: TOCItem[] = [
+  { id: "installation", text: "Installation", level: 2 },
+  { id: "commands", text: "Commands", level: 2 },
+  { id: "global-options", text: "Global Options", level: 2 },
+  { id: "configuration", text: "Configuration", level: 2 },
+  { id: "workflows", text: "Common Workflows", level: 2 }
+]
 
 function CommandSection({
   title,
@@ -35,24 +29,24 @@ function CommandSection({
   return (
     <section className="space-y-4">
       <h3 className="text-xl font-semibold tracking-tight">{title}</h3>
-      <p className="text-muted-foreground">{description}</p>
+      <Paragraph>{description}</Paragraph>
       
-      <CodeBlock command={command} />
+      <CodeBlock code={command} />
       
       {example && (
-        <div className="mt-2">
-          <p className="text-sm text-muted-foreground mb-2">Example:</p>
-          <CodeBlock command={example} />
+        <div className="mt-2 space-y-2">
+          <p className="text-sm text-muted-foreground">Example:</p>
+          <CodeBlock code={example} />
         </div>
       )}
       
       {options && options.length > 0 && (
-        <div className="mt-4">
-          <p className="text-sm font-medium mb-2">Options:</p>
-          <div className="space-y-2">
+        <div className="mt-4 space-y-2">
+          <p className="text-sm font-medium">Options:</p>
+          <div className="space-y-1.5">
             {options.map((opt) => (
               <div key={opt.flag} className="flex gap-4 text-sm">
-                <code className="text-foreground font-mono min-w-[120px]">{opt.flag}</code>
+                <code className="text-foreground font-mono min-w-[120px] text-muted-foreground">{opt.flag}</code>
                 <span className="text-muted-foreground">{opt.description}</span>
               </div>
             ))}
@@ -65,39 +59,36 @@ function CommandSection({
 
 export function DocsCLIPage() {
   return (
-    <div className="space-y-12">
-      {/* Hero */}
-      <div className="space-y-4">
-        <h1 className="text-4xl font-bold tracking-tight">CLI Reference</h1>
-        <p className="text-lg text-muted-foreground">
-          Complete reference for the TokenUI command-line interface. 
-          Install and manage design skills directly from your terminal.
-        </p>
-      </div>
-
-      {/* Installation */}
-      <section className="space-y-6">
-        <h2 className="text-2xl font-semibold tracking-tight">Installation</h2>
-        <p className="text-muted-foreground">
+    <DocsPage
+      title="CLI Reference"
+      description="Complete reference for the TokenUI command-line interface. Install and manage design skills directly from your terminal."
+      breadcrumbItems={[
+        { label: "Docs", href: "/docs" },
+        { label: "CLI Reference" }
+      ]}
+      tocItems={tocItems}
+    >
+      <Section>
+        <Heading id="installation">Installation</Heading>
+        <Paragraph>
           No installation required. Use npx to run the CLI directly. 
           If you prefer, you can install it globally for faster execution.
-        </p>
+        </Paragraph>
         
-        <div className="space-y-4">
+        <div className="space-y-3">
           <CodeBlock 
-            command="npx tokenui.sh <command>"
-            description="Run without installing (recommended)"
+            code="npx tokenui.sh <command>"
+            filename="Recommended"
           />
           <CodeBlock 
-            command="npm install -g tokenui"
-            description="Install globally (optional)"
+            code="npm install -g tokenui"
+            filename="Global Install (optional)"
           />
         </div>
-      </section>
+      </Section>
 
-      {/* Commands */}
-      <section className="space-y-8">
-        <h2 className="text-2xl font-semibold tracking-tight">Commands</h2>
+      <Section>
+        <Heading id="commands">Commands</Heading>
 
         <CommandSection
           title="add"
@@ -169,44 +160,43 @@ export function DocsCLIPage() {
             { flag: "--yes, -y", description: "Skip prompts with defaults" },
           ]}
         />
-      </section>
+      </Section>
 
-      {/* Global Options */}
-      <section className="space-y-6">
-        <h2 className="text-2xl font-semibold tracking-tight">Global Options</h2>
-        <p className="text-muted-foreground">
+      <Section>
+        <Heading id="global-options">Global Options</Heading>
+        <Paragraph>
           These options work with any command:
-        </p>
+        </Paragraph>
         
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <div className="flex gap-4 text-sm">
-            <code className="text-foreground font-mono min-w-[120px]">--help, -h</code>
+            <code className="text-foreground font-mono min-w-[120px] text-muted-foreground">--help, -h</code>
             <span className="text-muted-foreground">Show help for a command</span>
           </div>
           <div className="flex gap-4 text-sm">
-            <code className="text-foreground font-mono min-w-[120px]">--version, -v</code>
+            <code className="text-foreground font-mono min-w-[120px] text-muted-foreground">--version, -v</code>
             <span className="text-muted-foreground">Show CLI version</span>
           </div>
           <div className="flex gap-4 text-sm">
-            <code className="text-foreground font-mono min-w-[120px]">--verbose</code>
+            <code className="text-foreground font-mono min-w-[120px] text-muted-foreground">--verbose</code>
             <span className="text-muted-foreground">Enable verbose logging</span>
           </div>
           <div className="flex gap-4 text-sm">
-            <code className="text-foreground font-mono min-w-[120px]">--silent</code>
+            <code className="text-foreground font-mono min-w-[120px] text-muted-foreground">--silent</code>
             <span className="text-muted-foreground">Suppress all output except errors</span>
           </div>
         </div>
-      </section>
+      </Section>
 
-      {/* Configuration */}
-      <section className="space-y-6">
-        <h2 className="text-2xl font-semibold tracking-tight">Configuration</h2>
-        <p className="text-muted-foreground">
+      <Section>
+        <Heading id="configuration">Configuration</Heading>
+        <Paragraph>
           Create a tokenui.json file in your project root to customize behavior:
-        </p>
+        </Paragraph>
         
         <CodeBlock 
-          command={`{
+          filename="tokenui.json"
+          code={`{
   "path": "./src/components",
   "typescript": true,
   "tailwind": true,
@@ -217,53 +207,42 @@ export function DocsCLIPage() {
 }`}
         />
 
-        <div className="space-y-2">
-          <p className="text-sm font-medium">Configuration options:</p>
+        <SubHeading id="configuration-options">Configuration Options</SubHeading>
+        <div className="space-y-1.5">
           <div className="flex gap-4 text-sm">
-            <code className="text-foreground font-mono min-w-[140px]">path</code>
+            <code className="text-foreground font-mono min-w-[140px] text-muted-foreground">path</code>
             <span className="text-muted-foreground">Default installation directory for skills</span>
           </div>
           <div className="flex gap-4 text-sm">
-            <code className="text-foreground font-mono min-w-[140px]">typescript</code>
+            <code className="text-foreground font-mono min-w-[140px] text-muted-foreground">typescript</code>
             <span className="text-muted-foreground">Use TypeScript by default</span>
           </div>
           <div className="flex gap-4 text-sm">
-            <code className="text-foreground font-mono min-w-[140px]">tailwind</code>
+            <code className="text-foreground font-mono min-w-[140px] text-muted-foreground">tailwind</code>
             <span className="text-muted-foreground">Enable Tailwind CSS integration</span>
           </div>
           <div className="flex gap-4 text-sm">
-            <code className="text-foreground font-mono min-w-[140px]">aliases</code>
+            <code className="text-foreground font-mono min-w-[140px] text-muted-foreground">aliases</code>
             <span className="text-muted-foreground">Import path aliases for your project</span>
           </div>
         </div>
-      </section>
+      </Section>
 
-      {/* Examples */}
-      <section className="space-y-6">
-        <h2 className="text-2xl font-semibold tracking-tight">Common Workflows</h2>
+      <Section>
+        <Heading id="workflows">Common Workflows</Heading>
 
-        <div className="space-y-4">
-          <div>
-            <p className="font-medium mb-2">Add multiple skills at once:</p>
-            <CodeBlock command="npx tokenui.sh add button card modal input" />
-          </div>
+        <SubHeading id="workflows-multiple">Add multiple skills at once</SubHeading>
+        <CodeBlock code="npx tokenui.sh add button card modal input" />
 
-          <div>
-            <p className="font-medium mb-2">Search and add skills interactively:</p>
-            <CodeBlock command="npx tokenui.sh list --search form | npx tokenui.sh add" />
-          </div>
+        <SubHeading id="workflows-search">Search and add skills interactively</SubHeading>
+        <CodeBlock code="npx tokenui.sh list --search form | npx tokenui.sh add" />
 
-          <div>
-            <p className="font-medium mb-2">Update all skills in your project:</p>
-            <CodeBlock command="npx tokenui.sh update --all" />
-          </div>
+        <SubHeading id="workflows-update-all">Update all skills in your project</SubHeading>
+        <CodeBlock code="npx tokenui.sh update --all" />
 
-          <div>
-            <p className="font-medium mb-2">Install to a custom directory:</p>
-            <CodeBlock command="npx tokenui.sh add button --path ./app/ui" />
-          </div>
-        </div>
-      </section>
-    </div>
+        <SubHeading id="workflows-custom-path">Install to a custom directory</SubHeading>
+        <CodeBlock code="npx tokenui.sh add button --path ./app/ui" />
+      </Section>
+    </DocsPage>
   )
 }

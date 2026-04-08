@@ -1,5 +1,9 @@
 import { Link, createFileRoute } from "@tanstack/react-router"
-import { Alert01Icon, ArrowLeft01Icon } from "@hugeicons/core-free-icons"
+import {
+  ArrowLeft01Icon,
+  CommandLineIcon,
+  BookOpen01Icon,
+} from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 
 import { Button } from "@/components/ui/button"
@@ -17,39 +21,62 @@ export const Route = createFileRoute("/$")({
 
 function NotFoundPage() {
   return (
-    <div className="flex min-h-[80vh] flex-col items-center justify-center px-4">
-      <div className="flex flex-col items-center space-y-6 text-center">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
-          <HugeiconsIcon
-            icon={Alert01Icon}
-            className="size-7 text-muted-foreground"
-            strokeWidth={1.5}
-          />
-        </div>
+    <div className="flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center px-4">
+      <div className="flex max-w-lg flex-col items-center text-center">
+        {/* 404 Label */}
+        <p className="text-sm font-medium text-muted-foreground">404</p>
 
-        <div className="space-y-2">
-          <h1 className="text-4xl font-medium tracking-tight text-foreground">
-            404
-          </h1>
-          <p className="text-lg text-muted-foreground">
-            Page not found
-          </p>
-        </div>
+        {/* Main Heading */}
+        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+          Page not found
+        </h1>
 
-        <p className="max-w-sm text-sm text-muted-foreground">
-          The page you're looking for doesn't exist or has been moved.
+        {/* Description */}
+        <p className="mt-4 max-w-sm text-base text-muted-foreground leading-relaxed">
+          Sorry, we couldn't find the page you're looking for. It might have been moved or deleted.
         </p>
 
-        <Link to="/">
-          <Button variant="outline" className="mt-4 gap-2">
-            <HugeiconsIcon
-              icon={ArrowLeft01Icon}
-              className="size-4"
-              strokeWidth={2}
-            />
-            Back to home
-          </Button>
-        </Link>
+        {/* Action Buttons */}
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <Link to="/">
+            <Button className="h-10 w-full gap-2 px-6 sm:w-auto">
+              <HugeiconsIcon
+                icon={ArrowLeft01Icon}
+                className="size-4"
+                strokeWidth={2}
+              />
+              Back to home
+            </Button>
+          </Link>
+
+          <Link to="/">
+            <Button
+              variant="outline"
+              className="h-10 w-full gap-2 px-6 sm:w-auto"
+            >
+              <HugeiconsIcon
+                icon={CommandLineIcon}
+                className="size-4"
+                strokeWidth={2}
+              />
+              Design Skills
+            </Button>
+          </Link>
+
+          <Link to="/docs">
+            <Button
+              variant="outline"
+              className="h-10 w-full gap-2 px-6 sm:w-auto"
+            >
+              <HugeiconsIcon
+                icon={BookOpen01Icon}
+                className="size-4"
+                strokeWidth={2}
+              />
+              Documentation
+            </Button>
+          </Link>
+        </div>
       </div>
     </div>
   )

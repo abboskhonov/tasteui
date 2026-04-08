@@ -59,6 +59,9 @@ function SkillDetailPage() {
   const loaderData = Route.useLoaderData()
   const queryClient = useQueryClient()
   
+  // Get cached data immediately for instant UI (if prefetched from gallery)
+  const cachedDesign = queryClient.getQueryData<Design>(designKeys.detail(username, designSlug))
+  
   // Hydrate React Query cache with loader data immediately
   useEffect(() => {
     if (loaderData?.design) {
@@ -67,17 +70,20 @@ function SkillDetailPage() {
   }, [loaderData, queryClient, username, designSlug])
   
   const { data: design, isLoading, error } = useDesign(username, designSlug)
+  
+  // Use cached/prefetched data immediately while loading for perceived instant navigation
+  const displayDesign = design || cachedDesign
   const trackView = useTrackView()
   
   const [activeTab, setActiveTab] = useState<TabType>("preview")
   const [previewTheme, setPreviewTheme] = useState<"light" | "dark">("light")
   
-  // Only use design actions when design is loaded
-  const designActions = useDesignActions(design)
+  // Only use design actions when design is loaded (use displayDesign for instant UI)
+  const designActions = useDesignActions(displayDesign)
   
   const { user, isBookmarkedState, handleBookmarkClick, isStarredState, handleStarClick, isCopied, handleCopy } = designActions
 
-  // Track view when page loads
+  // Track view when page loads (only track when we have real loaded data, not cached)
   useEffect(() => {
     if (design?.id && !isLoading) {
       trackView.mutate(design.id, {
@@ -95,9 +101,9 @@ function SkillDetailPage() {
   }, [design?.id, isLoading, username, designSlug])
 
   const handleCopyInstall = useCallback(() => {
-    const command = design ? `npx tokenui.sh add ${design.author?.username || username}/${design.slug}` : ""
+    const command = displayDesign ? `npx tokenui.sh add ${displayDesign.author?.username || username}/${displayDesign.slug}` : ""
     handleCopy(command, "install")
-  }, [design, username, handleCopy])
+  }, [displayDesign, username, handleCopy])
 
   // Preview handlers
   const togglePreviewTheme = useCallback(() => {
@@ -109,7 +115,8 @@ function SkillDetailPage() {
     return <SkillDetailError />
   }
 
-  if (!design) {
+  // Show skeleton only if we have no cached data AND we're loading
+  if (!displayDesign) {
     return <SkillDetailSkeleton username={username} designSlug={designSlug} />
   }
 
@@ -126,7 +133,7 @@ function SkillDetailPage() {
 
       <div className="flex">
         <SkillDetailSidebar
-          design={design}
+          design={displayDesign}
           username={username}
           user={user}
           isCopied={isCopied}
@@ -140,12 +147,12 @@ function SkillDetailPage() {
         <main className="flex-1 h-[calc(100vh-56px)] overflow-hidden">
           {activeTab === "preview" ? (
             <PreviewContent
-              design={design}
-              demoUrl={design.demoUrl}
+              design={displayDesign}
+              demoUrl={displayDesign.demoUrl}
               previewTheme={previewTheme}
             />
           ) : (
-            <CodeView design={design} />
+            <CodeView design={displayDesign} />
           )}
         </main>
       </div>
