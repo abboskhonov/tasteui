@@ -1,6 +1,9 @@
 import { rateLimiter } from "hono-rate-limiter"
 import type { Context } from "hono"
 
+// Check if we're in development mode
+const isDev = process.env.NODE_ENV === "development" || process.env.RATE_LIMIT_DISABLED === "true"
+
 // In-memory store for rate limiting (use Redis in production for distributed systems)
 // This stores IP-based rate limits
 const ipStore = new Map<string, { count: number; resetTime: number }>()
@@ -30,7 +33,6 @@ export function createRateLimiter(options: {
     windowMs,
     limit: max,
     standardHeaders: true,
-    legacyHeaders: false,
     keyGenerator: (c) => getClientIP(c),
     handler: (c) => {
       return c.json(
@@ -45,35 +47,53 @@ export function createRateLimiter(options: {
   })
 }
 
+// No-op rate limiter for development
+function createNoOpRateLimiter() {
+  return async (c: Context, next: () => Promise<void>) => {
+    await next()
+  }
+}
+
 // Pre-configured rate limiters for different use cases
-export const strictRateLimiter = createRateLimiter({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // 5 requests per 15 minutes
-  message: "Too many attempts. Please try again in 15 minutes.",
-})
+// NOTE: In development, these are bypassed via RATE_LIMIT_DISABLED env var
+export const strictRateLimiter = isDev 
+  ? createNoOpRateLimiter() as unknown as ReturnType<typeof createRateLimiter>
+  : createRateLimiter({
+      windowMs: 15 * 60 * 1000, // 15 minutes
+      max: 20, // 20 requests per 15 minutes
+      message: "Too many attempts. Please try again later.",
+    })
 
-export const standardRateLimiter = createRateLimiter({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // 100 requests per 15 minutes
-  message: "Rate limit exceeded. Please slow down your requests.",
-})
+export const standardRateLimiter = isDev
+  ? createNoOpRateLimiter() as unknown as ReturnType<typeof createRateLimiter>
+  : createRateLimiter({
+      windowMs: 15 * 60 * 1000, // 15 minutes  
+      max: 1000, // 1000 requests per 15 minutes (67/min)
+      message: "Rate limit exceeded. Please slow down your requests.",
+    })
 
-export const generousRateLimiter = createRateLimiter({
-  windowMs: 60 * 1000, // 1 minute
-  max: 30, // 30 requests per minute
-  message: "Too many requests. Please slow down.",
-})
+export const generousRateLimiter = isDev
+  ? createNoOpRateLimiter() as unknown as ReturnType<typeof createRateLimiter>
+  : createRateLimiter({
+      windowMs: 60 * 1000, // 1 minute
+      max: 60, // 60 requests per minute
+      message: "Too many requests. Please slow down.",
+    })
 
 // Auth-specific rate limiter (stricter for login/signup)
-export const authRateLimiter = createRateLimiter({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // 10 attempts per 15 minutes
-  message: "Too many authentication attempts. Please try again later.",
-})
+export const authRateLimiter = isDev
+  ? createNoOpRateLimiter() as unknown as ReturnType<typeof createRateLimiter>
+  : createRateLimiter({
+      windowMs: 15 * 60 * 1000, // 15 minutes
+      max: 30, // 30 attempts per 15 minutes
+      message: "Too many authentication attempts. Please try again later.",
+    })
 
 // CLI tracking rate limiter (prevent spam)
-export const cliRateLimiter = createRateLimiter({
-  windowMs: 60 * 1000, // 1 minute
-  max: 60, // 60 CLI calls per minute per IP
-  message: "Too many CLI tracking requests.",
-})
+export const cliRateLimiter = isDev
+  ? createNoOpRateLimiter() as unknown as ReturnType<typeof createRateLimiter>
+  : createRateLimiter({
+      windowMs: 60 * 1000, // 1 minute
+      max: 120, // 120 CLI calls per minute per IP
+      message: "Too many CLI tracking requests.",
+    })

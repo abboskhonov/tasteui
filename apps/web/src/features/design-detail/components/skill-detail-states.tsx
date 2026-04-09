@@ -10,9 +10,16 @@ import {
 interface SkillDetailSkeletonProps {
   username: string
   designSlug: string
+  thumbnailUrl?: string | null
+  name?: string
 }
 
-export function SkillDetailSkeleton({ username, designSlug }: SkillDetailSkeletonProps) {
+export function SkillDetailSkeleton({ username, designSlug, thumbnailUrl, name }: SkillDetailSkeletonProps) {
+  // Format design name from slug if not provided
+  const displayName = name || designSlug
+    .replace(/-/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase())
+  
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
@@ -26,7 +33,7 @@ export function SkillDetailSkeleton({ username, designSlug }: SkillDetailSkeleto
             <span className="text-muted-foreground">/</span>
             <span className="text-muted-foreground">{username}</span>
             <span className="text-muted-foreground">/</span>
-            <span className="font-medium">{designSlug}</span>
+            <span className="font-medium">{displayName}</span>
           </div>
         </div>
       </header>
@@ -36,9 +43,9 @@ export function SkillDetailSkeleton({ username, designSlug }: SkillDetailSkeleto
         {/* Left Sidebar Skeleton */}
         <aside className="w-[320px] min-h-[calc(100vh-48px)] border-r border-border bg-card/30 hidden lg:block">
           <div className="p-6 space-y-6">
-            {/* Title Skeleton */}
+            {/* Title - Show actual name if available */}
             <div className="space-y-2">
-              <div className="h-6 w-3/4 bg-muted animate-pulse rounded" />
+              <h1 className="text-lg font-semibold">{displayName}</h1>
               <div className="h-4 w-full bg-muted animate-pulse rounded" />
             </div>
 
@@ -66,9 +73,25 @@ export function SkillDetailSkeleton({ username, designSlug }: SkillDetailSkeleto
           </div>
         </aside>
 
-        {/* Main Preview Skeleton */}
-        <main className="flex-1 min-h-[calc(100vh-48px)] h-[calc(100vh-48px)] bg-muted/30 flex items-center justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+        {/* Main Preview - Show thumbnail as placeholder while loading */}
+        <main className="flex-1 min-h-[calc(100vh-48px)] h-[calc(100vh-48px)] bg-muted/30 flex items-center justify-center relative overflow-hidden">
+          {thumbnailUrl ? (
+            <>
+              {/* Blurred thumbnail as background placeholder */}
+              <img 
+                src={thumbnailUrl} 
+                alt=""
+                className="absolute inset-0 w-full h-full object-cover blur-sm opacity-50 scale-105"
+              />
+              {/* Loading spinner overlay */}
+              <div className="relative z-10 flex flex-col items-center gap-3">
+                <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                <span className="text-sm text-muted-foreground">Loading preview...</span>
+              </div>
+            </>
+          ) : (
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          )}
         </main>
       </div>
     </div>

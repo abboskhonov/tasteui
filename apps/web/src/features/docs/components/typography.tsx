@@ -22,7 +22,7 @@ interface HeadingProps {
 
 export function Heading({ children, className, id }: HeadingProps) {
   return (
-    <h2 id={id} className={cn("text-2xl font-semibold tracking-tight mt-10 mb-4 scroll-mt-24", className)}>
+    <h2 id={id} className={cn("text-xl font-semibold tracking-tight mt-8 mb-3 scroll-mt-24", className)}>
       {children}
     </h2>
   )
@@ -30,7 +30,7 @@ export function Heading({ children, className, id }: HeadingProps) {
 
 export function SubHeading({ children, className, id }: HeadingProps) {
   return (
-    <h3 id={id} className={cn("text-lg font-medium mt-8 mb-3 scroll-mt-24", className)}>
+    <h3 id={id} className={cn("text-base font-medium mt-6 mb-2 scroll-mt-24", className)}>
       {children}
     </h3>
   )

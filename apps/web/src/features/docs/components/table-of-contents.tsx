@@ -52,8 +52,8 @@ export function TableOfContents({ items, className }: TableOfContentsProps) {
 
   return (
     <nav className={className}>
-      <h5 className="mb-3 text-sm font-semibold">On this page</h5>
-      <ul className="space-y-2">
+      <p className="mb-3 text-xs font-medium text-muted-foreground">On this page</p>
+      <ul className="space-y-1.5">
         {items.map((item) => (
           <li key={item.id}>
             <a

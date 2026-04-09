@@ -2,41 +2,8 @@
 
 import { DocsPage } from "../components/doc-page"
 import { CodeBlock } from "../components/code-block"
-import { Section, Heading, Paragraph, Step } from "../components/typography"
-import { ResourceCard } from "../components/resource-card"
+import { Section, Heading, Paragraph, Step, List } from "../components/typography"
 import type { TOCItem } from "../components/table-of-contents"
-import { HugeiconsIcon } from "@hugeicons/react"
-import { 
-  Download04Icon, 
-  CodeIcon, 
-  Share01Icon,
-  ColorsIcon,
-  Layers01Icon,
-  ZapIcon,
-  GithubIcon,
-  CommandLineIcon,
-  HelpCircleIcon
-} from "@hugeicons/core-free-icons"
-
-function FeatureCard({ 
-  icon, 
-  title, 
-  description 
-}: { 
-  icon: React.ReactNode
-  title: string
-  description: string 
-}) {
-  return (
-    <div className="rounded-lg border border-border bg-card p-6">
-      <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-accent">
-        {icon}
-      </div>
-      <h3 className="mb-2 font-medium">{title}</h3>
-      <p className="text-sm text-muted-foreground">{description}</p>
-    </div>
-  )
-}
 
 const tocItems: TOCItem[] = [
   { id: "quick-start", text: "Quick Start", level: 2 },
@@ -81,28 +48,12 @@ export function DocsOverviewPage() {
           that help you build consistent interfaces. Each skill includes:
         </Paragraph>
         
-        <div className="grid gap-4 sm:grid-cols-2">
-          <FeatureCard
-            icon={<HugeiconsIcon icon={Layers01Icon} className="size-5" />}
-            title="UI Components"
-            description="Ready-to-use React components with styling, animations, and accessibility built-in."
-          />
-          <FeatureCard
-            icon={<HugeiconsIcon icon={ColorsIcon} className="size-5" />}
-            title="Design Tokens"
-            description="Colors, typography, and spacing scales that ensure visual consistency."
-          />
-          <FeatureCard
-            icon={<HugeiconsIcon icon={CodeIcon} className="size-5" />}
-            title="Code Patterns"
-            description="Best practices and conventions for writing maintainable React code."
-          />
-          <FeatureCard
-            icon={<HugeiconsIcon icon={ZapIcon} className="size-5" />}
-            title="AI-Optimized"
-            description="Structured for AI agents to understand and implement correctly."
-          />
-        </div>
+        <List items={[
+          <><strong>UI Components</strong> — Ready-to-use React components with styling, animations, and accessibility built-in.</>,
+          <><strong>Design Tokens</strong> — Colors, typography, and spacing scales that ensure visual consistency.</>,
+          <><strong>Code Patterns</strong> — Best practices and conventions for writing maintainable React code.</>,
+          <><strong>AI-Optimized</strong> — Structured for AI agents to understand and implement correctly.</>
+        ]} />
       </Section>
 
       <Section id="how-it-works">
@@ -136,18 +87,10 @@ export function DocsOverviewPage() {
           so others can discover and use it.
         </Paragraph>
         
-        <div className="grid gap-4 sm:grid-cols-2">
-          <FeatureCard
-            icon={<HugeiconsIcon icon={Share01Icon} className="size-5" />}
-            title="Share Your Work"
-            description="Upload screenshots, code, and documentation for your design."
-          />
-          <FeatureCard
-            icon={<HugeiconsIcon icon={Download04Icon} className="size-5" />}
-            title="Track Usage"
-            description="See how many developers are using your skills via analytics."
-          />
-        </div>
+        <List items={[
+          <><strong>Share Your Work</strong> — Upload screenshots, code, and documentation for your design.</>,
+          <><strong>Track Usage</strong> — See how many developers are using your skills via analytics.</>
+        ]} />
 
         <Paragraph className="mt-4">
           Click the <strong>Publish</strong> button in the navigation to submit your design. 
@@ -158,32 +101,12 @@ export function DocsOverviewPage() {
 
       <Section id="resources">
         <Heading id="resources">Resources</Heading>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <ResourceCard 
-            title="GitHub Repository"
-            description="Source code, issues, and contributions"
-            href="https://github.com/abboskhonov/tokenui"
-            icon={<HugeiconsIcon icon={GithubIcon} className="size-4" />}
-          />
-          <ResourceCard 
-            title="CLI Reference"
-            description="Complete command documentation"
-            href="/docs/cli"
-            icon={<HugeiconsIcon icon={CommandLineIcon} className="size-4" />}
-          />
-          <ResourceCard 
-            title="Platform"
-            description="Understanding the TokenUI architecture"
-            href="/docs/platform"
-            icon={<HugeiconsIcon icon={Layers01Icon} className="size-4" />}
-          />
-          <ResourceCard 
-            title="FAQ"
-            description="Common questions and answers"
-            href="/docs/faq"
-            icon={<HugeiconsIcon icon={HelpCircleIcon} className="size-4" />}
-          />
-        </div>
+        <List items={[
+          <><a href="https://github.com/abboskhonov/tokenui" className="text-foreground underline hover:no-underline">GitHub Repository</a> — Source code, issues, and contributions</>,
+          <><a href="/docs/cli" className="text-foreground underline hover:no-underline">CLI Reference</a> — Complete command documentation</>,
+          <><a href="/docs/platform" className="text-foreground underline hover:no-underline">Platform</a> — Understanding the TokenUI platform</>,
+          <><a href="/docs/faq" className="text-foreground underline hover:no-underline">FAQ</a> — Common questions and answers</>
+        ]} />
       </Section>
     </DocsPage>
   )

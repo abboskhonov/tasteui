@@ -1,7 +1,6 @@
 export { CodeBlock } from "./code-block"
 export { Section, Heading, SubHeading, Paragraph, List, Step } from "./typography"
 export { Breadcrumb, PageHeader } from "./page-header"
-export { ResourceCard } from "./resource-card"
 export { TableOfContents, useTableOfContents } from "./table-of-contents"
 export type { TOCItem } from "./table-of-contents"
 export { DocsPage } from "./doc-page"

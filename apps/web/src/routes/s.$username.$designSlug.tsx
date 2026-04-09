@@ -1,7 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, useLocation } from "@tanstack/react-router"
 import { useQueryClient } from "@tanstack/react-query"
 import { useDesign, useTrackView, designKeys } from "@/lib/queries/designs"
-import { useState, useCallback, useEffect, useRef } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { useDesignActions } from "@/features/design-detail/hooks"
 import {
   SkillDetailHeader,
@@ -13,37 +13,8 @@ import {
   SkillNotFound,
 } from "@/features/design-detail/components"
 import type { Design } from "@/lib/types/design"
-import { api } from "@/lib/api/client"
 
-// Loader function to prefetch design data during route resolution
-async function designLoader({ params }: { params: { username: string; designSlug: string } }) {
-  const { username, designSlug } = params
-  
-  // Fetch the design data immediately
-  const response = await api.get<{ design: Design }>(`/api/designs/${username}/${designSlug}`)
-  
-  // Prefetch the demo URL HTML content if available (browser only)
-  let prefetchLink: HTMLLinkElement | null = null
-  if (typeof window !== "undefined" && response.design.demoUrl) {
-    prefetchLink = document.createElement("link")
-    prefetchLink.rel = "prefetch"
-    prefetchLink.href = response.design.demoUrl
-    prefetchLink.as = "fetch" // Use "fetch" for API calls, "document" is for full pages
-    document.head.appendChild(prefetchLink)
-  }
-  
-  return {
-    design: response.design,
-    username,
-    designSlug,
-    // Return cleanup function
-    cleanup: () => {
-      if (prefetchLink && document.head.contains(prefetchLink)) {
-        document.head.removeChild(prefetchLink)
-      }
-    }
-  }
-}
+type TabType = "preview" | "code"
 
 // Generate page title from design data
 function generatePageTitle(design: Design | undefined, params: { username: string; designSlug: string }): string {
@@ -59,11 +30,10 @@ function generatePageTitle(design: Design | undefined, params: { username: strin
 
 export const Route = createFileRoute("/s/$username/$designSlug")({
   component: SkillDetailPage,
-  loader: designLoader,
-  head: ({ loaderData, params }) => ({
+  head: ({ params }) => ({
     meta: [
       {
-        title: generatePageTitle(loaderData?.design, params),
+        title: generatePageTitle(undefined, params),
       },
     ],
   }),
@@ -71,35 +41,44 @@ export const Route = createFileRoute("/s/$username/$designSlug")({
   notFoundComponent: () => <SkillNotFound />,
 })
 
-type TabType = "preview" | "code"
+// Extended cached design type that may include extra fields from prefetch
+interface CachedDesign extends Design {
+  // thumbnailUrl is already in Design, but prefetch may add it if not in type
+}
+
+// Router state type for navigation from gallery
+interface GalleryNavigationState {
+  thumbnailUrl?: string
+  name?: string
+}
 
 function SkillDetailPage() {
   const { username, designSlug } = Route.useParams()
-  const loaderData = Route.useLoaderData()
+  const location = useLocation()
   const queryClient = useQueryClient()
   
-  // Track cleanup function
-  const cleanupRef = useRef<(() => void) | null>(loaderData?.cleanup || null)
+  // Get cached data immediately for instant UI (if prefetched from gallery)
+  const cachedDesign = queryClient.getQueryData<CachedDesign>(designKeys.detail(username, designSlug))
   
-  // Cleanup prefetch link on unmount
+  // Get thumbnail from router state (passed during navigation from gallery)
+  const navState = location.state as GalleryNavigationState | undefined
+  const thumbnailFromState = navState?.thumbnailUrl
+  const nameFromState = navState?.name
+  
+  // Fallback to sessionStorage if router state is not available
+  const [previewFromStorage, setPreviewFromStorage] = useState<{thumbnailUrl?: string; name?: string}>({})
   useEffect(() => {
-    return () => {
-      if (cleanupRef.current) {
-        cleanupRef.current()
-        cleanupRef.current = null
+    if (typeof window !== "undefined") {
+      const stored = sessionStorage.getItem(`skill-preview:${username}/${designSlug}`)
+      if (stored) {
+        try {
+          setPreviewFromStorage(JSON.parse(stored))
+        } catch {
+          // Ignore parse errors
+        }
       }
     }
-  }, [])
-  
-  // Get cached data immediately for instant UI (if prefetched from gallery)
-  const cachedDesign = queryClient.getQueryData<Design>(designKeys.detail(username, designSlug))
-  
-  // Hydrate React Query cache with loader data immediately
-  useEffect(() => {
-    if (loaderData?.design) {
-      queryClient.setQueryData(designKeys.detail(username, designSlug), loaderData.design)
-    }
-  }, [loaderData, queryClient, username, designSlug])
+  }, [username, designSlug])
   
   const { data: design, isLoading, error } = useDesign(username, designSlug)
   
@@ -109,6 +88,10 @@ function SkillDetailPage() {
   
   const [activeTab, setActiveTab] = useState<TabType>("preview")
   const [previewTheme, setPreviewTheme] = useState<"light" | "dark">("light")
+  
+  // Extract thumbnail and name for skeleton before displayDesign is narrowed
+  const skeletonThumbnail = thumbnailFromState || previewFromStorage.thumbnailUrl || cachedDesign?.thumbnailUrl || null
+  const skeletonName = nameFromState || previewFromStorage.name || cachedDesign?.name
   
   // Only use design actions when design is loaded (use displayDesign for instant UI)
   const designActions = useDesignActions(displayDesign)
@@ -149,7 +132,14 @@ function SkillDetailPage() {
 
   // Show skeleton only if we have no cached data AND we're loading
   if (!displayDesign) {
-    return <SkillDetailSkeleton username={username} designSlug={designSlug} />
+    return (
+      <SkillDetailSkeleton 
+        username={username} 
+        designSlug={designSlug}
+        thumbnailUrl={skeletonThumbnail}
+        name={skeletonName}
+      />
+    )
   }
 
   return (

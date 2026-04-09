@@ -3,23 +3,11 @@
 import { DocsPage } from "../components/doc-page"
 import { CodeBlock } from "../components/code-block"
 import { Section, Heading, SubHeading, Paragraph, List, Step } from "../components/typography"
-import { ResourceCard } from "../components/resource-card"
 import type { TOCItem } from "../components/table-of-contents"
-import { HugeiconsIcon } from "@hugeicons/react"
-import { 
-  GithubIcon,
-  CommandLineIcon,
-  Share01Icon,
-  Download04Icon
-} from "@hugeicons/core-free-icons"
 
 const tocItems: TOCItem[] = [
   { id: "what-is-tokenui", text: "What is TokenUI?", level: 2 },
   { id: "how-it-works", text: "How It Works", level: 2 },
-  { id: "architecture", text: "Architecture", level: 2 },
-  { id: "frontend", text: "Frontend", level: 3 },
-  { id: "api", text: "API", level: 3 },
-  { id: "data-storage", text: "Data & Storage", level: 3 },
   { id: "core-features", text: "Core Features", level: 2 },
   { id: "skill-lifecycle", text: "Skill Lifecycle", level: 2 },
   { id: "resources", text: "Resources", level: 2 },
@@ -79,39 +67,6 @@ export function DocsPlatformPage() {
         </div>
       </Section>
 
-      <Section id="architecture">
-        <Heading id="architecture">Architecture</Heading>
-        <Paragraph>
-          TokenUI is built as a modern full-stack application with clear separation 
-          between frontend, API, and data layers.
-        </Paragraph>
-        
-        <SubHeading id="frontend">Frontend</SubHeading>
-        <List items={[
-          <><strong>TanStack Start</strong> — React framework with Vite and SSR support</>,
-          <><strong>TanStack Router</strong> — File-based routing with type safety</>,
-          <><strong>TanStack Query</strong> — Data fetching and caching</>,
-          <><strong>shadcn/ui</strong> — UI components built on Base UI primitives</>,
-          <><strong>Tailwind CSS v4</strong> — Styling with OKLCH color space</>,
-          <><strong>Hugeicons</strong> — Icon library</>
-        ]} />
-
-        <SubHeading id="api">API</SubHeading>
-        <List items={[
-          <><strong>Hono</strong> — Fast, lightweight web framework</>,
-          <><strong>Cloudflare Workers</strong> — Edge deployment platform</>,
-          <><strong>Better Auth</strong> — Authentication with GitHub and Google OAuth</>,
-          <><strong>Drizzle ORM</strong> — Type-safe database access</>
-        ]} />
-
-        <SubHeading id="data-storage">Data & Storage</SubHeading>
-        <List items={[
-          <><strong>PostgreSQL</strong> — Primary database hosted on Neon</>,
-          <><strong>Cloudflare R2</strong> — Object storage for images and demos</>,
-          <><strong>Skills</strong> — Stored as structured SKILL.md files with metadata</>
-        ]} />
-      </Section>
-
       <Section id="core-features">
         <Heading id="core-features">Core Features</Heading>
         
@@ -166,32 +121,12 @@ export function DocsPlatformPage() {
 
       <Section id="resources">
         <Heading id="resources">Resources</Heading>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <ResourceCard 
-            title="GitHub Repository"
-            description="Source code, issues, and contributions"
-            href="https://github.com/abboskhonov/tokenui"
-            icon={<HugeiconsIcon icon={GithubIcon} className="size-4" />}
-          />
-          <ResourceCard 
-            title="CLI Reference"
-            description="Complete command documentation"
-            href="/docs/cli"
-            icon={<HugeiconsIcon icon={CommandLineIcon} className="size-4" />}
-          />
-          <ResourceCard 
-            title="Installing Skills"
-            description="How to find and install skills"
-            href="/docs/installing"
-            icon={<HugeiconsIcon icon={Download04Icon} className="size-4" />}
-          />
-          <ResourceCard 
-            title="Publishing Skills"
-            description="Create and share your own skills"
-            href="/docs/publishing"
-            icon={<HugeiconsIcon icon={Share01Icon} className="size-4" />}
-          />
-        </div>
+        <List items={[
+          <><a href="https://github.com/abboskhonov/tokenui" className="text-foreground underline hover:no-underline">GitHub Repository</a> — Source code, issues, and contributions</>,
+          <><a href="/docs/cli" className="text-foreground underline hover:no-underline">CLI Reference</a> — Complete command documentation</>,
+          <><a href="/docs/installing" className="text-foreground underline hover:no-underline">Installing Skills</a> — How to find and install skills</>,
+          <><a href="/docs/publishing" className="text-foreground underline hover:no-underline">Publishing Skills</a> — Create and share your own skills</>
+        ]} />
       </Section>
     </DocsPage>
   )

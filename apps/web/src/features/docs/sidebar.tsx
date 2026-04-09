@@ -5,11 +5,10 @@ import { cn } from "@/lib/utils"
 
 const navItems = [
   { label: "Overview", to: "/docs" },
-  { label: "Platform", to: "/docs/platform" },
-  { label: "Installing Skills", to: "/docs/installing" },
-  { label: "Publishing Skills", to: "/docs/publishing" },
+  { label: "Installation", to: "/docs/installing" },
+  { label: "Publishing", to: "/docs/publishing" },
   { label: "Skill Format", to: "/docs/format" },
-  { label: "CLI Reference", to: "/docs/cli" },
+  { label: "CLI", to: "/docs/cli" },
   { label: "FAQ", to: "/docs/faq" },
 ]
 
@@ -18,17 +17,41 @@ export function DocsSidebar() {
 
   return (
     <nav className="space-y-1">
-      {navItems.map((item) => {
+      <div className="mb-4 px-3">
+        <p className="text-xs font-medium text-muted-foreground">Getting Started</p>
+      </div>
+      {navItems.slice(0, 2).map((item) => {
         const isActive = pathname === item.to || (item.to !== "/docs" && pathname.startsWith(item.to))
         return (
           <Link
             key={item.label}
             to={item.to}
             className={cn(
-              "block px-3 py-2 rounded-lg text-sm",
+              "block px-3 py-1.5 text-sm transition-colors",
               isActive
-                ? "bg-accent text-accent-foreground font-medium"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                ? "text-foreground font-medium"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            {item.label}
+          </Link>
+        )
+      })}
+      
+      <div className="mt-6 mb-4 px-3">
+        <p className="text-xs font-medium text-muted-foreground">Documentation</p>
+      </div>
+      {navItems.slice(2).map((item) => {
+        const isActive = pathname === item.to || (item.to !== "/docs" && pathname.startsWith(item.to))
+        return (
+          <Link
+            key={item.label}
+            to={item.to}
+            className={cn(
+              "block px-3 py-1.5 text-sm transition-colors",
+              isActive
+                ? "text-foreground font-medium"
+                : "text-muted-foreground hover:text-foreground"
             )}
           >
             {item.label}

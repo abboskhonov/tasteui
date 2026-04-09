@@ -88,11 +88,21 @@ export function DesignCard({ design, onVisible }: DesignCardProps) {
   }, [design, queryClient, router, username])
   
   const handleCardClick = useCallback(() => {
+    // Store thumbnail/name in sessionStorage for skeleton to access
+    // (router state is hard to type properly with TanStack Router)
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem(`skill-preview:${username}/${design.slug}`, JSON.stringify({
+        thumbnailUrl: design.thumbnailUrl,
+        name: design.name
+      }))
+    }
+    
+    // Navigate immediately - no blocking loader
     navigate({
       to: "/s/$username/$designSlug",
       params: { username, designSlug: design.slug }
     })
-  }, [navigate, username, design.slug])
+  }, [navigate, username, design.slug, design.thumbnailUrl, design.name])
   
   const handleAuthorClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation()
