@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { useQueryClient } from "@tanstack/react-query"
 import { useDesign, useTrackView, designKeys } from "@/lib/queries/designs"
-import { useState, useCallback, useEffect } from "react"
+import { useState, useCallback, useEffect, useRef } from "react"
 import { useDesignActions } from "@/features/design-detail/hooks"
 import {
   SkillDetailHeader,
@@ -23,28 +23,47 @@ async function designLoader({ params }: { params: { username: string; designSlug
   const response = await api.get<{ design: Design }>(`/api/designs/${username}/${designSlug}`)
   
   // Prefetch the demo URL HTML content if available (browser only)
+  let prefetchLink: HTMLLinkElement | null = null
   if (typeof window !== "undefined" && response.design.demoUrl) {
-    const link = document.createElement("link")
-    link.rel = "prefetch"
-    link.href = response.design.demoUrl
-    link.as = "document"
-    document.head.appendChild(link)
+    prefetchLink = document.createElement("link")
+    prefetchLink.rel = "prefetch"
+    prefetchLink.href = response.design.demoUrl
+    prefetchLink.as = "fetch" // Use "fetch" for API calls, "document" is for full pages
+    document.head.appendChild(prefetchLink)
   }
   
   return {
     design: response.design,
     username,
     designSlug,
+    // Return cleanup function
+    cleanup: () => {
+      if (prefetchLink && document.head.contains(prefetchLink)) {
+        document.head.removeChild(prefetchLink)
+      }
+    }
   }
+}
+
+// Generate page title from design data
+function generatePageTitle(design: Design | undefined, params: { username: string; designSlug: string }): string {
+  if (design?.name) {
+    return `${design.name} by ${params.username} - tokenui`
+  }
+  // Fallback to formatted slug while loading
+  const formattedSlug = params.designSlug
+    .replace(/-/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase())
+  return `${formattedSlug} by ${params.username} - tokenui`
 }
 
 export const Route = createFileRoute("/s/$username/$designSlug")({
   component: SkillDetailPage,
   loader: designLoader,
-  head: ({ params }) => ({
+  head: ({ loaderData, params }) => ({
     meta: [
       {
-        title: `${params.designSlug} by ${params.username} - tokenui`,
+        title: generatePageTitle(loaderData?.design, params),
       },
     ],
   }),
@@ -58,6 +77,19 @@ function SkillDetailPage() {
   const { username, designSlug } = Route.useParams()
   const loaderData = Route.useLoaderData()
   const queryClient = useQueryClient()
+  
+  // Track cleanup function
+  const cleanupRef = useRef<(() => void) | null>(loaderData?.cleanup || null)
+  
+  // Cleanup prefetch link on unmount
+  useEffect(() => {
+    return () => {
+      if (cleanupRef.current) {
+        cleanupRef.current()
+        cleanupRef.current = null
+      }
+    }
+  }, [])
   
   // Get cached data immediately for instant UI (if prefetched from gallery)
   const cachedDesign = queryClient.getQueryData<Design>(designKeys.detail(username, designSlug))

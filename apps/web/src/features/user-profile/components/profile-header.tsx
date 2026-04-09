@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router"
 import { Button } from "@/components/ui/button"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { ArrowLeftIcon } from "@hugeicons/core-free-icons"
+import { ArrowLeft01Icon } from "@hugeicons/core-free-icons"
 
 interface ProfileHeaderProps {
   username: string
@@ -14,8 +14,8 @@ export function ProfileHeader({ username }: ProfileHeaderProps) {
         {/* Left: Back + Breadcrumb */}
         <div className="flex items-center gap-4">
           <Link to="/">
-            <Button variant="ghost" size="icon-sm" className="h-8 w-8 -ml-2">
-              <HugeiconsIcon icon={ArrowLeftIcon} className="size-4" />
+            <Button variant="ghost" size="icon" className="h-8 w-8 -ml-2">
+              <HugeiconsIcon icon={ArrowLeft01Icon} className="size-4" />
             </Button>
           </Link>
           

@@ -1,5 +1,5 @@
 import { Hono } from "hono"
-import { eq, and, desc, count, like, or, sql, gte } from "drizzle-orm"
+import { eq, and, desc, count, like, or, sql, gte, inArray } from "drizzle-orm"
 import { randomUUID } from "crypto"
 import { auth } from "../auth"
 import { db } from "../db"
@@ -7,6 +7,13 @@ import { user, design, designView, designDownload, star, bookmark } from "../db/
 import type { AuthContext } from "../types"
 import { generateSlug } from "../utils/slugs"
 import { success, created, unauthorized, notFound, internalError, badRequest, forbidden, logError } from "../utils/errors"
+import {
+  createDesignSchema,
+  updateDesignSchema,
+  designQuerySchema,
+  sanitizeSearchQuery,
+} from "../utils/validation"
+import { validateBody, validateQuery, getValidatedBody, getValidatedQuery } from "../middleware/validation"
 
 const app = new Hono<AuthContext>()
 
@@ -42,7 +49,7 @@ function parseFiles(filesJson: string | null): unknown[] | null {
 }
 
 // Create a new design (with optional draft mode)
-app.post("/", async (c) => {
+app.post("/", validateBody(createDesignSchema), async (c) => {
   const session = await auth.api.getSession({
     headers: c.req.raw.headers,
   })
@@ -51,24 +58,8 @@ app.post("/", async (c) => {
     return unauthorized(c)
   }
 
-  const body = await c.req.json()
-
-  // Validation only for non-draft publications
+  const body = getValidatedBody<typeof createDesignSchema._type>(c)
   const isDraft = body.status === "draft"
-  
-  if (!isDraft) {
-    if (!body.name || !body.name.trim()) {
-      return badRequest(c, "Name is required")
-    }
-
-    if (!body.category) {
-      return badRequest(c, "Category is required")
-    }
-
-    if (!body.content || !body.content.trim()) {
-      return badRequest(c, "Content is required")
-    }
-  }
 
   try {
     // Generate unique slug for this user
@@ -143,11 +134,9 @@ app.get("/my", async (c) => {
 })
 
 // Get public designs with pagination
-app.get("/", async (c) => {
-  const category = c.req.query("category")
-  const search = c.req.query("search")
-  const limit = Math.min(parseInt(c.req.query("limit") || "20"), 50)
-  const offset = parseInt(c.req.query("offset") || "0")
+app.get("/", validateQuery(designQuerySchema), async (c) => {
+  const query = getValidatedQuery<typeof designQuerySchema._type>(c)
+  const { category, search, limit, offset } = query
 
   try {
     const conditions: ReturnType<typeof eq>[] = [eq(design.status, "approved")]
@@ -157,14 +146,18 @@ app.get("/", async (c) => {
     }
 
     if (search) {
-      const searchPattern = `%${search.toLowerCase()}%`
-      conditions.push(
-        or(
-          like(design.name, searchPattern),
-          like(design.category, searchPattern),
-          like(design.description, searchPattern)
-        ) as ReturnType<typeof eq>
-      )
+      // Sanitize search query before using in LIKE
+      const sanitizedSearch = sanitizeSearchQuery(search)
+      if (sanitizedSearch) {
+        const searchPattern = `%${sanitizedSearch.toLowerCase()}%`
+        conditions.push(
+          or(
+            like(sql`LOWER(${design.name})`, searchPattern),
+            like(sql`LOWER(${design.category})`, searchPattern),
+            like(sql`LOWER(COALESCE(${design.description}, ''))`, searchPattern)
+          ) as ReturnType<typeof eq>
+        )
+      }
     }
 
     const designs = await db
@@ -203,9 +196,9 @@ app.get("/", async (c) => {
 })
 
 // Get trending skills (most views in last 7 days)
-app.get("/leaderboard/trending", async (c) => {
-  const limit = Math.min(parseInt(c.req.query("limit") || "20"), 50)
-  const offset = parseInt(c.req.query("offset") || "0")
+app.get("/leaderboard/trending", validateQuery(designQuerySchema), async (c) => {
+  const query = getValidatedQuery<typeof designQuerySchema._type>(c)
+  const { limit, offset } = query
 
   try {
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
@@ -252,9 +245,9 @@ app.get("/leaderboard/trending", async (c) => {
 })
 
 // Get top rated skills (most stars)
-app.get("/leaderboard/top", async (c) => {
-  const limit = Math.min(parseInt(c.req.query("limit") || "20"), 50)
-  const offset = parseInt(c.req.query("offset") || "0")
+app.get("/leaderboard/top", validateQuery(designQuerySchema), async (c) => {
+  const query = getValidatedQuery<typeof designQuerySchema._type>(c)
+  const { limit, offset } = query
 
   try {
     const topDesigns = await db
@@ -295,9 +288,9 @@ app.get("/leaderboard/top", async (c) => {
 })
 
 // Get newest skills
-app.get("/leaderboard/newest", async (c) => {
-  const limit = Math.min(parseInt(c.req.query("limit") || "20"), 50)
-  const offset = parseInt(c.req.query("offset") || "0")
+app.get("/leaderboard/newest", validateQuery(designQuerySchema), async (c) => {
+  const query = getValidatedQuery<typeof designQuerySchema._type>(c)
+  const { limit, offset } = query
 
   try {
     const newestDesigns = await db
@@ -334,36 +327,42 @@ app.get("/leaderboard/newest", async (c) => {
   }
 })
 
-// Get top contributors (users with most skills and stars)
+// Get top contributors (users with most skills and stars) - OPTIMIZED VERSION
 app.get("/leaderboard/contributors", async (c) => {
   const limit = Math.min(parseInt(c.req.query("limit") || "10"), 20)
 
   try {
-    // Get users with their design count and total stars
-    const contributors = await db
-      .select({
-        userId: user.id,
-        name: user.name,
-        username: user.username,
-        image: user.image,
-        skillCount: count(design.id),
-        totalStars: count(star.id),
-        totalViews: sql<number>`COALESCE(SUM(${design.viewCount}), 0)`.as("totalViews"),
-      })
-      .from(user)
-      .leftJoin(design, and(
-        eq(design.userId, user.id),
-        eq(design.status, "approved")
-      ))
-      .leftJoin(star, eq(star.designId, design.id))
-      .groupBy(user.id, user.name, user.username, user.image)
-      .having(sql`${count(design.id)} > 0`)
-      .orderBy(desc(count(star.id)), desc(count(design.id)))
-      .limit(limit)
+    // Single query with subquery for stars count - avoiding N+1
+    const contributors = await db.execute(sql`
+      SELECT 
+        u.id as "userId",
+        u.name,
+        u.username,
+        u.image,
+        COUNT(d.id) as "skillCount",
+        COALESCE(s.total_stars, 0) as "totalStars",
+        COALESCE(SUM(d.view_count), 0) as "totalViews"
+      FROM ${user} u
+      LEFT JOIN ${design} d ON d.user_id = u.id AND d.status = 'approved'
+      LEFT JOIN (
+        SELECT d.user_id, COUNT(s.id) as total_stars
+        FROM ${design} d
+        LEFT JOIN ${star} s ON s.design_id = d.id
+        WHERE d.status = 'approved'
+        GROUP BY d.user_id
+      ) s ON s.user_id = u.id
+      WHERE EXISTS (SELECT 1 FROM ${design} WHERE user_id = u.id AND status = 'approved')
+      GROUP BY u.id, u.name, u.username, u.image, s.total_stars
+      ORDER BY s.total_stars DESC NULLS LAST, COUNT(d.id) DESC
+      LIMIT ${limit}
+    `)
 
     return success(c, {
-      contributors: contributors.map(c => ({
-        ...c,
+      contributors: contributors.rows.map((c: any) => ({
+        userId: c.userId,
+        name: c.name,
+        username: c.username,
+        image: c.image,
         skillCount: Number(c.skillCount),
         totalStars: Number(c.totalStars),
         totalViews: Number(c.totalViews),
@@ -384,6 +383,12 @@ app.get("/:id", async (c) => {
 
   if (!session) {
     return unauthorized(c)
+  }
+
+  // Validate UUID format
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+  if (!uuidRegex.test(id)) {
+    return badRequest(c, "Invalid design ID format")
   }
 
   try {
@@ -438,6 +443,12 @@ app.get("/:id", async (c) => {
 app.get("/:username/:slug", async (c) => {
   const username = c.req.param("username")
   const slug = c.req.param("slug")
+
+  // Validate username and slug format
+  const validFormat = /^[a-zA-Z0-9_-]+$/
+  if (!validFormat.test(username) || !validFormat.test(slug)) {
+    return badRequest(c, "Invalid username or slug format")
+  }
 
   try {
     const [designRecord] = await db
@@ -545,6 +556,12 @@ app.get("/:username/:slug", async (c) => {
 app.post("/:id/view", async (c) => {
   const designId = c.req.param("id")
 
+  // Validate UUID format
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+  if (!uuidRegex.test(designId)) {
+    return badRequest(c, "Invalid design ID format")
+  }
+
   try {
     const [designRecord] = await db
       .select({ id: design.id, status: design.status, userId: design.userId })
@@ -615,6 +632,12 @@ app.post("/:id/view", async (c) => {
 app.post("/:id/download", async (c) => {
   const designId = c.req.param("id")
 
+  // Validate UUID format
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+  if (!uuidRegex.test(designId)) {
+    return badRequest(c, "Invalid design ID format")
+  }
+
   try {
     const [designRecord] = await db
       .select({ id: design.id, status: design.status, userId: design.userId })
@@ -662,7 +685,7 @@ app.post("/:id/download", async (c) => {
 })
 
 // Update design
-app.put("/:id", async (c) => {
+app.put("/:id", validateBody(updateDesignSchema), async (c) => {
   const id = c.req.param("id")
   const session = await auth.api.getSession({
     headers: c.req.raw.headers,
@@ -672,9 +695,14 @@ app.put("/:id", async (c) => {
     return unauthorized(c)
   }
 
+  // Validate UUID format
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+  if (!uuidRegex.test(id)) {
+    return badRequest(c, "Invalid design ID format")
+  }
+
   try {
-    const body = await c.req.json()
-    const { name, description, category, content, demoUrl, thumbnailUrl, status, files } = body
+    const body = getValidatedBody<typeof updateDesignSchema._type>(c)
 
     const [existingDesign] = await db
       .select()
@@ -693,14 +721,14 @@ app.put("/:id", async (c) => {
     const [updatedDesign] = await db
       .update(design)
       .set({
-        name: name || existingDesign.name,
-        description: description !== undefined ? description : existingDesign.description,
-        category: category || existingDesign.category,
-        content: content || existingDesign.content,
-        demoUrl: demoUrl !== undefined ? demoUrl : existingDesign.demoUrl,
-        thumbnailUrl: thumbnailUrl !== undefined ? thumbnailUrl : existingDesign.thumbnailUrl,
-        status: status !== undefined ? status : existingDesign.status,
-        files: files !== undefined ? (files ? JSON.stringify(files) : null) : existingDesign.files,
+        name: body.name || existingDesign.name,
+        description: body.description !== undefined ? body.description : existingDesign.description,
+        category: body.category || existingDesign.category,
+        content: body.content || existingDesign.content,
+        demoUrl: body.demoUrl !== undefined ? body.demoUrl : existingDesign.demoUrl,
+        thumbnailUrl: body.thumbnailUrl !== undefined ? body.thumbnailUrl : existingDesign.thumbnailUrl,
+        status: body.status !== undefined ? body.status : existingDesign.status,
+        files: body.files !== undefined ? (body.files ? JSON.stringify(body.files) : null) : existingDesign.files,
         updatedAt: new Date(),
       })
       .where(eq(design.id, id))
@@ -724,9 +752,20 @@ app.patch("/:id/visibility", async (c) => {
     return unauthorized(c)
   }
 
+  // Validate UUID format
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+  if (!uuidRegex.test(id)) {
+    return badRequest(c, "Invalid design ID format")
+  }
+
   try {
     const body = await c.req.json()
     const { status } = body
+
+    // Validate status value
+    if (!["draft", "pending", "approved", "rejected"].includes(status)) {
+      return badRequest(c, "Invalid status value")
+    }
 
     const [existingDesign] = await db
       .select()
@@ -767,6 +806,12 @@ app.delete("/:id", async (c) => {
 
   if (!session) {
     return unauthorized(c)
+  }
+
+  // Validate UUID format
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+  if (!uuidRegex.test(id)) {
+    return badRequest(c, "Invalid design ID format")
   }
 
   try {

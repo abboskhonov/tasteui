@@ -8,13 +8,13 @@ import { useGitHubStars } from "@/lib/queries/github";
 
 /**
  * Navigation - Main site navigation bar
- * Includes logo, nav links, theme toggle, and user menu
+ * Fixed positioning to stay at top of viewport
  */
 export const Navigation = memo(function Navigation() {
   const { data: stars } = useGitHubStars("abboskhonov/tokenui");
 
   return (
-    <div className="sticky top-0 z-50 bg-background border-b border-border">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border">
       <nav className="relative z-10 mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
         <Link to="/" className="flex items-center gap-2">
           <img
@@ -63,7 +63,7 @@ export const Navigation = memo(function Navigation() {
           <UserMenu stars={stars} />
         </div>
       </nav>
-    </div>
+    </header>
   );
 });
 

@@ -150,178 +150,181 @@ export function HeroSection({ initialDesigns }: HeroSectionProps) {
   const isLoadingDesigns = isLoading && !data && !initialDesigns;
 
   return (
-    <main className="relative min-h-screen bg-background">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-1/2 top-0 h-[600px] w-[800px] -translate-x-1/2 bg-[radial-gradient(circle_at_center,var(--brand)/6%,transparent_70%)]" style={{ willChange: "transform" }} />
-        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
-      </div>
-
+    <div className="relative min-h-screen bg-background">
+      {/* Navigation at root level - before main content */}
       <Navigation />
 
-      <div className="relative z-10 mx-auto max-w-7xl px-6 pt-12 md:pt-16">
-        <div className="max-w-2xl">
-          <h1 className="text-4xl font-medium leading-tight tracking-tight text-foreground md:text-5xl">
-            The design layer
-            <br />
-            <span className="text-muted-foreground">for your coding agent</span>
-          </h1>
-          <p className="mt-4 text-lg text-muted-foreground">
-            A CLI tool that applies a consistent, beautiful design layer on top of AI-generated code.
-          </p>
+      <main className="relative z-10 mx-auto max-w-7xl px-6 pt-[72px]">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute left-1/2 top-0 h-[600px] w-[800px] -translate-x-1/2 bg-[radial-gradient(circle_at_center,var(--brand)/6%,transparent_70%)]" style={{ willChange: "transform" }} />
+          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
         </div>
 
-        <div className="mt-8">
-          <CLICopy command="npx tokenui.sh add <skill>" />
-        </div>
-
-        <section className="mt-16 md:mt-20">
-          <div className="mb-6 flex items-center gap-2">
-            <span className="text-sm font-medium text-muted-foreground">Skills Leaderboard</span>
+        <div className="relative z-10 pt-12 md:pt-16">
+          <div className="max-w-2xl">
+            <h1 className="text-4xl font-medium leading-tight tracking-tight text-foreground md:text-5xl">
+              The design layer
+              <br />
+              <span className="text-muted-foreground">for your coding agent</span>
+            </h1>
+            <p className="mt-4 text-lg text-muted-foreground">
+              A CLI tool that applies a consistent, beautiful design layer on top of AI-generated code.
+            </p>
           </div>
 
-          <div className="mb-6 flex items-center gap-4 border-b border-border pb-4">
-            <div className="flex flex-1 items-center gap-3">
-              <HugeiconsIcon icon={Search01Icon} className="size-5 text-muted-foreground" />
-              <input
-                ref={searchInputRef}
-                type="text"
-                placeholder="Search all skills..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
-              />
+          <div className="mt-8">
+            <CLICopy command="npx tokenui.sh add <skill>" />
+          </div>
+
+          <section className="mt-16 md:mt-20">
+            <div className="mb-6 flex items-center gap-2">
+              <span className="text-sm font-medium text-muted-foreground">Skills Leaderboard</span>
             </div>
-            <div className="flex items-center gap-2">
-              {/* Category Dropdown */}
-              <DropdownMenu>
-                <DropdownMenuTrigger render={
-                  <Button variant="ghost" size="sm" className="gap-2 h-8 text-sm text-muted-foreground hover:text-foreground">
-                    <span className="capitalize">{activeTab === "all" ? "All" : activeTab}</span>
-                    <span className="text-xs text-muted-foreground/70">({getCategoryCount(activeTab)})</span>
-                    <HugeiconsIcon icon={ArrowRight01Icon} className="size-3 rotate-90" />
-                  </Button>
-                } />
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem 
-                    className="gap-2 text-sm"
-                    onClick={() => setActiveTab("all")}
-                  >
-                    <span>All</span>
-                    <span className="text-xs text-muted-foreground ml-auto">({getCategoryCount("all")})</span>
-                  </DropdownMenuItem>
-                  {designCategories.map((cat) => (
-                    <DropdownMenuItem 
-                      key={cat.name}
-                      className="gap-2 text-sm"
-                      onClick={() => setActiveTab(cat.name)}
-                    >
-                      <span>{cat.name}</span>
-                      <span className="text-xs text-muted-foreground ml-auto">({getCategoryCount(cat.name)})</span>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <kbd className="flex h-8 w-8 items-center justify-center rounded border border-border text-sm text-muted-foreground">
-                /
-              </kbd>
-            </div>
-          </div>
 
-          {/* Sort Tabs (Newest, Trending, Most Starred, Most Viewed) */}
-          <div className="mb-6 flex items-center gap-6 text-sm border-b border-border overflow-x-auto custom-scrollbar">
-            <button
-              onClick={() => setSortBy("newest")}
-              className={cn(
-                "flex items-center gap-2 pb-3 transition-colors whitespace-nowrap",
-                sortBy === "newest"
-                  ? "border-b-2 border-foreground font-medium text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <span>Newest</span>
-            </button>
-            <button
-              onClick={() => setSortBy("trending")}
-              className={cn(
-                "flex items-center gap-2 pb-3 transition-colors whitespace-nowrap",
-                sortBy === "trending"
-                  ? "border-b-2 border-foreground font-medium text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <span>Trending</span>
-            </button>
-            <button
-              onClick={() => setSortBy("mostStarred")}
-              className={cn(
-                "flex items-center gap-2 pb-3 transition-colors whitespace-nowrap",
-                sortBy === "mostStarred"
-                  ? "border-b-2 border-foreground font-medium text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <span>Most Starred</span>
-            </button>
-            <button
-              onClick={() => setSortBy("mostViewed")}
-              className={cn(
-                "flex items-center gap-2 pb-3 transition-colors whitespace-nowrap",
-                sortBy === "mostViewed"
-                  ? "border-b-2 border-foreground font-medium text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <span>Most Viewed</span>
-            </button>
-            <button
-              onClick={() => setSortBy("contributors")}
-              className={cn(
-                "flex items-center gap-2 pb-3 transition-colors whitespace-nowrap",
-                sortBy === "contributors"
-                  ? "border-b-2 border-foreground font-medium text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <span>Top Contributors</span>
-            </button>
-          </div>
-          
-          {sortBy === "contributors" ? (
-            <ContributorsView />
-          ) : isLoadingDesigns ? (
-            <LoadingState />
-          ) : error ? (
-            <ErrorState />
-          ) : filteredDesigns.length === 0 ? (
-            <EmptyState />
-          ) : (
-            <>
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 pb-12">
-                {filteredDesigns.map((design) => (
-                  <DesignCard key={design.id} design={design} />
-                ))}
+            <div className="mb-6 flex items-center gap-4 border-b border-border pb-4">
+              <div className="flex flex-1 items-center gap-3">
+                <HugeiconsIcon icon={Search01Icon} className="size-5 text-muted-foreground" />
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  placeholder="Search all skills..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+                />
               </div>
-              
-              {/* Infinite scroll trigger - only show when "all" is selected or more items might exist */}
-              {(activeTab === "all" || hasNextPage) && (
-                <div ref={loadMoreRef} className="flex justify-center py-8">
-                  {isFetchingNextPage ? (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <div className="size-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                      Loading more...
-                    </div>
-                  ) : hasNextPage ? (
-                    <div className="text-sm text-muted-foreground">Scroll for more</div>
-                  ) : (
-                    <div className="text-sm text-muted-foreground">No more skills</div>
-                  )}
+              <div className="flex items-center gap-2">
+                {/* Category Dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger render={
+                    <Button variant="ghost" size="sm" className="gap-2 h-8 text-sm text-muted-foreground hover:text-foreground">
+                      <span className="capitalize">{activeTab === "all" ? "All" : activeTab}</span>
+                      <span className="text-xs text-muted-foreground/70">({getCategoryCount(activeTab)})</span>
+                      <HugeiconsIcon icon={ArrowRight01Icon} className="size-3 rotate-90" />
+                    </Button>
+                  } />
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem 
+                      className="gap-2 text-sm"
+                      onClick={() => setActiveTab("all")}
+                    >
+                      <span>All</span>
+                      <span className="text-xs text-muted-foreground ml-auto">({getCategoryCount("all")})</span>
+                    </DropdownMenuItem>
+                    {designCategories.map((cat) => (
+                      <DropdownMenuItem 
+                        key={cat.name}
+                        className="gap-2 text-sm"
+                        onClick={() => setActiveTab(cat.name)}
+                      >
+                        <span>{cat.name}</span>
+                        <span className="text-xs text-muted-foreground ml-auto">({getCategoryCount(cat.name)})</span>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <kbd className="flex h-8 w-8 items-center justify-center rounded border border-border text-sm text-muted-foreground">
+                  /
+                </kbd>
+              </div>
+            </div>
+
+            {/* Sort Tabs (Newest, Trending, Most Starred, Most Viewed) */}
+            <div className="mb-6 flex items-center gap-6 text-sm border-b border-border overflow-x-auto custom-scrollbar">
+              <button
+                onClick={() => setSortBy("newest")}
+                className={cn(
+                  "flex items-center gap-2 pb-3 transition-colors whitespace-nowrap",
+                  sortBy === "newest"
+                    ? "border-b-2 border-foreground font-medium text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <span>Newest</span>
+              </button>
+              <button
+                onClick={() => setSortBy("trending")}
+                className={cn(
+                  "flex items-center gap-2 pb-3 transition-colors whitespace-nowrap",
+                  sortBy === "trending"
+                    ? "border-b-2 border-foreground font-medium text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <span>Trending</span>
+              </button>
+              <button
+                onClick={() => setSortBy("mostStarred")}
+                className={cn(
+                  "flex items-center gap-2 pb-3 transition-colors whitespace-nowrap",
+                  sortBy === "mostStarred"
+                    ? "border-b-2 border-foreground font-medium text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <span>Most Starred</span>
+              </button>
+              <button
+                onClick={() => setSortBy("mostViewed")}
+                className={cn(
+                  "flex items-center gap-2 pb-3 transition-colors whitespace-nowrap",
+                  sortBy === "mostViewed"
+                    ? "border-b-2 border-foreground font-medium text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <span>Most Viewed</span>
+              </button>
+              <button
+                onClick={() => setSortBy("contributors")}
+                className={cn(
+                  "flex items-center gap-2 pb-3 transition-colors whitespace-nowrap",
+                  sortBy === "contributors"
+                    ? "border-b-2 border-foreground font-medium text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <span>Top Contributors</span>
+              </button>
+            </div>
+            
+            {sortBy === "contributors" ? (
+              <ContributorsView />
+            ) : isLoadingDesigns ? (
+              <LoadingState />
+            ) : error ? (
+              <ErrorState />
+            ) : filteredDesigns.length === 0 ? (
+              <EmptyState />
+            ) : (
+              <>
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 pb-12">
+                  {filteredDesigns.map((design) => (
+                    <DesignCard key={design.id} design={design} />
+                  ))}
                 </div>
-              )}
-            </>
-          )}
-        </section>
-      </div>
-    </main>
+                
+                {/* Infinite scroll trigger - only show when "all" is selected or more items might exist */}
+                {(activeTab === "all" || hasNextPage) && (
+                  <div ref={loadMoreRef} className="flex justify-center py-8">
+                    {isFetchingNextPage ? (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <div className="size-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                        Loading more...
+                      </div>
+                    ) : hasNextPage ? (
+                      <div className="text-sm text-muted-foreground">Scroll for more</div>
+                    ) : (
+                      <div className="text-sm text-muted-foreground">No more skills</div>
+                    )}
+                  </div>
+                )}
+              </>
+            )}
+          </section>
+        </div>
+      </main>
+    </div>
   );
 }
 
