@@ -1,9 +1,14 @@
+"use client"
+
 import { Link } from "@tanstack/react-router"
 import { Button } from "@/components/ui/button"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { 
   Cancel01Icon, 
+  ArrowLeft01Icon,
   ArrowLeftIcon,
+  Folder01Icon,
+  Moon02Icon,
   File01Icon 
 } from "@hugeicons/core-free-icons"
 
@@ -22,18 +27,48 @@ export function SkillDetailSkeleton({ username, designSlug, thumbnailUrl, name }
   
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Header */}
+      {/* Header - Matches SkillDetailHeader layout exactly */}
       <header className="sticky top-0 z-50 h-12 border-b border-border bg-background/95 backdrop-blur-xl">
-        <div className="mx-auto h-full max-w-[1800px] px-4 flex items-center">
-          {/* Breadcrumb */}
-          <div className="flex items-center gap-2 text-sm">
-            <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors">
-              Skills
+        <div className="mx-auto h-full max-w-full px-4 flex items-center justify-between">
+          {/* Left: Back button */}
+          <div className="flex items-center">
+            <Link to="/" preload="intent">
+              <Button variant="ghost" size="sm" className="h-8 gap-1.5 px-2 -ml-1">
+                <HugeiconsIcon icon={ArrowLeft01Icon} className="size-4" />
+                <span className="text-sm">Back</span>
+              </Button>
             </Link>
-            <span className="text-muted-foreground">/</span>
+          </div>
+
+          {/* Center: Breadcrumb - matches actual header exactly */}
+          <div className="flex items-center gap-2 text-sm absolute left-1/2 -translate-x-1/2">
             <span className="text-muted-foreground">{username}</span>
-            <span className="text-muted-foreground">/</span>
-            <span className="font-medium">{displayName}</span>
+            <span className="text-muted-foreground/50">/</span>
+            <span className="font-medium truncate max-w-[200px]">{displayName}</span>
+          </div>
+
+          {/* Right: Action buttons (skeleton version) */}
+          <div className="flex items-center gap-1">
+            {/* Toggle files button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 text-xs gap-1.5 px-2"
+              disabled
+            >
+              <HugeiconsIcon icon={Folder01Icon} className="size-3.5" />
+              <span className="bg-muted animate-pulse rounded w-12 h-3 inline-block" />
+            </Button>
+
+            {/* Theme toggle */}
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="h-8 w-8"
+              disabled
+            >
+              <HugeiconsIcon icon={Moon02Icon} className="size-4" />
+            </Button>
           </div>
         </div>
       </header>
