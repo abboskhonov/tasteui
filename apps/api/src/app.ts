@@ -3,6 +3,12 @@ import { config } from "dotenv"
 import type { AuthContext } from "./types"
 import { corsConfig, createCacheMiddleware } from "./middleware/cors"
 import { authMiddleware } from "./middleware/auth"
+import {
+  standardRateLimiter,
+  authRateLimiter,
+  cliRateLimiter,
+  strictRateLimiter,
+} from "./middleware/rate-limit"
 
 // Import route modules
 import healthRoutes from "./routes/health"
@@ -27,7 +33,23 @@ const app = new Hono<AuthContext>()
 app.use("*", corsConfig)
 app.use("*", authMiddleware)
 
-// Cache middleware for public routes
+// Apply rate limiting to specific routes
+// Auth routes - strict limiting to prevent brute force
+app.use("/api/auth/*", authRateLimiter)
+
+// CLI tracking - generous but prevent spam
+app.use("/api/cli/*", cliRateLimiter)
+
+// View tracking - strict to prevent view manipulation
+app.use("/api/designs/*/view", strictRateLimiter)
+
+// Download tracking - strict to prevent abuse
+app.use("/api/designs/*/download", strictRateLimiter)
+
+// General API rate limiting for all routes
+app.use("/api/*", standardRateLimiter)
+
+// Cache middleware for public routes (applied after rate limiting)
 app.use("/api/designs", createCacheMiddleware(60))
 app.use("/api/users/*", createCacheMiddleware(60))
 

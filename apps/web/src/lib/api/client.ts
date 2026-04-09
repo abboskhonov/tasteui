@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://localhost:3001"
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001"
 
 interface ApiError extends Error {
   status?: number
@@ -19,17 +19,17 @@ class ApiClient {
     options: RequestInit = {}
   ): Promise<T> {
     const url = `${this.internalBaseURL}${endpoint}`
-    
+
     // Check if body is FormData - don't set Content-Type, browser will set it with boundary
     const isFormData = options.body instanceof FormData
-    
+
     const headers: Record<string, string> = {}
-    
+
     // Only set Content-Type to application/json if not FormData
     if (!isFormData) {
       headers["Content-Type"] = "application/json"
     }
-    
+
     // Merge with any provided headers (they take precedence)
     if (options.headers) {
       Object.entries(options.headers).forEach(([key, value]) => {
@@ -38,7 +38,7 @@ class ApiClient {
         }
       })
     }
-    
+
     const config: RequestInit = {
       ...options,
       headers,

@@ -1,71 +1,71 @@
 import { Hono } from "hono"
 import { eq, desc, count, sql, and } from "drizzle-orm"
+import { z } from "zod"
 import { db } from "../db"
 import { design, user, bookmark, cliRun, designView } from "../db/schema"
 import type { AuthContext } from "../types"
+import { badRequest } from "../utils/errors"
+import { validateBody, validateParams, getValidatedBody, getValidatedParams } from "../middleware/validation"
 
 const adminRoutes = new Hono<AuthContext>()
+
+// Validation schemas
+const designIdSchema = z.object({
+  id: z.string().uuid("Invalid design ID"),
+})
+
+const reviewSchema = z.object({
+  message: z.string().max(500, "Message too long").optional(),
+})
 
 // Admin middleware - check if user is admin
 adminRoutes.use("*", async (c, next) => {
   const session = c.get("session")
-  
+
   if (!session?.user) {
     return c.json({ error: "Unauthorized" }, 401)
   }
-  
+
   // Check if user is admin by role
   const [userData] = await db
     .select({ role: user.role })
     .from(user)
     .where(eq(user.id, session.user.id))
     .limit(1)
-  
+
   if (userData?.role !== "admin") {
     return c.json({ error: "Forbidden - Admin access required" }, 403)
   }
-  
+
   await next()
 })
 
 // Get admin dashboard stats
 adminRoutes.get("/stats", async (c) => {
   try {
-    // Total users
-    const [userCount] = await db
-      .select({ count: count() })
-      .from(user)
-    
-    // Total designs
-    const [designCount] = await db
-      .select({ count: count() })
-      .from(design)
-    
-    // Pending review (status = "pending")
-    const [pendingCount] = await db
-      .select({ count: count() })
-      .from(design)
-      .where(eq(design.status, "pending"))
-    
-    // Approved today
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    
-    const [approvedToday] = await db
-      .select({ count: count() })
-      .from(design)
-      .where(
-        and(
-          eq(design.status, "approved"),
-          sql`${design.updatedAt} >= ${today.toISOString()}`
-        )
-      )
-    
+    // Single query for all stats
+    const statsResult = await db.execute(sql`
+      SELECT 
+        (SELECT COUNT(*) FROM ${user}) as total_users,
+        (SELECT COUNT(*) FROM ${design}) as total_designs,
+        (SELECT COUNT(*) FROM ${design} WHERE status = 'pending') as pending_review,
+        (SELECT COUNT(*) FROM ${design} 
+         WHERE status = 'approved' 
+         AND updated_at >= ${new Date().toISOString()}::timestamp) as approved_today
+    `)
+
+    const stats = statsResult.rows[0] as { 
+      total_users: string | number
+      total_designs: string | number
+      pending_review: string | number
+      approved_today: string | number
+    }
+
     return c.json({
-      totalUsers: userCount?.count || 0,
-      totalDesigns: designCount?.count || 0,
-      pendingReview: pendingCount?.count || 0,
-      approvedToday: approvedToday?.count || 0,
+      totalUsers: Number(stats?.total_users || 0),
+      totalDesigns: Number(stats?.total_designs || 0),
+      pendingReview: Number(stats?.pending_review || 0),
+      approvedToday: Number(stats?.approved_today || 0),
     })
   } catch (error) {
     console.error("Admin stats error:", error)
@@ -73,101 +73,84 @@ adminRoutes.get("/stats", async (c) => {
   }
 })
 
-// Get all users with their design counts
+// Get all users with their design counts - OPTIMIZED with single query
 adminRoutes.get("/users", async (c) => {
   try {
-    const users = await db
-      .select({
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        username: user.username,
-        image: user.image,
-        role: user.role,
-        createdAt: user.createdAt,
-      })
-      .from(user)
-      .orderBy(desc(user.createdAt))
-    
-    // Get design counts for each user
-    const usersWithCounts = await Promise.all(
-      users.map(async (u) => {
-        const [designCount] = await db
-          .select({ count: count() })
-          .from(design)
-          .where(eq(design.userId, u.id))
-        
-        return {
-          ...u,
-          designs: designCount?.count || 0,
-        }
-      })
-    )
-    
-    return c.json({ users: usersWithCounts })
+    const usersWithCounts = await db.execute(sql`
+      SELECT 
+        u.id,
+        u.name,
+        u.email,
+        u.username,
+        u.image,
+        u.role,
+        u.created_at,
+        COUNT(d.id) as designs
+      FROM ${user} u
+      LEFT JOIN ${design} d ON d.user_id = u.id
+      GROUP BY u.id, u.name, u.email, u.username, u.image, u.role, u.created_at
+      ORDER BY u.created_at DESC
+    `)
+
+    return c.json({
+      users: usersWithCounts.rows.map((u: any) => ({
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        username: u.username,
+        image: u.image,
+        role: u.role,
+        createdAt: u.created_at,
+        designs: Number(u.designs),
+      })),
+    })
   } catch (error) {
     console.error("Admin users error:", error)
     return c.json({ error: "Failed to fetch users" }, 500)
   }
 })
 
-// Get all designs with pagination
+// Get all designs with pagination - OPTIMIZED with join
 adminRoutes.get("/designs", async (c) => {
   try {
     const limit = Math.min(parseInt(c.req.query("limit") || "20"), 50)
     const offset = parseInt(c.req.query("offset") || "0")
-    
-    const designs = await db
-      .select({
-        id: design.id,
-        name: design.name,
-        slug: design.slug,
-        category: design.category,
-        status: design.status,
-        reviewMessage: design.reviewMessage,
-        thumbnailUrl: design.thumbnailUrl,
-        viewCount: design.viewCount,
-        createdAt: design.createdAt,
-        updatedAt: design.updatedAt,
-        userId: design.userId,
-      })
-      .from(design)
-      .orderBy(desc(design.createdAt))
-      .limit(limit)
-      .offset(offset)
-    
-    // Get total count for pagination
+
+    // Single query with join for author info
+    const designsWithAuthors = await db.execute(sql`
+      SELECT 
+        d.id,
+        d.name,
+        d.slug,
+        d.category,
+        d.status,
+        d.review_message,
+        d.thumbnail_url,
+        d.view_count,
+        d.created_at,
+        d.updated_at,
+        d.user_id,
+        COALESCE(u.username, u.name, 'Unknown') as author
+      FROM ${design} d
+      LEFT JOIN ${user} u ON u.id = d.user_id
+      ORDER BY d.created_at DESC
+      LIMIT ${limit}
+      OFFSET ${offset}
+    `)
+
+    // Get total count
     const [countResult] = await db
       .select({ count: count() })
       .from(design)
-    
-    // Get author info for each design
-    const designsWithAuthors = await Promise.all(
-      designs.map(async (d) => {
-        const [author] = await db
-          .select({
-            name: user.name,
-            username: user.username,
-          })
-          .from(user)
-          .where(eq(user.id, d.userId))
-          .limit(1)
-        
-        return {
-          ...d,
-          author: author?.username || author?.name || "Unknown",
-        }
-      })
-    )
-    
-    return c.json({ 
-      designs: designsWithAuthors,
-      pagination: { 
-        limit, 
-        offset, 
+
+    return c.json({
+      designs: designsWithAuthors.rows,
+      pagination: {
+        limit,
+        offset,
         total: countResult?.count || 0,
-        hasMore: designs.length === limit 
-      }
+        hasMore: designsWithAuthors.rows.length === limit,
+      },
     })
   } catch (error) {
     console.error("Admin designs error:", error)
@@ -175,48 +158,46 @@ adminRoutes.get("/designs", async (c) => {
   }
 })
 
-// Get pending review designs
+// Get pending review designs - OPTIMIZED with join
 adminRoutes.get("/designs/pending", async (c) => {
   try {
-    const pendingDesigns = await db
-      .select({
-        id: design.id,
-        name: design.name,
-        slug: design.slug,
-        description: design.description,
-        category: design.category,
-        content: design.content,
-        thumbnailUrl: design.thumbnailUrl,
-        demoUrl: design.demoUrl,
-        createdAt: design.createdAt,
-        userId: design.userId,
-      })
-      .from(design)
-      .where(eq(design.status, "pending"))
-      .orderBy(desc(design.createdAt))
-    
-    // Get author info
-    const designsWithAuthors = await Promise.all(
-      pendingDesigns.map(async (d) => {
-        const [author] = await db
-          .select({
-            name: user.name,
-            username: user.username,
-            image: user.image,
-          })
-          .from(user)
-          .where(eq(user.id, d.userId))
-          .limit(1)
-        
-        return {
-          ...d,
-          author: author?.username || author?.name || "Unknown",
-          authorImage: author?.image,
-        }
-      })
-    )
-    
-    return c.json({ designs: designsWithAuthors })
+    const pendingDesigns = await db.execute(sql`
+      SELECT 
+        d.id,
+        d.name,
+        d.slug,
+        d.description,
+        d.category,
+        d.content,
+        d.thumbnail_url,
+        d.demo_url,
+        d.created_at,
+        d.user_id,
+        u.name as author_name,
+        u.username as author_username,
+        u.image as author_image
+      FROM ${design} d
+      LEFT JOIN ${user} u ON u.id = d.user_id
+      WHERE d.status = 'pending'
+      ORDER BY d.created_at DESC
+    `)
+
+    return c.json({
+      designs: pendingDesigns.rows.map((d: any) => ({
+        id: d.id,
+        name: d.name,
+        slug: d.slug,
+        description: d.description,
+        category: d.category,
+        content: d.content,
+        thumbnailUrl: d.thumbnail_url,
+        demoUrl: d.demo_url,
+        createdAt: d.created_at,
+        userId: d.user_id,
+        author: d.author_username || d.author_name || "Unknown",
+        authorImage: d.author_image,
+      })),
+    })
   } catch (error) {
     console.error("Admin pending designs error:", error)
     return c.json({ error: "Failed to fetch pending designs" }, 500)
@@ -224,56 +205,64 @@ adminRoutes.get("/designs/pending", async (c) => {
 })
 
 // Approve a design
-adminRoutes.post("/designs/:id/approve", async (c) => {
-  try {
-    const designId = c.req.param("id")
-    const body = await c.req.json()
-    const { message } = body // Optional approval message
-    
-    await db
-      .update(design)
-      .set({ 
-        status: "approved",
-        reviewMessage: message || null,
-        updatedAt: new Date(),
-      })
-      .where(eq(design.id, designId))
-    
-    return c.json({ success: true, message: "Design approved" })
-  } catch (error) {
-    console.error("Approve design error:", error)
-    return c.json({ error: "Failed to approve design" }, 500)
+adminRoutes.post(
+  "/designs/:id/approve",
+  validateParams(designIdSchema),
+  validateBody(reviewSchema),
+  async (c) => {
+    try {
+      const { id } = getValidatedParams<typeof designIdSchema._type>(c)
+      const { message } = getValidatedBody<typeof reviewSchema._type>(c)
+
+      await db
+        .update(design)
+        .set({
+          status: "approved",
+          reviewMessage: message || null,
+          updatedAt: new Date(),
+        })
+        .where(eq(design.id, id))
+
+      return c.json({ success: true, message: "Design approved" })
+    } catch (error) {
+      console.error("Approve design error:", error)
+      return c.json({ error: "Failed to approve design" }, 500)
+    }
   }
-})
+)
 
 // Reject a design
-adminRoutes.post("/designs/:id/reject", async (c) => {
-  try {
-    const designId = c.req.param("id")
-    const body = await c.req.json()
-    const { message } = body // Rejection reason/message
-    
-    await db
-      .update(design)
-      .set({ 
-        status: "rejected",
-        reviewMessage: message || null,
-        updatedAt: new Date(),
-      })
-      .where(eq(design.id, designId))
-    
-    return c.json({ success: true, message: "Design rejected" })
-  } catch (error) {
-    console.error("Reject design error:", error)
-    return c.json({ error: "Failed to reject design" }, 500)
+adminRoutes.post(
+  "/designs/:id/reject",
+  validateParams(designIdSchema),
+  validateBody(reviewSchema),
+  async (c) => {
+    try {
+      const { id } = getValidatedParams<typeof designIdSchema._type>(c)
+      const { message } = getValidatedBody<typeof reviewSchema._type>(c)
+
+      await db
+        .update(design)
+        .set({
+          status: "rejected",
+          reviewMessage: message || null,
+          updatedAt: new Date(),
+        })
+        .where(eq(design.id, id))
+
+      return c.json({ success: true, message: "Design rejected" })
+    } catch (error) {
+      console.error("Reject design error:", error)
+      return c.json({ error: "Failed to reject design" }, 500)
+    }
   }
-})
+)
 
 // Get CLI run analytics
 adminRoutes.get("/analytics/cli", async (c) => {
   try {
     // Calculate last 7 days
-    const days = []
+    const days: Date[] = []
     for (let i = 6; i >= 0; i--) {
       const date = new Date()
       date.setDate(date.getDate() - i)
@@ -281,43 +270,38 @@ adminRoutes.get("/analytics/cli", async (c) => {
       days.push(date)
     }
 
-    // Get runs for each day
-    const dailyInstalls = await Promise.all(
+    // Single query for all daily stats
+    const dailyStatsResult = await Promise.all(
       days.map(async (day) => {
         const nextDay = new Date(day)
         nextDay.setDate(nextDay.getDate() + 1)
 
-        const dayStr = day.toISOString()
-        const nextDayStr = nextDay.toISOString()
-
         const result = await db.execute(sql`
           SELECT COUNT(*) as count 
-          FROM cli_run 
-          WHERE run_at >= ${dayStr}::timestamp
-            AND run_at < ${nextDayStr}::timestamp
+          FROM ${cliRun}
+          WHERE run_at >= ${day.toISOString()}::timestamp
+            AND run_at < ${nextDay.toISOString()}::timestamp
         `)
 
         return Number(result.rows[0]?.count || 0)
       })
     )
 
-    // Get total runs
-    const totalResult = await db.execute(sql`
-      SELECT COUNT(*) as count FROM cli_run
-    `)
-
-    // Get version breakdown
-    const versionResult = await db.execute(sql`
-      SELECT version, COUNT(*) as count 
-      FROM cli_run 
-      GROUP BY version 
-      ORDER BY count DESC
-    `)
+    // Get total and version breakdown
+    const [totalResult, versionResult] = await Promise.all([
+      db.execute(sql`SELECT COUNT(*) as count FROM ${cliRun}`),
+      db.execute(sql`
+        SELECT version, COUNT(*) as count 
+        FROM ${cliRun}
+        GROUP BY version 
+        ORDER BY count DESC
+      `),
+    ])
 
     return c.json({
-      dailyInstalls,
+      dailyInstalls: dailyStatsResult,
       totalInstalls: Number(totalResult.rows[0]?.count || 0),
-      uniqueInstalls: 0,  // Not tracking unique machines (anonymous)
+      uniqueInstalls: 0, // Not tracking unique machines (anonymous)
       versionBreakdown: versionResult.rows,
     })
   } catch (error) {
@@ -330,7 +314,7 @@ adminRoutes.get("/analytics/cli", async (c) => {
 adminRoutes.get("/analytics/views", async (c) => {
   try {
     // Calculate last 7 days
-    const days = []
+    const days: Date[] = []
     for (let i = 6; i >= 0; i--) {
       const date = new Date()
       date.setDate(date.getDate() - i)
@@ -344,29 +328,25 @@ adminRoutes.get("/analytics/views", async (c) => {
         const nextDay = new Date(day)
         nextDay.setDate(nextDay.getDate() + 1)
 
-        const dayStr = day.toISOString()
-        const nextDayStr = nextDay.toISOString()
-
         const result = await db.execute(sql`
           SELECT COUNT(*) as count 
-          FROM design_view 
-          WHERE viewed_at >= ${dayStr}::timestamp
-            AND viewed_at < ${nextDayStr}::timestamp
+          FROM ${designView}
+          WHERE viewed_at >= ${day.toISOString()}::timestamp
+            AND viewed_at < ${nextDay.toISOString()}::timestamp
         `)
 
         return Number(result.rows[0]?.count || 0)
       })
     )
 
-    // Get total views
-    const totalResult = await db.execute(sql`
-      SELECT COUNT(*) as count FROM design_view
-    `)
-
-    // Get unique viewers (by user_id or ip_hash)
-    const uniqueResult = await db.execute(sql`
-      SELECT COUNT(DISTINCT COALESCE(user_id, ip_hash)) as count FROM design_view
-    `)
+    // Get total and unique viewers
+    const [totalResult, uniqueResult] = await Promise.all([
+      db.execute(sql`SELECT COUNT(*) as count FROM ${designView}`),
+      db.execute(sql`
+        SELECT COUNT(DISTINCT COALESCE(user_id, ip_hash)) as count 
+        FROM ${designView}
+      `),
+    ])
 
     return c.json({
       dailyViews,
@@ -379,46 +359,29 @@ adminRoutes.get("/analytics/views", async (c) => {
   }
 })
 
-// Get top viewed designs
+// Get top viewed designs - OPTIMIZED with join
 adminRoutes.get("/analytics/top-designs", async (c) => {
   try {
     const limit = Math.min(parseInt(c.req.query("limit") || "10"), 50)
-    
-    // Get designs with their view counts, ordered by views
-    const topDesigns = await db
-      .select({
-        id: design.id,
-        name: design.name,
-        slug: design.slug,
-        category: design.category,
-        thumbnailUrl: design.thumbnailUrl,
-        viewCount: design.viewCount,
-        userId: design.userId,
-      })
-      .from(design)
-      .orderBy(desc(design.viewCount))
-      .limit(limit)
 
-    // Get author info for each design
-    const designsWithAuthors = await Promise.all(
-      topDesigns.map(async (d) => {
-        const [author] = await db
-          .select({
-            name: user.name,
-            username: user.username,
-          })
-          .from(user)
-          .where(eq(user.id, d.userId))
-          .limit(1)
+    // Single query with join
+    const topDesigns = await db.execute(sql`
+      SELECT 
+        d.id,
+        d.name,
+        d.slug,
+        d.category,
+        d.thumbnail_url,
+        d.view_count,
+        d.user_id,
+        COALESCE(u.username, u.name, 'Unknown') as author
+      FROM ${design} d
+      LEFT JOIN ${user} u ON u.id = d.user_id
+      ORDER BY d.view_count DESC
+      LIMIT ${limit}
+    `)
 
-        return {
-          ...d,
-          author: author?.username || author?.name || "Unknown",
-        }
-      })
-    )
-
-    return c.json({ designs: designsWithAuthors })
+    return c.json({ designs: topDesigns.rows })
   } catch (error) {
     console.error("Top designs error:", error)
     return c.json({ error: "Failed to fetch top designs" }, 500)
@@ -431,51 +394,39 @@ adminRoutes.get("/analytics/summary", async (c) => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
-    // Get today's stats
-    const [userCount] = await db
-      .select({ count: count() })
-      .from(user)
-
-    const [designCount] = await db
-      .select({ count: count() })
-      .from(design)
-
-    const [cliRunCount] = await db
-      .select({ count: count() })
-      .from(cliRun)
-
-    const [totalViews] = await db
-      .select({ count: count() })
-      .from(designView)
-
-    // Get today's views
-    const todayViewsResult = await db.execute(sql`
-      SELECT COUNT(*) as count 
-      FROM design_view 
-      WHERE viewed_at >= ${today.toISOString()}::timestamp
+    // Single query for all stats
+    const summaryResult = await db.execute(sql`
+      SELECT 
+        (SELECT COUNT(*) FROM ${user}) as total_users,
+        (SELECT COUNT(*) FROM ${design}) as total_designs,
+        (SELECT COUNT(*) FROM ${cliRun}) as total_cli_runs,
+        (SELECT COUNT(*) FROM ${designView}) as total_views,
+        (SELECT COUNT(*) FROM ${designView} 
+         WHERE viewed_at >= ${today.toISOString()}::timestamp) as views_today,
+        (SELECT COUNT(*) FROM ${cliRun} 
+         WHERE run_at >= ${today.toISOString()}::timestamp) as installs_today,
+        (SELECT COUNT(*) FROM ${user} 
+         WHERE created_at >= ${today.toISOString()}::timestamp) as new_users_today
     `)
 
-    // Get today's CLI runs
-    const todayRunsResult = await db.execute(sql`
-      SELECT COUNT(*) as count 
-      FROM cli_run 
-      WHERE run_at >= ${today.toISOString()}::timestamp
-    `)
-
-    // Get new users today
-    const [newUsersToday] = await db
-      .select({ count: count() })
-      .from(user)
-      .where(sql`${user.createdAt} >= ${today.toISOString()}::timestamp`)
+    const stats = summaryResult.rows[0] as {
+      total_users: string | number
+      total_designs: string | number
+      total_cli_runs: string | number
+      total_views: string | number
+      views_today: string | number
+      installs_today: string | number
+      new_users_today: string | number
+    }
 
     return c.json({
-      totalUsers: userCount?.count || 0,
-      totalDesigns: designCount?.count || 0,
-      totalCliInstalls: cliRunCount?.count || 0,
-      totalViews: totalViews?.count || 0,
-      viewsToday: Number(todayViewsResult.rows[0]?.count || 0),
-      installsToday: Number(todayRunsResult.rows[0]?.count || 0),
-      newUsersToday: newUsersToday?.count || 0,
+      totalUsers: Number(stats?.total_users || 0),
+      totalDesigns: Number(stats?.total_designs || 0),
+      totalCliInstalls: Number(stats?.total_cli_runs || 0),
+      totalViews: Number(stats?.total_views || 0),
+      viewsToday: Number(stats?.views_today || 0),
+      installsToday: Number(stats?.installs_today || 0),
+      newUsersToday: Number(stats?.new_users_today || 0),
     })
   } catch (error) {
     console.error("Summary analytics error:", error)
