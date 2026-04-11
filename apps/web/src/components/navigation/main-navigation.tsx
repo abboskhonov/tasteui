@@ -4,7 +4,6 @@ import { memo } from "react";
 import { Link } from "@tanstack/react-router";
 import { ThemeToggle } from "./theme-toggle";
 import { UserMenu } from "./user-menu";
-import { useGitHubStars } from "@/lib/queries/github";
 import { cn } from "@/lib/utils";
 
 /**
@@ -12,8 +11,6 @@ import { cn } from "@/lib/utils";
  * Fixed positioning to stay at top of viewport
  */
 export const Navigation = memo(function Navigation() {
-  const { data: stars } = useGitHubStars("abboskhonov/tokenui");
-
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50 supports-backdrop-filter:backdrop-blur-xl">
       <nav className="relative z-10 mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
@@ -41,7 +38,7 @@ export const Navigation = memo(function Navigation() {
         {/* Right Side Actions */}
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <UserMenu stars={stars} />
+          <UserMenu />
         </div>
       </nav>
     </header>

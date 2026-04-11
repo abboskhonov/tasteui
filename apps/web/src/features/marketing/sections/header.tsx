@@ -96,24 +96,33 @@ function UserMenu() {
             </Button>
           }
         />
-        <DropdownMenuContent align="end" className="w-48">
+        <DropdownMenuContent align="end" className="w-52">
+          {/* User Info */}
+          <div className="px-3 py-2.5 border-b">
+            <p className="text-sm font-medium">{user.name || "User"}</p>
+            <p className="text-xs text-muted-foreground">{user.email}</p>
+          </div>
+          
           <DropdownMenuItem 
-            className="gap-2 text-sm cursor-pointer"
+            className="gap-2 px-3 py-1.5 text-sm cursor-pointer"
             onClick={handleProfileClick}
           >
             <HugeiconsIcon icon={UserIcon} className="size-4" />
             Profile
           </DropdownMenuItem>
+          
           <DropdownMenuItem
-            className="gap-2 text-sm"
+            className="gap-2 px-3 py-1.5 text-sm cursor-pointer"
             onClick={() => setSettingsOpen(true)}
           >
             <HugeiconsIcon icon={Settings01Icon} className="size-4" />
             Settings
           </DropdownMenuItem>
+          
           <DropdownMenuSeparator />
+          
           <DropdownMenuItem
-            className="gap-2 text-sm text-destructive"
+            className="gap-2 px-3 py-1.5 text-sm cursor-pointer"
             onClick={async () => {
               await signOut()
               window.location.reload()

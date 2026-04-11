@@ -31,7 +31,7 @@ function BookmarksPage() {
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <main className="mx-auto max-w-7xl px-6 py-8">
+      <main className="mx-auto max-w-7xl px-6 pt-[72px] pb-8">
         {/* Header */}
         <div className="mb-8 flex items-center gap-4">
           <Button 

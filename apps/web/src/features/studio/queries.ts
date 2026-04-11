@@ -1,5 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import type { CreateDesignData } from "@/lib/types/design"
+import { designKeys } from "@/lib/queries/designs"
+import { marketingKeys } from "../marketing/queries"
 import {
   getMyDesigns,
   getDesign,
@@ -14,6 +16,16 @@ export const studioKeys = {
   all: ["studio"] as const,
   designs: () => [...studioKeys.all, "designs"] as const,
   design: (id: string) => [...studioKeys.all, "design", id] as const,
+}
+
+// Helper to invalidate all design-related caches
+function invalidateDesignCaches(queryClient: ReturnType<typeof useQueryClient>) {
+  // Studio cache
+  queryClient.invalidateQueries({ queryKey: studioKeys.designs() })
+  // Shared design cache (marketing, public galleries, etc.)
+  queryClient.invalidateQueries({ queryKey: designKeys.all })
+  // Marketing-specific cache
+  queryClient.invalidateQueries({ queryKey: marketingKeys.all })
 }
 
 // Get user's designs
@@ -42,7 +54,7 @@ export function useCreateStudioDesign() {
   return useMutation({
     mutationFn: createDesign,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: studioKeys.designs() })
+      invalidateDesignCaches(queryClient)
     },
   })
 }
@@ -55,7 +67,7 @@ export function useUpdateStudioDesign() {
     mutationFn: ({ id, data }: { id: string; data: Partial<CreateDesignData> }) =>
       updateDesign(id, data),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: studioKeys.designs() })
+      invalidateDesignCaches(queryClient)
       queryClient.invalidateQueries({ queryKey: studioKeys.design(variables.id) })
     },
   })
@@ -68,7 +80,7 @@ export function useDeleteStudioDesign() {
   return useMutation({
     mutationFn: deleteDesign,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: studioKeys.designs() })
+      invalidateDesignCaches(queryClient)
     },
   })
 }
@@ -81,7 +93,7 @@ export function useUpdateDesignStatus() {
     mutationFn: ({ id, status }: { id: string; status: "draft" | "pending" | "approved" }) =>
       updateDesignStatus(id, status),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: studioKeys.designs() })
+      invalidateDesignCaches(queryClient)
       queryClient.invalidateQueries({ queryKey: studioKeys.design(variables.id) })
     },
   })
