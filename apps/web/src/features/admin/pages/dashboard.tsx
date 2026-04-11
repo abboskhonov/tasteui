@@ -181,9 +181,9 @@ export function AdminDashboardPage() {
           <CardContent>
             <div className="flex items-end justify-between">
               <div>
-                <div className="text-3xl font-bold">{cliAnalytics?.totalInstalls.toLocaleString()}</div>
+                <div className="text-3xl font-bold">{(cliAnalytics?.totalInstalls ?? 0).toLocaleString()}</div>
                 <p className="text-xs text-muted-foreground">
-                  {cliAnalytics?.uniqueInstalls.toLocaleString()} unique machines
+                  {(cliAnalytics?.uniqueInstalls ?? 0).toLocaleString()} unique machines
                 </p>
               </div>
               {cliAnalytics?.dailyInstalls && (
@@ -191,8 +191,8 @@ export function AdminDashboardPage() {
               )}
             </div>
             <div className="mt-4 flex items-center gap-4 text-xs text-muted-foreground">
-              <span>Last 7 days: {cliAnalytics?.dailyInstalls.reduce((a, b) => a + b, 0).toLocaleString()}</span>
-              <span>Avg: {Math.round((cliAnalytics?.dailyInstalls.reduce((a, b) => a + b, 0) || 0) / 7).toLocaleString()}/day</span>
+              <span>Last 7 days: {(cliAnalytics?.dailyInstalls ?? []).reduce((a, b) => a + b, 0).toLocaleString()}</span>
+              <span>Avg: {Math.round(((cliAnalytics?.dailyInstalls ?? []).reduce((a, b) => a + b, 0)) / 7).toLocaleString()}/day</span>
             </div>
           </CardContent>
         </Card>
@@ -208,9 +208,9 @@ export function AdminDashboardPage() {
           <CardContent>
             <div className="flex items-end justify-between">
               <div>
-                <div className="text-3xl font-bold">{viewAnalytics?.totalViews.toLocaleString()}</div>
+                <div className="text-3xl font-bold">{(viewAnalytics?.totalViews ?? 0).toLocaleString()}</div>
                 <p className="text-xs text-muted-foreground">
-                  {viewAnalytics?.uniqueViewers.toLocaleString()} unique viewers
+                  {(viewAnalytics?.uniqueViewers ?? 0).toLocaleString()} unique viewers
                 </p>
               </div>
               {viewAnalytics?.dailyViews && (
@@ -218,8 +218,8 @@ export function AdminDashboardPage() {
               )}
             </div>
             <div className="mt-4 flex items-center gap-4 text-xs text-muted-foreground">
-              <span>Last 7 days: {viewAnalytics?.dailyViews.reduce((a, b) => a + b, 0).toLocaleString()}</span>
-              <span>Avg: {Math.round((viewAnalytics?.dailyViews.reduce((a, b) => a + b, 0) || 0) / 7).toLocaleString()}/day</span>
+              <span>Last 7 days: {(viewAnalytics?.dailyViews ?? []).reduce((a, b) => a + b, 0).toLocaleString()}</span>
+              <span>Avg: {Math.round(((viewAnalytics?.dailyViews ?? []).reduce((a, b) => a + b, 0)) / 7).toLocaleString()}/day</span>
             </div>
           </CardContent>
         </Card>
@@ -254,7 +254,7 @@ export function AdminDashboardPage() {
                     <p className="text-xs text-muted-foreground">@{design.author} · {design.category}</p>
                   </div>
                   <div className="text-sm font-medium tabular-nums">
-                    {design.viewCount.toLocaleString()}
+                    {(design.viewCount ?? 0).toLocaleString()}
                   </div>
                 </div>
               </Link>

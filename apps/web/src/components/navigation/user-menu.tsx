@@ -52,11 +52,11 @@ export const UserMenu = memo(function UserMenu({ stars }: UserMenuProps) {
     return (
       <Link to="/login">
         <Button
-          variant="ghost"
-          className="h-8 px-3 gap-2 text-xs font-medium hover:bg-muted/50"
+          variant="default"
+          size="sm"
+          className="h-8 px-4 text-sm font-medium bg-foreground text-background hover:bg-foreground/90"
         >
-          <HugeiconsIcon icon={UserIcon} className="size-4" />
-          <span className="hidden sm:inline">Login</span>
+          Sign in
         </Button>
       </Link>
     );

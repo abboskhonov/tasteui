@@ -160,21 +160,26 @@ export function HeroSection({ initialDesigns }: HeroSectionProps) {
           <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
         </div>
 
-        <div className="relative z-10 pt-12 md:pt-16">
-          <div className="max-w-2xl">
-            <h1 className="text-4xl font-medium leading-[1.15] tracking-tight text-foreground md:text-5xl">
-              The design layer for your coding agent
-            </h1>
-            <p className="mt-4 text-lg text-muted-foreground">
-              One command. Beautiful UI.
-            </p>
-            <p className="mt-3 text-base text-muted-foreground/80 max-w-xl">
-              Drop-in design skills for your agent. No setup, no configuration—just describe what you need and ship production-ready components in seconds.
-            </p>
-          </div>
+        <div className="relative z-10 pt-12 md:pt-20">
+          {/* Two Column Hero */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start mb-16">
+            {/* Left Column - Large Headline */}
+            <div className="max-w-lg">
+              <h1 
+                className="text-[2.5rem] leading-[1.15] tracking-tight text-foreground md:text-5xl"
+                style={{ fontWeight: 550 }}
+              >
+                The design layer for your coding agent.
+              </h1>
+            </div>
 
-          <div className="mt-8">
-            <CLICopy command="npx tokenui.sh add <skill>" />
+            {/* Right Column - Description + CLI */}
+            <div className="lg:pt-2">
+              <p className="text-base text-muted-foreground leading-relaxed mb-6 max-w-md">
+                Drop-in design skills for your coding agent. No setup, no configuration — just describe what you need and ship production-ready components in seconds.
+              </p>
+              <CLICopy command="npx tokenui.sh add <skill>" />
+            </div>
           </div>
 
           <section id="skills-section" className="mt-16 md:mt-20">

@@ -41,7 +41,7 @@ export const CLICopy = memo(function CLICopy({
       onClick={handleCopy}
       className={cn(
         "group relative inline-flex items-center justify-center rounded-lg",
-        "border border-input bg-background",
+        "border border-input bg-background shadow-none",
         "px-4 py-3 font-mono text-sm",
         "hover:border-foreground/20 hover:bg-muted/30",
         "focus:outline-none",
