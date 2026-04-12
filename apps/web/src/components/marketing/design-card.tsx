@@ -1,12 +1,12 @@
 "use client";
 
-import { memo, useCallback } from "react"
-import { Link, useNavigate } from "@tanstack/react-router"
+import { memo, useCallback, useState } from "react"
+import { Link } from "@tanstack/react-router"
 import { toast } from "sonner"
 import type { Design } from "@/lib/types/design"
 import { SkillCard } from "@/components/marketing/skill-card"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { Bookmark01Icon } from "@hugeicons/core-free-icons"
+import { Bookmark01Icon, Copy01Icon, Tick02Icon } from "@hugeicons/core-free-icons"
 import { useBookmarkCheck, useCreateBookmark, useDeleteBookmark } from "@/lib/queries/designs"
 import { useUser } from "@/lib/user-context"
 import { cn } from "@/lib/utils"
@@ -22,7 +22,6 @@ interface DesignCardProps {
 export const DesignCard = memo(function DesignCard({ design }: DesignCardProps) {
   const username = design.author?.username || "unknown";
   const { user } = useUser();
-  const navigate = useNavigate();
   const { data: isBookmarked } = useBookmarkCheck(design.id);
   const createBookmark = useCreateBookmark();
   const deleteBookmark = useDeleteBookmark();
@@ -63,14 +62,33 @@ export const DesignCard = memo(function DesignCard({ design }: DesignCardProps) 
     }
   }, [isBookmarked, isPending, design.id, design.name, deleteBookmark, createBookmark, user]);
   
+  // Copy command state
+  const [isCopied, setIsCopied] = useState(false);
+  
+  const handleCopyClick = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const command = `npx tokenui.sh add ${username}/${design.slug}`;
+    navigator.clipboard.writeText(command).then(() => {
+      setIsCopied(true);
+      toast.success("Command copied to clipboard");
+      setTimeout(() => setIsCopied(false), 2000);
+    }).catch(() => {
+      toast.error("Failed to copy");
+    });
+  }, [username, design.slug]);
+  
   return (
-    <Link 
+      <Link 
       to="/s/$username/$designSlug" 
       params={{ username, designSlug: design.slug }}
     >
       <article className="group relative cursor-pointer">
-        {/* Thumbnail Container - moves up on hover */}
-        <div className="relative aspect-video overflow-hidden rounded-xl bg-muted ring-1 ring-border/50 transition-all duration-300 ease-out group-hover:-translate-y-3 group-hover:ring-border/80">
+        {/* Device Frame Wrapper - subtle tint to distinguish from bg */}
+        <div className="relative p-1.5 md:p-2 rounded-xl md:rounded-2xl bg-muted/30 ring-1 ring-border/60">
+          {/* Inner Thumbnail Container */}
+          <div className="relative aspect-video overflow-hidden rounded-md md:rounded-lg bg-muted ring-1 ring-border/30">
           {design.thumbnailUrl ? (
             <img
               src={design.thumbnailUrl}
@@ -85,36 +103,39 @@ export const DesignCard = memo(function DesignCard({ design }: DesignCardProps) 
           ) : (
             <SkillCard variant="pattern" />
           )}
-        </div>
-        
-        {/* Metadata - appears below the card on hover */}
-        <div className="absolute -bottom-3 left-0 right-0 flex items-center justify-between px-1 pt-2 opacity-0 transition-all duration-300 ease-out group-hover:opacity-100">
-          <div 
-            className="flex items-center gap-2 min-w-0 cursor-pointer"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              navigate({ to: "/u/$username", params: { username } });
-            }}
-          >
-            <AuthorAvatar 
-              image={design.author?.image} 
-              name={design.author?.name || design.name} 
-            />
-            <h3 className="text-xs font-medium text-foreground tracking-tight truncate hover:text-primary transition-colors">
-              {design.name}
-            </h3>
-          </div>
-          <div className="flex items-center gap-2">
+          {/* Hover gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+          
+          {/* Action buttons - appear on hover at top right */}
+          <div className="absolute top-3 right-3 flex items-center gap-2 opacity-0 translate-y-1 transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0">
+            {/* Copy command button */}
+            <button
+              onClick={handleCopyClick}
+              className={cn(
+                "flex items-center justify-center rounded-md p-1.5 bg-black/50 backdrop-blur-sm transition-all duration-200",
+                isCopied 
+                  ? "text-green-400" 
+                  : "text-white/80 hover:text-white hover:bg-black/70"
+              )}
+              aria-label={isCopied ? "Copied!" : "Copy install command"}
+            >
+              <HugeiconsIcon 
+                icon={isCopied ? Tick02Icon : Copy01Icon} 
+                className={cn(
+                  "size-3.5 transition-all duration-200",
+                  isCopied && "scale-110"
+                )} 
+              />
+            </button>
             {user && (
               <button
                 onClick={handleBookmarkClick}
                 disabled={isPending}
                 className={cn(
-                  "flex items-center justify-center rounded-md p-1 transition-all duration-200",
+                  "flex items-center justify-center rounded-md p-1.5 bg-black/50 backdrop-blur-sm transition-all duration-200",
                   isBookmarkedState 
-                    ? "text-primary" 
-                    : "text-muted-foreground/70 hover:text-foreground",
+                    ? "text-white" 
+                    : "text-white/80 hover:text-white hover:bg-black/70",
                   isPending && "opacity-50"
                 )}
                 aria-label={isBookmarkedState ? "Remove bookmark" : "Add bookmark"}
@@ -128,43 +149,19 @@ export const DesignCard = memo(function DesignCard({ design }: DesignCardProps) 
                 />
               </button>
             )}
-            <span className="text-[10px] font-medium text-muted-foreground/70 tabular-nums shrink-0">
-              {design.viewCount.toLocaleString()}
-            </span>
           </div>
+          </div>
+        </div>
+        
+        {/* Card name - always visible below */}
+        <div className="mt-3 px-1">
+          <h3 className="text-sm font-medium text-foreground truncate">
+            {design.name}
+          </h3>
         </div>
       </article>
     </Link>
   );
 });
 
-/**
- * AuthorAvatar - Sub-component for displaying author avatar
- */
-interface AuthorAvatarProps {
-  image: string | null | undefined;
-  name: string;
-}
 
-const AuthorAvatar = memo(function AuthorAvatar({ image, name }: AuthorAvatarProps) {
-  return (
-    <div className="relative h-5 w-5 shrink-0">
-      {image ? (
-        <img
-          src={image}
-          alt=""
-          width={20}
-          height={20}
-          className="h-full w-full rounded-full object-cover ring-1 ring-border/50"
-          loading="lazy"
-          decoding="async"
-          fetchPriority="low"
-        />
-      ) : (
-        <div className="flex h-full w-full items-center justify-center rounded-full bg-muted text-[10px] font-medium text-muted-foreground ring-1 ring-border/50">
-          {name.charAt(0).toUpperCase()}
-        </div>
-      )}
-    </div>
-  );
-});
