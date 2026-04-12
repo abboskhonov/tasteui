@@ -11,6 +11,7 @@ export const designKeys = {
   topRated: () => [...designKeys.all, "top-rated"] as const,
   newest: () => [...designKeys.all, "newest"] as const,
   detail: (username: string, slug: string) => [...designKeys.all, "detail", username, slug] as const,
+  files: (username: string, slug: string) => [...designKeys.all, "files", username, slug] as const,
   bookmarks: () => [...designKeys.all, "bookmarks"] as const,
   bookmarkCheck: (designId: string) => [...designKeys.all, "bookmark-check", designId] as const,
   stars: () => [...designKeys.all, "stars"] as const,
@@ -161,7 +162,7 @@ export function useNewestDesigns() {
   })
 }
 
-// Get single design by username and slug
+// Get single design by username and slug (lightweight - no files/content)
 export function useDesign(username: string, slug: string) {
   return useQuery({
     queryKey: designKeys.detail(username, slug),
@@ -172,6 +173,28 @@ export function useDesign(username: string, slug: string) {
     enabled: !!username && !!slug,
     staleTime: 1000 * 60 * 2, // Match prefetch staleTime - 2 minutes
     gcTime: 1000 * 60 * 5, // Keep in cache for 5 minutes
+  })
+}
+
+import type { FileNode } from "@/features/publish/components/file-tree"
+
+// Get design files (lazy loaded when user switches to Code tab)
+// Content is already included in main design endpoint
+export interface DesignFiles {
+  id: string
+  files: FileNode[] | null
+}
+
+export function useDesignFiles(username: string, slug: string, enabled: boolean = false) {
+  return useQuery({
+    queryKey: designKeys.files(username, slug),
+    queryFn: async () => {
+      const response = await api.get<DesignFiles>(`/api/designs/${username}/${slug}/files`)
+      return response
+    },
+    enabled: !!username && !!slug && enabled,
+    staleTime: 1000 * 60 * 5, // Files don't change often
+    gcTime: 1000 * 60 * 10,
   })
 }
 

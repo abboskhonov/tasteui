@@ -19,6 +19,48 @@ interface SkillDetailSkeletonProps {
   name?: string
 }
 
+// Skeleton for CodeView while files are loading
+export function CodeViewSkeleton() {
+  return (
+    <div className="h-full flex bg-background">
+      {/* File Tree Sidebar Skeleton */}
+      <div className="w-64 border-r border-border bg-muted/30 flex flex-col overflow-hidden">
+        {/* Header */}
+        <div className="p-3 border-b border-border bg-muted/50 flex items-center justify-between shrink-0">
+          <div className="h-4 w-16 bg-muted animate-pulse rounded" />
+        </div>
+        {/* File tree items */}
+        <div className="p-2 space-y-1">
+          <div className="h-8 w-full bg-muted animate-pulse rounded" />
+          <div className="h-8 w-full bg-muted animate-pulse rounded" />
+          <div className="h-8 w-full bg-muted animate-pulse rounded" />
+          <div className="h-8 w-3/4 bg-muted animate-pulse rounded ml-4" />
+          <div className="h-8 w-3/4 bg-muted animate-pulse rounded ml-4" />
+        </div>
+      </div>
+
+      {/* Code Editor Skeleton */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* File path header */}
+        <div className="p-3 border-b border-border bg-muted/50 flex items-center shrink-0">
+          <div className="h-4 w-48 bg-muted animate-pulse rounded" />
+        </div>
+        
+        {/* Code content lines */}
+        <div className="flex-1 overflow-auto bg-background p-4 space-y-2">
+          {Array.from({ length: 20 }).map((_, i) => (
+            <div 
+              key={i} 
+              className="h-4 bg-muted animate-pulse rounded" 
+              style={{ width: `${Math.random() * 40 + 60}%` }}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export function SkillDetailSkeleton({ username, designSlug, thumbnailUrl, name }: SkillDetailSkeletonProps) {
   // Format design name from slug if not provided
   const displayName = name || designSlug

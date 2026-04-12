@@ -12,7 +12,7 @@ import {
   DesignsGrid,
   BookmarkCard,
   StarCard,
-  ProfileLoading,
+  ProfileSkeleton,
   ProfileError,
   ProfileNotFound,
 } from "@/features/user-profile/components"
@@ -26,6 +26,7 @@ export const Route = createFileRoute("/u/$username")({
       },
     ],
   }),
+  // No blocking loader - navigate immediately and show skeleton
   errorComponent: () => <ProfileError />,
   notFoundComponent: () => <ProfileNotFound />,
 })
@@ -42,8 +43,9 @@ function UserProfilePage() {
     profileData?.designs || []
   )
 
-  if (isLoading) {
-    return <ProfileLoading />
+  // Show skeleton while loading - data is prefetched so this is brief
+  if (isLoading && !profileData) {
+    return <ProfileSkeleton username={username} />
   }
 
   if (error || !profileData) {

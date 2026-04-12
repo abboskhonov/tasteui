@@ -173,3 +173,14 @@ export const cliRun = pgTable("cli_run", {
   index("cliRun_command_idx").on(table.command),
 ])
 
+
+// Design installs table - tracks CLI installs per design
+export const designInstall = pgTable("design_install", {
+  id: text("id").primaryKey(),
+  designId: text("design_id").notNull().references(() => design.id, { onDelete: "cascade" }),
+  // Anonymous install tracking
+  installedAt: timestamp("installed_at").notNull().defaultNow(),
+}, (table) => [
+  index("designInstall_designId_idx").on(table.designId),
+  index("designInstall_installedAt_idx").on(table.installedAt),
+])

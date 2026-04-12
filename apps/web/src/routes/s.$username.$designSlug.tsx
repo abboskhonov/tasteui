@@ -1,6 +1,6 @@
 import { createFileRoute, useLocation } from "@tanstack/react-router"
-import { useQueryClient } from "@tanstack/react-query"
-import { useDesign, useTrackView, designKeys } from "@/lib/queries/designs"
+import { useQueryClient, useQuery } from "@tanstack/react-query"
+import { useTrackView, designKeys, useDesignFiles } from "@/lib/queries/designs"
 import { useState, useCallback, useEffect } from "react"
 import { useDesignActions } from "@/features/design-detail/hooks"
 import {
@@ -8,13 +8,13 @@ import {
   SkillDetailSidebar,
   PreviewContent,
   CodeView,
+  CodeViewSkeleton,
   SkillDetailSkeleton,
   SkillDetailError,
   SkillNotFound,
 } from "@/features/design-detail/components"
 import type { Design } from "@/lib/types/design"
 import { api } from "@/lib/api/client"
-import { queryClient } from "@/router"
 
 type TabType = "preview" | "code"
 
@@ -30,23 +30,6 @@ function generatePageTitle(design: Design | undefined, params: { username: strin
   return `${formattedSlug} by ${params.username} - tokenui`
 }
 
-// Prefetch design data before navigation completes
-async function prefetchDesign(username: string, slug: string) {
-  const queryKey = designKeys.detail(username, slug)
-  
-  // Only prefetch if not already in cache
-  if (!queryClient.getQueryData(queryKey)) {
-    await queryClient.prefetchQuery({
-      queryKey,
-      queryFn: async () => {
-        const response = await api.get<{ design: Design }>(`/api/designs/${username}/${slug}`)
-        return response.design
-      },
-      staleTime: 1000 * 60 * 2, // 2 minutes
-    })
-  }
-}
-
 export const Route = createFileRoute("/s/$username/$designSlug")({
   component: SkillDetailPage,
   head: ({ params }) => ({
@@ -56,12 +39,8 @@ export const Route = createFileRoute("/s/$username/$designSlug")({
       },
     ],
   }),
-  // Prefetch design data during navigation for instant page load
-  loader: async ({ params }) => {
-    const { username, designSlug } = params
-    await prefetchDesign(username, designSlug)
-    return { prefetched: true }
-  },
+  // No blocking loader - navigate immediately and show skeleton while loading
+  // Data is already prefetched by the design card's intersection observer + hover
   errorComponent: () => <SkillDetailError />,
   notFoundComponent: () => <SkillNotFound />,
 })
@@ -105,7 +84,18 @@ function SkillDetailPage() {
     }
   }, [username, designSlug])
   
-  const { data: design, isLoading, error } = useDesign(username, designSlug)
+  // Use useQuery directly with initialData from cache for instant rendering
+  const { data: design, isLoading, error } = useQuery({
+    queryKey: designKeys.detail(username, designSlug),
+    queryFn: async () => {
+      const response = await api.get<{ design: Design }>(`/api/designs/${username}/${designSlug}`)
+      return response.design
+    },
+    initialData: cachedDesign,
+    staleTime: 1000 * 60 * 2, // 2 minutes
+    gcTime: 1000 * 60 * 5,
+    enabled: !!username && !!designSlug,
+  })
   
   // Use cached/prefetched data immediately while loading for perceived instant navigation
   const displayDesign = design || cachedDesign
@@ -117,6 +107,18 @@ function SkillDetailPage() {
   // Extract thumbnail and name for skeleton before displayDesign is narrowed
   const skeletonThumbnail = thumbnailFromState || previewFromStorage.thumbnailUrl || cachedDesign?.thumbnailUrl || null
   const skeletonName = nameFromState || previewFromStorage.name || cachedDesign?.name
+  
+  // Lazy load files when Code tab is active
+  const { data: filesData, isLoading: isFilesLoading } = useDesignFiles(
+    username, 
+    designSlug, 
+    activeTab === "code"
+  )
+  
+  // Merge files into design when loaded
+  const designWithFiles = displayDesign && filesData?.files
+    ? { ...displayDesign, files: filesData.files }
+    : displayDesign
   
   // Only use design actions when design is loaded (use displayDesign for instant UI)
   const designActions = useDesignActions(displayDesign)
@@ -198,8 +200,10 @@ function SkillDetailPage() {
               demoUrl={displayDesign.demoUrl}
               previewTheme={previewTheme}
             />
+          ) : isFilesLoading ? (
+            <CodeViewSkeleton />
           ) : (
-            <CodeView design={displayDesign} />
+            <CodeView design={designWithFiles || displayDesign} />
           )}
         </main>
       </div>

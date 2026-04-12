@@ -1,5 +1,6 @@
 import type { FileNode } from "@/features/publish/components/file-tree"
 
+// Design with full data
 export interface Design {
   id: string
   userId: string
@@ -7,17 +8,18 @@ export interface Design {
   slug: string
   description: string | null
   category: string
-  content: string
+  content: string // HTML content for preview (always included)
   demoUrl: string | null
   thumbnailUrl: string | null
   status: "draft" | "pending" | "approved" | "rejected"
   reviewMessage: string | null
   viewCount: number
   downloadCount: number
+  installCount: number
   starCount: number
   isStarred?: boolean
   isBookmarked?: boolean
-  files: FileNode[] | null // Additional files for multi-file skills
+  files?: FileNode[] | null // Lazy-loaded for Code tab (not in initial response)
   createdAt: string
   updatedAt: string
   author?: {

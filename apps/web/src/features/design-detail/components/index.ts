@@ -4,7 +4,8 @@ export { PreviewContent } from "./preview-content"
 export { CodeView } from "./code-view"
 export { FileTree } from "./file-tree-readonly"
 export { 
-  SkillDetailSkeleton, 
+  SkillDetailSkeleton,
+  CodeViewSkeleton,
   SkillDetailError, 
   SkillNotFound 
 } from "./skill-detail-states"

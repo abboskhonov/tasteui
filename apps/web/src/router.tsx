@@ -32,7 +32,8 @@ export function getRouter() {
     defaultPreloadStaleTime: 1000 * 60 * 5, // 5 minutes - keep data fresh longer
     defaultPreloadDelay: 0, // Start preloading immediately on intent
     defaultGcTime: 1000 * 60 * 10, // 10 minutes garbage collection
-    // View transitions disabled globally - only used for specific shared element morphs
+    // View transitions disabled globally - only enable for specific gallery-to-detail navigation
+    // Adding them everywhere hurts performance and causes unnecessary animations
   })
 
   return router

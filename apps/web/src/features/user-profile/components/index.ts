@@ -7,7 +7,7 @@ export { DesignsGrid } from "./designs-grid"
 export { BookmarkCard } from "./bookmark-card"
 export { StarCard } from "./star-card"
 export { 
-  ProfileLoading, 
+  ProfileSkeleton, 
   ProfileError, 
   ProfileNotFound 
 } from "./profile-states"

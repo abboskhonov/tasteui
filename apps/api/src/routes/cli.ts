@@ -1,7 +1,7 @@
 import { Hono } from "hono"
-import { eq, sql } from "drizzle-orm"
+import { eq, sql, count } from "drizzle-orm"
 import { db } from "../db"
-import { cliRun, user } from "../db/schema"
+import { cliRun, user, designInstall, design } from "../db/schema"
 import { success, internalError, logError } from "../utils/errors"
 import type { AuthContext } from "../types"
 
@@ -30,6 +30,33 @@ app.post("/run", async (c) => {
   } catch (error) {
     logError("TrackCliRun", error)
     return internalError(c, "Failed to track")
+  }
+})
+
+// Track design install - when someone installs a specific design via CLI
+app.post("/install", async (c) => {
+  try {
+    const body = await c.req.json<{
+      designId: string
+    }>()
+
+    if (!body.designId) {
+      return c.json({ error: "designId is required" }, 400)
+    }
+
+    // Record the install
+    await db.insert(designInstall).values({
+      id: crypto.randomUUID(),
+      designId: body.designId,
+    })
+
+    return success(c, { 
+      success: true,
+      message: "Install tracked" 
+    })
+  } catch (error) {
+    logError("TrackDesignInstall", error)
+    return internalError(c, "Failed to track install")
   }
 })
 

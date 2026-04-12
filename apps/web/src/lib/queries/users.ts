@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query"
 import { api } from "@/lib/api/client"
 import type { Design } from "@/lib/types/design"
 
@@ -38,14 +38,39 @@ export const userKeys = {
 
 // Get user profile by username
 export function useUserProfile(username: string) {
+  const queryClient = useQueryClient()
+  // Get cached data for instant rendering
+  const cachedData = queryClient.getQueryData<UserProfileResponse>(userKeys.profile(username))
+  
   return useQuery({
     queryKey: userKeys.profile(username),
     queryFn: async () => {
       const response = await api.get<UserProfileResponse>(`/api/users/${username}`)
       return response
     },
+    initialData: cachedData,
     enabled: !!username,
     staleTime: 1000 * 60 * 5, // Data stays fresh for 5 minutes
     gcTime: 1000 * 60 * 10, // Keep in cache for 10 minutes
   })
+}
+
+// Prefetch user profile (for hover on author links)
+export async function prefetchUserProfile(
+  queryClient: QueryClient,
+  username: string
+) {
+  const queryKey = userKeys.profile(username)
+  
+  // Only prefetch if not already in cache
+  if (!queryClient.getQueryData(queryKey)) {
+    await queryClient.prefetchQuery({
+      queryKey,
+      queryFn: async () => {
+        const response = await api.get<UserProfileResponse>(`/api/users/${username}`)
+        return response
+      },
+      staleTime: 1000 * 60 * 5,
+    })
+  }
 }

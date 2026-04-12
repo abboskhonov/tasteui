@@ -79,7 +79,9 @@ export const UserMenu = memo(function UserMenu() {
           {/* User Info */}
           <div className="px-3 py-2.5 border-b">
             <p className="text-sm font-medium">{user.name || "User"}</p>
-            <p className="text-xs text-muted-foreground">{user.email}</p>
+            <p className="text-xs text-muted-foreground font-medium">
+              @{user.username || "user"}
+            </p>
           </div>
           
           {/* Menu Items */}

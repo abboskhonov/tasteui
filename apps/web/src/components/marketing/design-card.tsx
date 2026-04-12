@@ -6,7 +6,7 @@ import { toast } from "sonner"
 import type { Design } from "@/lib/types/design"
 import { SkillCard } from "@/components/marketing/skill-card"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { Bookmark01Icon, Copy01Icon, Tick02Icon } from "@hugeicons/core-free-icons"
+import { Bookmark01Icon, Copy01Icon, Tick02Icon, Download02Icon } from "@hugeicons/core-free-icons"
 import { useBookmarkCheck, useCreateBookmark, useDeleteBookmark } from "@/lib/queries/designs"
 import { useUser } from "@/lib/user-context"
 import { cn } from "@/lib/utils"
@@ -104,7 +104,16 @@ export const DesignCard = memo(function DesignCard({ design }: DesignCardProps) 
             <SkillCard variant="pattern" />
           )}
           {/* Hover gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+          
+          {/* Description - appears on hover at bottom */}
+          {design.description && (
+            <div className="absolute bottom-4 left-3 right-3 opacity-0 translate-y-2 transition-all duration-500 group-hover:opacity-100 group-hover:translate-y-0">
+              <p className="text-xs text-white/90 line-clamp-2 drop-shadow-sm">
+                {design.description}
+              </p>
+            </div>
+          )}
           
           {/* Action buttons - appear on hover at top right */}
           <div className="absolute top-3 right-3 flex items-center gap-2 opacity-0 translate-y-1 transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0">
@@ -151,13 +160,19 @@ export const DesignCard = memo(function DesignCard({ design }: DesignCardProps) 
             )}
           </div>
           </div>
-        </div>
-        
-        {/* Card name - always visible below */}
-        <div className="mt-3 px-1">
-          <h3 className="text-sm font-medium text-foreground truncate">
-            {design.name}
-          </h3>
+          
+          {/* Card name with install count - inside wrapper below thumbnail */}
+          <div className="mt-2 px-1 pb-1 flex items-center justify-between gap-2">
+            <h3 className="text-sm font-medium text-foreground truncate">
+              {design.name}
+            </h3>
+             <div className="flex items-center gap-1 text-muted-foreground shrink-0">
+              <HugeiconsIcon icon={Download02Icon} className="size-3.5" />
+              <span className="text-xs font-medium tabular-nums">
+                {(design.installCount ?? 0).toLocaleString()}
+              </span>
+            </div>
+          </div>
         </div>
       </article>
     </Link>

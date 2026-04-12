@@ -3,7 +3,7 @@ import { eq, and, desc, count, like, or, sql, gte, inArray } from "drizzle-orm"
 import { randomUUID } from "crypto"
 import { auth } from "../auth"
 import { db } from "../db"
-import { user, design, designView, designDownload, star, bookmark } from "../db/schema"
+import { user, design, designView, designDownload, star, bookmark, designInstall } from "../db/schema"
 import type { AuthContext } from "../types"
 import { generateSlug } from "../utils/slugs"
 import { success, created, unauthorized, notFound, internalError, badRequest, forbidden, logError } from "../utils/errors"
@@ -160,6 +160,16 @@ app.get("/", validateQuery(designQuerySchema), async (c) => {
       }
     }
 
+    // Get install counts subquery
+    const installCountSubquery = db
+      .select({
+        designId: designInstall.designId,
+        count: sql<number>`COUNT(*)`.as("count"),
+      })
+      .from(designInstall)
+      .groupBy(designInstall.designId)
+      .as("install_counts")
+
     const designs = await db
       .select({
         id: design.id,
@@ -170,6 +180,8 @@ app.get("/", validateQuery(designQuerySchema), async (c) => {
         thumbnailUrl: design.thumbnailUrl,
         status: design.status,
         viewCount: design.viewCount,
+        downloadCount: design.downloadCount,
+        installCount: sql<number>`COALESCE(${installCountSubquery.count}, 0)`.as("install_count"),
         createdAt: design.createdAt,
         userId: design.userId,
         author: {
@@ -180,6 +192,7 @@ app.get("/", validateQuery(designQuerySchema), async (c) => {
       })
       .from(design)
       .leftJoin(user, eq(design.userId, user.id))
+      .leftJoin(installCountSubquery, eq(installCountSubquery.designId, design.id))
       .where(and(...conditions))
       .orderBy(desc(design.createdAt))
       .limit(limit)
@@ -440,6 +453,8 @@ app.get("/:id", async (c) => {
 })
 
 // Get single design by username and slug (for public viewing)
+// OPTIMIZED: Single SQL query WITHOUT files/content for fast initial load
+// Files/content are lazy-loaded via separate /files endpoint when user clicks Code tab
 app.get("/:username/:slug", async (c) => {
   const username = c.req.param("username")
   const slug = c.req.param("slug")
@@ -450,94 +465,148 @@ app.get("/:username/:slug", async (c) => {
     return badRequest(c, "Invalid username or slug format")
   }
 
-  try {
-    // Fetch design + user join first (needed for authorization check)
-    const [designRecord] = await db
-      .select({
-        id: design.id,
-        name: design.name,
-        slug: design.slug,
-        description: design.description,
-        category: design.category,
-        content: design.content,
-        demoUrl: design.demoUrl,
-        thumbnailUrl: design.thumbnailUrl,
-        status: design.status,
-        viewCount: design.viewCount,
-        files: design.files,
-        createdAt: design.createdAt,
-        updatedAt: design.updatedAt,
-        userId: design.userId,
-        author: {
-          name: user.name,
-          username: user.username,
-          image: user.image,
-        }
-      })
-      .from(design)
-      .leftJoin(user, eq(design.userId, user.id))
-      .where(and(
-        eq(user.username, username),
-        eq(design.slug, slug)
-      ))
-      .limit(1)
+  // Get session for user-specific data (isStarred, isBookmarked)
+  const session = await auth.api.getSession({
+    headers: c.req.raw.headers,
+  })
+  const currentUserId = session?.user?.id
 
-    if (!designRecord) {
+  try {
+    // Single optimized query - includes content (for preview) but NOT files (heavy JSON)
+    // Files are loaded separately via /:username/:slug/files endpoint when user clicks Code tab
+    const result = await db.execute(sql`
+      SELECT 
+        d.id,
+        d.name,
+        d.slug,
+        d.description,
+        d.category,
+        d.content,
+        d.demo_url as "demoUrl",
+        d.thumbnail_url as "thumbnailUrl",
+        d.status,
+        d.view_count as "viewCount",
+        d.created_at as "createdAt",
+        d.updated_at as "updatedAt",
+        d.user_id as "userId",
+        u.name as "authorName",
+        u.username as "authorUsername",
+        u.image as "authorImage",
+        COALESCE(s.count, 0) as "starCount",
+        COALESCE(dl.count, 0) as "downloadCount",
+        CASE WHEN us.star_id IS NOT NULL THEN true ELSE false END as "isStarred",
+        CASE WHEN ub.bookmark_id IS NOT NULL THEN true ELSE false END as "isBookmarked"
+      FROM ${design} d
+      INNER JOIN ${user} u ON d.user_id = u.id
+      LEFT JOIN (
+        SELECT design_id, COUNT(*) as count 
+        FROM ${star} 
+        GROUP BY design_id
+      ) s ON s.design_id = d.id
+      LEFT JOIN (
+        SELECT design_id, COUNT(*) as count 
+        FROM ${designDownload} 
+        GROUP BY design_id
+      ) dl ON dl.design_id = d.id
+      LEFT JOIN (
+        SELECT design_id as star_id 
+        FROM ${star} 
+        WHERE user_id = ${currentUserId || null}
+      ) us ON us.star_id = d.id
+      LEFT JOIN (
+        SELECT design_id as bookmark_id 
+        FROM ${bookmark} 
+        WHERE user_id = ${currentUserId || null}
+      ) ub ON ub.bookmark_id = d.id
+      WHERE u.username = ${username} 
+        AND d.slug = ${slug}
+      LIMIT 1
+    `)
+
+    if (result.rows.length === 0) {
       return notFound(c, "Design")
     }
 
+    const row = result.rows[0] as Record<string, unknown>
+
     // Check authorization
-    const sessionPromise = auth.api.getSession({
-      headers: c.req.raw.headers,
-    })
-
-    // Run counts in parallel with session check
-    const [session, starCountResult, downloadCountResult] = await Promise.all([
-      sessionPromise,
-      db.select({ count: count() }).from(star).where(eq(star.designId, designRecord.id)),
-      db.select({ count: count() }).from(designDownload).where(eq(designDownload.designId, designRecord.id)),
-    ])
-
-    if (designRecord.status !== "approved" && (!session || session.user.id !== designRecord.userId)) {
+    if (row.status !== "approved" && (!session || session.user.id !== row.userId)) {
       return forbidden(c)
     }
 
-    const starCount = Number(starCountResult?.count || 0)
-    const downloadCount = Number(downloadCountResult?.count || 0)
-
-    // Check if current user has starred/bookmarked (only if logged in)
-    let isStarred = false
-    let isBookmarked = false
-
-    if (session) {
-      const [starResult, bookmarkResult] = await Promise.all([
-        db.select().from(star).where(and(
-          eq(star.userId, session.user.id),
-          eq(star.designId, designRecord.id)
-        )).limit(1),
-        db.select().from(bookmark).where(and(
-          eq(bookmark.userId, session.user.id),
-          eq(bookmark.designId, designRecord.id)
-        )).limit(1),
-      ])
-      isStarred = !!starResult[0]
-      isBookmarked = !!bookmarkResult[0]
+    // Build design object WITH content (for preview) but WITHOUT files (lazy loaded)
+    const designRecord = {
+      id: row.id as string,
+      name: row.name as string,
+      slug: row.slug as string,
+      description: row.description as string | null,
+      category: row.category as string,
+      content: row.content as string, // Included for preview
+      demoUrl: row.demoUrl as string | null,
+      thumbnailUrl: row.thumbnailUrl as string | null,
+      status: row.status as string,
+      viewCount: Number(row.viewCount || 0),
+      // files is NOT included - lazy loaded via /files endpoint
+      createdAt: row.createdAt as Date,
+      updatedAt: row.updatedAt as Date,
+      userId: row.userId as string,
+      author: {
+        name: row.authorName as string | null,
+        username: row.authorUsername as string,
+        image: row.authorImage as string | null,
+      },
+      starCount: Number(row.starCount || 0),
+      downloadCount: Number(row.downloadCount || 0),
+      isStarred: row.isStarred as boolean,
+      isBookmarked: row.isBookmarked as boolean,
     }
 
-    // Parse files JSON before returning
-    const designWithParsedFiles = {
-      ...designRecord,
-      files: parseFiles(designRecord.files as string | null),
-      starCount,
-      downloadCount,
-      isStarred,
-      isBookmarked,
-    }
-
-    return success(c, { design: designWithParsedFiles })
+    return success(c, { design: designRecord })
   } catch (error) {
     logError("FetchDesignBySlug", error)
     return internalError(c, "Failed to fetch design")
+  }
+})
+
+// Get design files (lazy loaded when user switches to Code tab)
+// Content is already included in main design endpoint for preview
+// This endpoint only returns the files JSON which can be large
+app.get("/:username/:slug/files", async (c) => {
+  const username = c.req.param("username")
+  const slug = c.req.param("slug")
+
+  // Validate username and slug format
+  const validFormat = /^[a-zA-Z0-9_-]+$/
+  if (!validFormat.test(username) || !validFormat.test(slug)) {
+    return badRequest(c, "Invalid username or slug format")
+  }
+
+  try {
+    const result = await db.execute(sql`
+      SELECT 
+        d.id,
+        d.files
+      FROM ${design} d
+      INNER JOIN ${user} u ON d.user_id = u.id
+      WHERE u.username = ${username} 
+        AND d.slug = ${slug}
+        AND d.status = 'approved'
+      LIMIT 1
+    `)
+
+    if (result.rows.length === 0) {
+      return notFound(c, "Design")
+    }
+
+    const row = result.rows[0] as { id: string; files: string | null }
+
+    return success(c, {
+      id: row.id,
+      files: parseFiles(row.files),
+    })
+  } catch (error) {
+    logError("FetchDesignFiles", error)
+    return internalError(c, "Failed to fetch design files")
   }
 })
 

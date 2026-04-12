@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef } from "react"
 import { useNavigate, useRouter } from "@tanstack/react-router"
 import { useQueryClient } from "@tanstack/react-query"
 import { prefetchDesignDetail } from "../queries"
+import { prefetchUserProfile } from "@/lib/queries/users"
 import { SkillCard } from "@/components/marketing/skill-card"
 
 // Design card data type (subset of Design for gallery display)
@@ -65,8 +66,10 @@ export function DesignCard({ design, onVisible }: DesignCardProps) {
         })
       },
       { 
-        rootMargin: "100px",
-        threshold: 0.1
+        // Aggressive prefetching: start loading when card is 400px away from viewport
+        // This ensures data is ready before user even thinks about clicking
+        rootMargin: "400px",
+        threshold: 0
       }
     )
     
@@ -97,20 +100,32 @@ export function DesignCard({ design, onVisible }: DesignCardProps) {
       }))
     }
     
-    // Navigate immediately - no blocking loader
+    // Navigate immediately with view transition for smooth gallery-to-detail morph
+    // Only using view transition here where it makes sense - not globally
     navigate({
       to: "/s/$username/$designSlug",
-      params: { username, designSlug: design.slug }
+      params: { username, designSlug: design.slug },
+      viewTransition: true,
     })
   }, [navigate, username, design.slug, design.thumbnailUrl, design.name])
   
+  // Prefetch user profile on hover
+  const handleAuthorHover = useCallback(() => {
+    prefetchUserProfile(queryClient, username)
+  }, [queryClient, username])
+  
   const handleAuthorClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation()
+    // Prefetch route before navigation
+    router.preloadRoute({
+      to: "/u/$username",
+      params: { username }
+    })
     navigate({
       to: "/u/$username",
       params: { username }
     })
-  }, [navigate, username])
+  }, [navigate, router, username])
   
   return (
     <article 
@@ -140,6 +155,7 @@ export function DesignCard({ design, onVisible }: DesignCardProps) {
         <div 
           className="flex items-center gap-3 min-w-0 cursor-pointer"
           onClick={handleAuthorClick}
+          onMouseEnter={handleAuthorHover}
         >
           <div className="relative h-6 w-6 shrink-0">
             {design.author?.image ? (
