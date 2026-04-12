@@ -163,16 +163,7 @@ function ComponentName({
 export { ComponentName, componentVariants }
 ```
 
-### Client Components
 
-Add "use client" directive when using React hooks:
-
-```typescript
-"use client"
-
-import * as React from "react"
-// ... rest of imports
-```
 
 ### Icons Pattern
 

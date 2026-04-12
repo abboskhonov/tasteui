@@ -21,6 +21,8 @@ import {
   Settings01Icon,
   UserIcon,
   Shield02Icon,
+  PenTool01Icon,
+  Upload04Icon,
 } from "@hugeicons/core-free-icons";
 
 /**
@@ -103,6 +105,20 @@ export const UserMenu = memo(function UserMenu() {
             <HugeiconsIcon icon={Settings01Icon} className="size-4" />
             Settings
           </DropdownMenuItem>
+
+          <Link to="/studio">
+            <DropdownMenuItem className="gap-2 px-3 py-1.5 text-sm cursor-pointer">
+              <HugeiconsIcon icon={PenTool01Icon} className="size-4" />
+              Studio
+            </DropdownMenuItem>
+          </Link>
+
+          <Link to="/publish">
+            <DropdownMenuItem className="gap-2 px-3 py-1.5 text-sm cursor-pointer">
+              <HugeiconsIcon icon={Upload04Icon} className="size-4" />
+              Publish
+            </DropdownMenuItem>
+          </Link>
           
           {user?.role === "admin" && (
             <Link to="/admin">

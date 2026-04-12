@@ -30,8 +30,6 @@ export const Navigation = memo(function Navigation() {
           {/* Navigation Links - Hidden on mobile */}
           <div className="hidden md:flex items-center gap-1">
             <NavLink to="/docs">Docs</NavLink>
-            <NavLink to="/studio">Studio</NavLink>
-            <NavLink to="/publish">Publish</NavLink>
           </div>
         </div>
 
