@@ -1,8 +1,10 @@
 # Railway Deployment Configuration
-# Using Railpack for Bun project
+
+[build]
+builder = "nixpacks"
 
 [deploy]
-startCommand = "bun run start"
+startCommand = "bun run src/index.ts"
 healthcheckPath = "/api/health"
 healthcheckTimeout = 100
 restartPolicyType = "ON_FAILURE"

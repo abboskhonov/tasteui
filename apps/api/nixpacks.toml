@@ -1,0 +1,10 @@
+providers = ["bun"]
+
+[phases.build]
+cmds = ["bun install --frozen-lockfile"]
+
+[phases.setup]
+nixPkgs = ["bun"]
+
+[start]
+cmd = "bun run src/index.ts"
