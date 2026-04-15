@@ -1,18 +1,9 @@
 # Railway Deployment Configuration
-# See: https://docs.railway.com/reference/config-as-code
-
-[build]
-builder = "DOCKERFILE"
-dockerfilePath = "Dockerfile"
+# Using Railpack for Bun project
 
 [deploy]
-# Health check path - adjust if your health endpoint is different
+startCommand = "bun run start"
 healthcheckPath = "/api/health"
 healthcheckTimeout = 100
-# Restart policy
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 3
-
-[nixpacks]
-# Use Bun runtime
-nixpacksProvider = "bun"
