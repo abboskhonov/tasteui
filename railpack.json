@@ -1,0 +1,8 @@
+{
+  "$schema": "https://schema.railpack.com",
+  "provider": "bun",
+  "deploy": {
+    "startCommand": "cd apps/api && bun run src/index.ts",
+    "paths": ["/app/apps/api/node_modules/.bin"]
+  }
+}
