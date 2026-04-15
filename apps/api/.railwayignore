@@ -8,7 +8,7 @@
 node_modules
 *.log
 
-# Cloudflare Workers (not needed for Railway)
+# Cloudflare Workers
 wrangler.toml
 wrangler.jsonc
 
@@ -23,6 +23,5 @@ tests
 # Documentation
 README.md
 
-# Local scripts (but NOT start.sh - needed for Railway)
+# Local scripts
 src/scripts
-!start.sh
