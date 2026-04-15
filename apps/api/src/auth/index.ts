@@ -126,9 +126,10 @@ export const auth = betterAuth({
   },
   trustedOrigins,
   advanced: {
-    // Cookie settings for OAuth - Lax allows cookies on same-site navigation
+    // Cookie settings for cross-domain OAuth
+    // sameSite: "none" is required when frontend and API are on different domains
     defaultCookieAttributes: {
-      sameSite: "lax",
+      sameSite: isProduction ? "none" : "lax",
       secure: isProduction,
       path: "/",
     },
