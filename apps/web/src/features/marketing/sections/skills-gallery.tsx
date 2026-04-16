@@ -125,10 +125,11 @@ export function SkillsGallery() {
                   <p className="text-xs text-muted-foreground mt-1">Be the first to publish!</p>
                 </div>
               ) : (
-                designs.map((design) => (
+                designs.map((design, index) => (
                   <DesignCard 
                     key={design.id} 
                     design={design} 
+                    index={index}
                     onVisible={handleDesignVisible}
                   />
                 ))

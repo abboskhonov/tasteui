@@ -319,8 +319,8 @@ export function HeroSection({ initialDesigns }: HeroSectionProps) {
             ) : (
               <>
                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 pb-12">
-                  {filteredDesigns.map((design) => (
-                    <DesignCard key={design.id} design={design} />
+                  {filteredDesigns.map((design, index) => (
+                    <DesignCard key={design.id} design={design} index={index} />
                   ))}
                 </div>
                 

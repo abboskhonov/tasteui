@@ -28,9 +28,12 @@ export interface DesignCardData {
 export interface DesignCardProps {
   design: DesignCardData
   onVisible?: (designId: string) => void
+  index?: number // Position in grid for LCP priority
 }
 
-export function DesignCard({ design, onVisible }: DesignCardProps) {
+export function DesignCard({ design, onVisible, index = 0 }: DesignCardProps) {
+  // First 4 images get high priority for LCP optimization
+  const isHighPriority = index < 4
   const navigate = useNavigate()
   const router = useRouter()
   const queryClient = useQueryClient()
@@ -141,7 +144,12 @@ export function DesignCard({ design, onVisible }: DesignCardProps) {
             <img 
               src={design.thumbnailUrl} 
               alt={design.name}
-              loading="lazy"
+              width={400}
+              height={300}
+              loading={isHighPriority ? "eager" : "lazy"}
+              decoding={isHighPriority ? "sync" : "async"}
+              fetchPriority={isHighPriority ? "high" : "low"}
+              sizes="(max-width: 640px) 50vw, 25vw"
               className="h-full w-full object-cover"
             />
           ) : (

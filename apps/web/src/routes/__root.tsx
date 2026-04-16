@@ -76,6 +76,25 @@ export const Route = createRootRoute({
         rel: "stylesheet",
         href: appCss,
       },
+      // Preconnect to critical domains
+      {
+        rel: "preconnect",
+        href: "https://api.tasteui.dev",
+      },
+      {
+        rel: "preconnect",
+        href: "https://pub-760132b719d849e3aea8daf679b700b7.r2.dev",
+        crossOrigin: "anonymous",
+      },
+      // DNS prefetch for faster resolution
+      {
+        rel: "dns-prefetch",
+        href: "https://api.tasteui.dev",
+      },
+      {
+        rel: "dns-prefetch",
+        href: "https://static.cloudflareinsights.com",
+      },
       {
         rel: "canonical",
         href: "https://tasteui.dev",

@@ -17,12 +17,17 @@ import { cn } from "@/lib/utils"
  */
 interface DesignCardProps {
   design: Design;
+  priority?: boolean; // For LCP images - loads eagerly with high priority
+  index?: number; // Position in grid for priority calculation
 }
 
-export const DesignCard = memo(function DesignCard({ design }: DesignCardProps) {
+export const DesignCard = memo(function DesignCard({ design, priority = false, index = 0 }: DesignCardProps) {
   const username = design.author?.username || "unknown";
   const { user } = useUser();
   const { data: isBookmarked } = useBookmarkCheck(design.id, false, !!user);
+  
+  // First 4 images get high priority for LCP optimization
+  const isHighPriority = priority || index < 4;
   const createBookmark = useCreateBookmark();
   const deleteBookmark = useDeleteBookmark();
   
@@ -96,9 +101,9 @@ export const DesignCard = memo(function DesignCard({ design }: DesignCardProps) 
               width={400}
               height={225}
               className="h-full w-full object-cover"
-              loading="lazy"
-              decoding="async"
-              fetchPriority="low"
+              loading={isHighPriority ? "eager" : "lazy"}
+              decoding={isHighPriority ? "sync" : "async"}
+              fetchPriority={isHighPriority ? "high" : "low"}
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             />
           ) : (
