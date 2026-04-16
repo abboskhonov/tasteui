@@ -8,11 +8,17 @@ export async function authMiddleware(
   next: Next
 ): Promise<void> {
   try {
+    const cookieHeader = c.req.raw.headers.get("cookie")
+    console.log("[authMiddleware] Cookie header:", cookieHeader?.substring(0, 100) || "none")
+    
     const session = await auth.api.getSession({
       headers: c.req.raw.headers,
     })
+    
+    console.log("[authMiddleware] Session:", session ? `User: ${session.user?.email}` : "No session")
     c.set("session", session as AuthSession | null)
-  } catch {
+  } catch (error) {
+    console.error("[authMiddleware] Error:", error)
     c.set("session", null)
   }
   await next()

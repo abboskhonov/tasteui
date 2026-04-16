@@ -225,16 +225,21 @@ export const auth = betterAuth({
   },
   trustedOrigins,
   advanced: {
-    // Cookie settings for cross-domain OAuth
-    // sameSite: "none" is required when frontend and API are on different domains
+    // Cookie settings for cross-domain OAuth and SSR
+    // In development: sameSite "lax" with http is fine for SSR when cookies are forwarded
+    // In production: sameSite "none" with secure is needed for cross-domain
     defaultCookieAttributes: {
       sameSite: isProduction ? "none" : "lax",
       secure: isProduction,
       path: "/",
+      // Add explicit domain handling for local development
+      ...(isProduction ? {} : { domain: undefined }),
     },
     crossSubDomainCookies: {
       enabled: true,
     },
+    // Enable cookie forwarding for SSR
+    useSecureCookies: isProduction,
   },
 })
 

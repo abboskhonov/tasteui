@@ -17,6 +17,12 @@ export const getCurrentUserServerFn = createServerFn({ method: "GET" })
   .handler(async () => {
     // Get the current request to forward cookies
     const request = getRequest()
+    
+    // Log for debugging
+    console.log("[SSR] getCurrentUserServerFn - Request headers:", {
+      cookie: request?.headers.get("cookie")?.substring(0, 100) || "none",
+    })
+    
     const cookie = request?.headers.get("cookie") || ""
     
     try {
@@ -25,8 +31,9 @@ export const getCurrentUserServerFn = createServerFn({ method: "GET" })
           "Content-Type": "application/json",
           ...(cookie && { "Cookie": cookie }),
         },
-        credentials: "include",
       })
+      
+      console.log("[SSR] /api/me response status:", response.status)
       
       if (!response.ok) {
         // Return null for unauthenticated users - this is not an error
@@ -36,16 +43,17 @@ export const getCurrentUserServerFn = createServerFn({ method: "GET" })
         
         // Log the actual error for debugging
         const errorText = await response.text().catch(() => "Unknown error")
-        console.error("API Error:", response.status, errorText)
+        console.error("[SSR] API Error:", response.status, errorText)
         
         // For other errors, still return null instead of crashing
         return null
       }
       
       const data = await response.json()
+      console.log("[SSR] User fetched:", data.user?.email || "no user")
       return data.user as SessionUser
     } catch (error) {
-      console.error("ServerFn Error:", error)
+      console.error("[SSR] ServerFn Error:", error)
       return null
     }
   })

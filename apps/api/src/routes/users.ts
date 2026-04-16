@@ -56,6 +56,8 @@ const app = new Hono<AuthContext>()
 // Get current user info (with full profile)
 app.get("/me", async (c) => {
   const session = c.get("session")
+  
+  console.log("[/api/me] Session from context:", session ? `User: ${session.user?.id}` : "null")
 
   if (!session) {
     return unauthorized(c)
