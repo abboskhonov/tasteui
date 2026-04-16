@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 
-export function StudioPage() {
+export default function StudioPage() {
   const navigate = useNavigate()
   
   // Fire all queries in parallel for maximum speed
