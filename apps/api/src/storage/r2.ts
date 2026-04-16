@@ -1,7 +1,7 @@
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3"
 
 // R2 configuration from env
-const getConfig = () => ({
+export const getConfig = () => ({
   endpoint: process.env.R2_ENDPOINT,
   accessKeyId: process.env.R2_ACCESS_KEY_ID,
   secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
@@ -11,7 +11,7 @@ const getConfig = () => ({
 
 // Lazy initialization - S3 client created when first used
 let s3Client: S3Client | null = null
-const getS3Client = (): S3Client => {
+export const getS3Client = (): S3Client => {
   if (!s3Client) {
     const config = getConfig()
 
@@ -181,11 +181,12 @@ export async function uploadFile(
   const metadata: Record<string, string> = {}
 
   if (options?.addSecurityHeaders && contentType === "text/html") {
-    // Add security-related metadata (these will be set as headers when serving)
-    metadata["Content-Security-Policy"] = "default-src 'self'; script-src 'none'; object-src 'none';"
-    metadata["X-Frame-Options"] = "SAMEORIGIN"
+    // Security headers for HTML previews
+    // Allow iframe embedding for previews - scripts are already stripped during upload
+    metadata["Content-Security-Policy"] = "default-src 'none'; style-src 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:;"
     metadata["X-Content-Type-Options"] = "nosniff"
     metadata["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    // Note: X-Frame-Options is intentionally NOT set to allow iframe embedding for previews
   }
 
   // Upload to R2 with cache headers

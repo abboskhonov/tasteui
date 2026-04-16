@@ -34,21 +34,29 @@ import {
   MoreVertical,
   ChevronLeft,
   ChevronRight,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react";
-import { useAdminDesigns, useDeleteDesign, type AdminDesign } from "../queries";
+import { useAdminDesigns, useDeleteDesign, useApproveDesign, useRejectDesign, type AdminDesign } from "../queries";
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { SkillCard } from "@/components/marketing/skill-card";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 // Card component for grid view
 function DesignCard({ 
   design, 
-  onDelete 
+  onDelete,
+  onApprove,
+  onReject,
 }: { 
   design: AdminDesign
   onDelete: (design: { id: string; name: string }) => void
+  onApprove: (design: { id: string; name: string }) => void
+  onReject: (design: { id: string; name: string }) => void
 }) {
   const copies = Math.max(1, Math.floor((design.viewCount ?? 0) * 0.1));
   
@@ -101,6 +109,24 @@ function DesignCard({
                   View
                 </DropdownMenuItem>
               </Link>
+              {design.status !== "approved" && (
+                <DropdownMenuItem 
+                  onClick={() => onApprove({ id: design.id, name: design.name })}
+                  className="text-green-600 focus:text-green-600 cursor-pointer"
+                >
+                  <CheckCircle2 className="mr-2 h-4 w-4" />
+                  Approve
+                </DropdownMenuItem>
+              )}
+              {design.status !== "rejected" && (
+                <DropdownMenuItem 
+                  onClick={() => onReject({ id: design.id, name: design.name })}
+                  className="text-orange-600 focus:text-orange-600 cursor-pointer"
+                >
+                  <XCircle className="mr-2 h-4 w-4" />
+                  Reject
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem 
                 onClick={() => onDelete({ id: design.id, name: design.name })}
                 className="text-destructive focus:text-destructive cursor-pointer"
@@ -144,10 +170,14 @@ function DesignCard({
 // Table row component
 function DesignTableRow({ 
   design, 
-  onDelete 
+  onDelete,
+  onApprove,
+  onReject,
 }: { 
   design: AdminDesign
   onDelete: (design: { id: string; name: string }) => void
+  onApprove: (design: { id: string; name: string }) => void
+  onReject: (design: { id: string; name: string }) => void
 }) {
   return (
     <tr className="border-b transition-colors hover:bg-muted/50">
@@ -197,6 +227,26 @@ function DesignTableRow({
               <Eye className="h-4 w-4" />
             </Button>
           </Link>
+          {design.status !== "approved" && (
+            <Button 
+              size="icon" 
+              variant="ghost" 
+              className="h-8 w-8 text-green-600 hover:text-green-600 hover:bg-green-50"
+              onClick={() => onApprove({ id: design.id, name: design.name })}
+            >
+              <CheckCircle2 className="h-4 w-4" />
+            </Button>
+          )}
+          {design.status !== "rejected" && (
+            <Button 
+              size="icon" 
+              variant="ghost" 
+              className="h-8 w-8 text-orange-600 hover:text-orange-600 hover:bg-orange-50"
+              onClick={() => onReject({ id: design.id, name: design.name })}
+            >
+              <XCircle className="h-4 w-4" />
+            </Button>
+          )}
           <Button 
             size="icon" 
             variant="ghost" 
@@ -216,11 +266,19 @@ export function AdminDesignsPage() {
   const [pageSize, setPageSize] = useState(20);
   const { data, isLoading } = useAdminDesigns(currentPage, pageSize);
   const deleteMutation = useDeleteDesign();
+  const approveMutation = useApproveDesign();
+  const rejectMutation = useRejectDesign();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [designToDelete, setDesignToDelete] = useState<{ id: string; name: string } | null>(null);
+  
+  // Approve/Reject dialog state
+  const [actionDialogOpen, setActionDialogOpen] = useState(false);
+  const [actionType, setActionType] = useState<"approve" | "reject">("approve");
+  const [designToAction, setDesignToAction] = useState<{ id: string; name: string } | null>(null);
+  const [actionMessage, setActionMessage] = useState("");
 
   const designs = data?.designs || [];
   const pagination = data?.pagination;
@@ -253,6 +311,40 @@ export function AdminDesignsPage() {
       setDesignToDelete(null);
     } catch (error) {
       toast.error("Failed to delete design");
+    }
+  };
+
+  // Approve/Reject handlers
+  const handleApproveClick = (design: { id: string; name: string }) => {
+    setDesignToAction(design);
+    setActionType("approve");
+    setActionMessage("");
+    setActionDialogOpen(true);
+  };
+
+  const handleRejectClick = (design: { id: string; name: string }) => {
+    setDesignToAction(design);
+    setActionType("reject");
+    setActionMessage("");
+    setActionDialogOpen(true);
+  };
+
+  const handleConfirmAction = async () => {
+    if (!designToAction) return;
+    
+    try {
+      if (actionType === "approve") {
+        await approveMutation.mutateAsync({ designId: designToAction.id, message: actionMessage });
+        toast.success(`Design "${designToAction.name}" approved successfully`);
+      } else {
+        await rejectMutation.mutateAsync({ designId: designToAction.id, message: actionMessage });
+        toast.success(`Design "${designToAction.name}" rejected`);
+      }
+      setActionDialogOpen(false);
+      setDesignToAction(null);
+      setActionMessage("");
+    } catch (error) {
+      toast.error(actionType === "approve" ? "Failed to approve design" : "Failed to reject design");
     }
   };
 
@@ -369,6 +461,8 @@ export function AdminDesignsPage() {
               key={design.id} 
               design={design} 
               onDelete={handleDeleteClick}
+              onApprove={handleApproveClick}
+              onReject={handleRejectClick}
             />
           ))}
           {filteredDesigns.length === 0 && (
@@ -400,6 +494,8 @@ export function AdminDesignsPage() {
                       key={design.id} 
                       design={design} 
                       onDelete={handleDeleteClick}
+                      onApprove={handleApproveClick}
+                      onReject={handleRejectClick}
                     />
                   ))}
                   {filteredDesigns.length === 0 && (
@@ -500,6 +596,53 @@ export function AdminDesignsPage() {
                 <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Deleting...</>
               ) : (
                 "Delete"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Approve/Reject Dialog */}
+      <Dialog open={actionDialogOpen} onOpenChange={setActionDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className={actionType === "approve" ? "text-green-600" : "text-orange-600"}>
+              {actionType === "approve" ? "Approve Design" : "Reject Design"}
+            </DialogTitle>
+            <DialogDescription>
+              {actionType === "approve" 
+                ? `Approve "${designToAction?.name}" to make it publicly visible.`
+                : `Reject "${designToAction?.name}". The creator will be notified.`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="message">
+                {actionType === "approve" ? "Approval Message (Optional)" : "Rejection Reason (Optional)"}
+              </Label>
+              <Textarea
+                id="message"
+                value={actionMessage}
+                onChange={(e) => setActionMessage(e.target.value)}
+                placeholder={actionType === "approve" ? "e.g., Great work!" : "e.g., Needs more details..."}
+                className="min-h-[100px]"
+              />
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setActionDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              variant={actionType === "approve" ? "default" : "destructive"}
+              onClick={handleConfirmAction}
+              disabled={approveMutation.isPending || rejectMutation.isPending}
+              className={actionType === "approve" ? "bg-green-600 hover:bg-green-700" : ""}
+            >
+              {approveMutation.isPending || rejectMutation.isPending ? (
+                <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Processing...</>
+              ) : (
+                actionType === "approve" ? "Approve" : "Reject"
               )}
             </Button>
           </DialogFooter>

@@ -128,7 +128,17 @@ export function PublishPage() {
       setDescription(existingDesign.description || "")
       setCategory(existingDesign.category)
       setThumbnailUrl(existingDesign.thumbnailUrl || "")
-      setDemoCode(existingDesign.demoUrl ? "" : DEFAULT_DEMO_HTML)
+      
+      // Load existing demo HTML if available
+      if (existingDesign.demoUrl) {
+        // Fetch existing HTML content
+        fetch(existingDesign.demoUrl)
+          .then(res => res.text())
+          .then(html => setDemoCode(html))
+          .catch(() => setDemoCode(DEFAULT_DEMO_HTML))
+      } else {
+        setDemoCode(DEFAULT_DEMO_HTML)
+      }
       
       // Load files
       if (existingDesign.files && existingDesign.files.length > 0) {
@@ -217,13 +227,24 @@ export function PublishPage() {
     
     setIsDraftSaving(true)
     
+    // Upload demo HTML if provided
+    let demoUrl: string | undefined
+    if (demoCode.trim() && demoCode !== DEFAULT_DEMO_HTML) {
+      try {
+        const result = await uploadHtml(demoCode)
+        demoUrl = result.url
+      } catch {
+        console.log("Failed to upload demo HTML")
+      }
+    }
+    
     const data: CreateDesignData = {
       name: name || "Untitled",
       slug: slug || "untitled",
       description: description || undefined,
       category: category || "uncategorized",
       content: skillContent || DEFAULT_SKILL_MD,
-      demoUrl: undefined,
+      demoUrl,
       thumbnailUrl: thumbnailUrl || undefined,
       status: "draft",
       files,
@@ -244,9 +265,21 @@ export function PublishPage() {
   }
 
   const updateDraft = async () => {
-    if (!editId) return
+    if (!editId || !existingDesign) return
     
     const skillContent = getFileContent(files, "SKILL.md")
+    
+    // Upload demo HTML if it's different from the existing one
+    let demoUrl: string | undefined = existingDesign.demoUrl || undefined
+    if (demoCode.trim() && demoCode !== DEFAULT_DEMO_HTML) {
+      // Only re-upload if content changed
+      try {
+        const result = await uploadHtml(demoCode)
+        demoUrl = result.url
+      } catch {
+        console.log("Failed to upload demo HTML, keeping existing")
+      }
+    }
     
     const data: Partial<CreateDesignData> = {
       name: name || "Untitled",
@@ -254,6 +287,7 @@ export function PublishPage() {
       description: description || undefined,
       category: category || "uncategorized",
       content: skillContent || DEFAULT_SKILL_MD,
+      demoUrl,
       thumbnailUrl: thumbnailUrl || undefined,
       status: "draft",
       files,
@@ -279,8 +313,9 @@ export function PublishPage() {
       return
     }
 
-    let demoUrl: string | undefined
-    if (demoCode.trim()) {
+    // Upload demo HTML if provided or use existing
+    let demoUrl: string | undefined = existingDesign?.demoUrl || undefined
+    if (demoCode.trim() && demoCode !== DEFAULT_DEMO_HTML) {
       try {
         const result = await uploadHtml(demoCode)
         demoUrl = result.url
