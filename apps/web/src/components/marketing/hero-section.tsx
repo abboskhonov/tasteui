@@ -69,19 +69,7 @@ export function HeroSection({ initialDesigns }: HeroSectionProps) {
     return data.pages.flatMap((page) => page.designs);
   }, [data, initialDesigns]);
 
-  // Debug logging
-  useEffect(() => {
-    console.log("Search debug:", {
-      searchQuery,
-      debouncedSearch,
-      searchParam,
-      dataPages: data?.pages?.length,
-      firstPageDesigns: data?.pages?.[0]?.designs?.length,
-      allDesignsCount: allDesigns.length,
-      isLoading,
-      error: error?.message,
-    })
-  }, [searchQuery, debouncedSearch, searchParam, data, allDesigns.length, isLoading, error])
+  // Debug logging removed for production
 
   // Filter designs client-side based on selected category
   const filteredDesigns = useMemo(() => {

@@ -18,10 +18,7 @@ export const getCurrentUserServerFn = createServerFn({ method: "GET" })
     // Get the current request to forward cookies
     const request = getRequest()
     
-    // Log for debugging
-    console.log("[SSR] getCurrentUserServerFn - Request headers:", {
-      cookie: request?.headers.get("cookie")?.substring(0, 100) || "none",
-    })
+    // SSR auth request
     
     const cookie = request?.headers.get("cookie") || ""
     
@@ -33,7 +30,7 @@ export const getCurrentUserServerFn = createServerFn({ method: "GET" })
         },
       })
       
-      console.log("[SSR] /api/me response status:", response.status)
+      // Response received
       
       if (!response.ok) {
         // Return null for unauthenticated users - this is not an error
@@ -50,7 +47,6 @@ export const getCurrentUserServerFn = createServerFn({ method: "GET" })
       }
       
       const data = await response.json()
-      console.log("[SSR] User fetched:", data.user?.email || "no user")
       return data.user as SessionUser
     } catch (error) {
       console.error("[SSR] ServerFn Error:", error)
@@ -79,7 +75,6 @@ export const requireAdminServerFn = createServerFn({ method: "GET" })
       })
       
       if (!response.ok) {
-        console.log("Admin check: Not authenticated, status:", response.status)
         return { 
           isAdmin: false, 
           user: null,
@@ -95,7 +90,7 @@ export const requireAdminServerFn = createServerFn({ method: "GET" })
       const ADMIN_EMAILS = ["admin@tasteui.dev"] 
       const isAdmin = user.role === "admin" || ADMIN_EMAILS.includes(user.email)
       
-      console.log("Admin check:", user.email, "isAdmin:", isAdmin, "role:", user.role)
+      // Admin check complete
       
       return {
         isAdmin,

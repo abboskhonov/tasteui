@@ -1,0 +1,41 @@
+# TasteUI
+
+TasteUI is a platform for sharing and discovering drop-in design skills for AI coding agents. Upload your custom shadcn/ui components, share design systems, and let others use your designs with a single CLI command.
+
+## What You Can Do
+
+- **Upload Designs**: Share your custom shadcn/ui components with the community
+- **Discover Skills**: Browse design patterns, color systems, and component variations  
+- **One-Command Install**: Copy any design to your project with `npx tasteui add <design-id>`
+- **Build Your Profile**: Showcase your design work and build a following
+
+## Core Pages
+
+- Homepage: https://tasteui.dev - Browse trending designs and featured skills
+- User Profiles: https://tasteui.dev/u/{username} - View designer portfolios
+- Design Details: https://tasteui.dev/s/{username}/{design-slug} - Individual design pages
+- Documentation: https://tasteui.dev/docs - Getting started guides
+- Bookmarks: https://tasteui.dev/bookmarks - Saved designs (requires login)
+
+## Key Features
+
+- Automatic component extraction and preview generation
+- Design token and CSS variable preservation
+- CLI tool for seamless integration with existing projects
+- R2-backed storage for high-performance image delivery
+- GitHub OAuth authentication
+
+## Technology Stack
+
+- Frontend: TanStack Start (React + Vite + TanStack Router)
+- Backend: Hono on Cloudflare Workers
+- Database: PostgreSQL with Drizzle ORM
+- Storage: Cloudflare R2
+- UI: shadcn/ui components with Tailwind CSS
+
+## Contact
+
+- Website: https://tasteui.dev
+- GitHub: https://github.com/tasteui
+- Twitter: @tasteui
+- Email: hello@tasteui.dev

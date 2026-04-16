@@ -24,19 +24,14 @@ async function generateUniqueUsername(
     cleanUsername = "user"
   }
 
-  console.log(`[GenerateUsername] Trying base: "${baseUsername}" -> cleaned: "${cleanUsername}"`)
-
   // Try the clean username first
   const existingUser = await db.query.user.findFirst({
     where: eq(user.username, cleanUsername),
   })
 
   if (!existingUser) {
-    console.log(`[GenerateUsername] Username "${cleanUsername}" is available`)
     return cleanUsername
   }
-
-  console.log(`[GenerateUsername] Username "${cleanUsername}" is taken, trying with suffix...`)
 
   // If taken, try adding random numbers
   for (let i = 0; i < maxAttempts; i++) {
@@ -50,7 +45,6 @@ async function generateUniqueUsername(
     })
 
     if (!existing) {
-      console.log(`[GenerateUsername] Found available username: "${tryUsername}"`)
       return tryUsername
     }
   }
@@ -58,21 +52,16 @@ async function generateUniqueUsername(
   // Fallback: use timestamp
   const timestamp = Date.now().toString(36)
   const fallbackUsername = `${cleanUsername.slice(0, 10)}${timestamp}`
-  console.log(`[GenerateUsername] Using fallback username: "${fallbackUsername}"`)
   return fallbackUsername
 }
 
 // Lazy getter for env vars to ensure they're read fresh
 function getApiBaseUrl(): string {
-  const url = process.env.API_BASE_URL
-  console.log("[Auth Config] Reading API_BASE_URL:", url)
-  return url || "http://localhost:3001"
+  return process.env.API_BASE_URL || "http://localhost:3001"
 }
 
 function getFrontendUrl(): string {
-  const url = process.env.FRONTEND_URL
-  console.log("[Auth Config] Reading FRONTEND_URL:", url)
-  return url || "http://localhost:3000"
+  return process.env.FRONTEND_URL || "http://localhost:3000"
 }
 
 const isProduction = process.env.NODE_ENV === "production"
@@ -108,12 +97,8 @@ export const auth = betterAuth({
     user: {
       create: {
         before: async (userData, ctx) => {
-          console.log("[BetterAuth] User create hook triggered")
-          console.log("[BetterAuth] User data:", JSON.stringify(userData, null, 2))
-
           // If username is already provided, don't generate one
           if (userData.username) {
-            console.log("[BetterAuth] Username already provided:", userData.username)
             return { data: userData, context: ctx }
           }
 
@@ -127,9 +112,7 @@ export const auth = betterAuth({
             baseUsername = "user"
           }
 
-          console.log("[BetterAuth] Generating username from:", baseUsername)
           const uniqueUsername = await generateUniqueUsername(baseUsername)
-          console.log("[BetterAuth] Generated username:", uniqueUsername)
 
           return {
             data: {
@@ -251,14 +234,10 @@ export async function handleAuthRedirect(request: Request): Promise<Response> {
   if (url.pathname.includes("/callback/")) {
     // Process the callback
     const response = await auth.handler(request)
-    
-    console.log("[handleAuthRedirect] Response status:", response.status)
-    console.log("[handleAuthRedirect] Set-Cookie header:", response.headers.get("set-cookie"))
 
     // If successful (not an error), redirect to frontend
     if (response.status === 200 || response.status === 302) {
       const redirectUrl = getFrontendUrl()
-      console.log("[handleAuthRedirect] Redirecting to:", redirectUrl)
       
       // Copy all headers from original response to preserve cookies
       const headers = new Headers(response.headers)

@@ -8,7 +8,7 @@ if (!API_URL && !isDev) {
   throw new Error("VITE_API_URL environment variable is required in production")
 }
 
-console.log("[Auth Client] API_URL:", API_URL)
+// Auth client initialized
 
 export const authClient = createAuthClient({
   baseURL: API_URL || "http://localhost:3001",

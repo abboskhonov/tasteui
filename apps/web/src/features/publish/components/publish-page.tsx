@@ -13,7 +13,7 @@ import {
   SaveIcon,
 } from "@hugeicons/core-free-icons"
 import { useCreateDesign, uploadImage } from "@/lib/queries/designs"
-import { compressImage, formatFileSize, type CompressionResult } from "@/lib/image-compression"
+import { compressImage, type CompressionResult } from "@/lib/image-compression"
 import { useStudioDesign, useUpdateStudioDesign } from "@/features/studio"
 import type { CreateDesignData } from "@/lib/types/design"
 import { FileTree } from "./file-tree-component"
@@ -192,13 +192,7 @@ export function PublishPage() {
       const result = await uploadImage(compressed.file)
       setThumbnailUrl(result.url)
       
-      // Log compression stats for debugging
-      console.log('Image compressed:', {
-        original: formatFileSize(compressed.originalSize),
-        compressed: formatFileSize(compressed.compressedSize),
-        ratio: `${Math.round((1 - compressed.compressionRatio) * 100)}%`,
-        dimensions: `${compressed.width}x${compressed.height}`,
-      })
+      // Image compression successful
     } catch (error) {
       console.error('Compression/upload failed:', error)
       // Fallback to uploading original file if compression fails

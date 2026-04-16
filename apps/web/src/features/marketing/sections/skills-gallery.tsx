@@ -59,7 +59,7 @@ export function SkillsGallery() {
 
   const handleSortChange = useCallback((sort: GallerySortOption) => {
     // TODO: Implement sort change logic
-    console.log("Sort changed to:", sort)
+    void sort
   }, [])
 
   return (

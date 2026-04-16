@@ -56,8 +56,6 @@ const app = new Hono<AuthContext>()
 // Get current user info (with full profile)
 app.get("/me", async (c) => {
   const session = c.get("session")
-  
-  console.log("[/api/me] Session from context:", session ? `User: ${session.user?.id}` : "null")
 
   if (!session) {
     return unauthorized(c)
@@ -80,7 +78,6 @@ app.get("/me", async (c) => {
 
   // Safety net: Auto-generate username if missing
   if (userRecord && (!userRecord.username || userRecord.username === "")) {
-    console.log("[/me] User missing username, auto-generating...")
     let baseUsername: string
     if (userRecord.name) {
       baseUsername = userRecord.name
@@ -99,7 +96,6 @@ app.get("/me", async (c) => {
       .where(eq(user.id, userRecord.id))
 
     userRecord = { ...userRecord, username: uniqueUsername }
-    console.log("[/me] Generated and saved username:", uniqueUsername)
   }
 
   return success(c, { user: userRecord || session.user })
@@ -125,7 +121,6 @@ app.get("/user/profile", async (c) => {
 
   // Safety net: Auto-generate username if missing
   if (!userRecord.username || userRecord.username === "") {
-    console.log("[/user/profile] User missing username, auto-generating...")
     let baseUsername: string
     if (userRecord.name) {
       baseUsername = userRecord.name
@@ -143,7 +138,6 @@ app.get("/user/profile", async (c) => {
       .where(eq(user.id, userRecord.id))
 
     userRecord = { ...userRecord, username: uniqueUsername }
-    console.log("[/user/profile] Generated and saved username:", uniqueUsername)
   }
 
   return success(c, { user: userRecord })

@@ -1,11 +1,12 @@
 "use client"
 
-import { useCallback, useEffect, useRef } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { useNavigate, useRouter } from "@tanstack/react-router"
 import { useQueryClient } from "@tanstack/react-query"
 import { prefetchDesignDetail } from "../queries"
 import { prefetchUserProfile } from "@/lib/queries/users"
 import { SkillCard } from "@/components/marketing/skill-card"
+import { cn } from "@/lib/utils"
 
 // Design card data type (subset of Design for gallery display)
 export interface DesignCardData {
@@ -40,6 +41,7 @@ export function DesignCard({ design, onVisible, index = 0 }: DesignCardProps) {
   const username = design.author?.username || "unknown"
   const cardRef = useRef<HTMLElement>(null)
   const hasPrefetched = useRef(false)
+  const [isLoaded, setIsLoaded] = useState(false)
   
   // Eager prefetch using Intersection Observer - starts loading as soon as card is visible
   useEffect(() => {
@@ -150,10 +152,18 @@ export function DesignCard({ design, onVisible, index = 0 }: DesignCardProps) {
               decoding={isHighPriority ? "sync" : "async"}
               fetchPriority={isHighPriority ? "high" : "low"}
               sizes="(max-width: 640px) 50vw, 25vw"
-              className="h-full w-full object-cover"
+              onLoad={() => setIsLoaded(true)}
+              className={cn(
+                "h-full w-full object-cover transition-opacity duration-300",
+                isLoaded ? "opacity-100" : "opacity-0"
+              )}
             />
           ) : (
             <SkillCard variant="pattern" />
+          )}
+          {/* Skeleton loader shown until image loads */}
+          {!isLoaded && design.thumbnailUrl && (
+            <div className="absolute inset-0 bg-muted animate-pulse" />
           )}
         </div>
       </div>
