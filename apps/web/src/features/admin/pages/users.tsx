@@ -1,4 +1,4 @@
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -10,15 +10,32 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, Shield, MoreHorizontal, Mail, FileCode, Loader2 } from "lucide-react";
+import { Search, Shield, MoreHorizontal, Mail, FileCode, Loader2, Users, UserCog, Palette } from "lucide-react";
 import { useAdminUsers } from "../queries";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "@tanstack/react-router";
 
 export function AdminUsersPage() {
   const { data: users, isLoading } = useAdminUsers();
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
+
+  // Calculate stats
+  const stats = useMemo(() => {
+    if (!users) return null;
+    
+    const totalUsers = users.length;
+    const totalAdmins = users.filter(u => u.role === "admin").length;
+    const totalDesigns = users.reduce((sum, u) => sum + (u.designs || 0), 0);
+    const usersWithDesigns = users.filter(u => (u.designs || 0) > 0).length;
+    
+    return {
+      totalUsers,
+      totalAdmins,
+      totalDesigns,
+      usersWithDesigns,
+    };
+  }, [users]);
 
   const filteredUsers = users?.filter((user) => {
     const matchesSearch = 
@@ -49,37 +66,91 @@ export function AdminUsersPage() {
             Manage user accounts and permissions
           </p>
         </div>
-        <Badge variant="secondary" className="text-base px-3 py-1">
-          {users?.length ?? 0} total
-        </Badge>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{(stats?.totalUsers ?? 0).toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">
+              Registered accounts
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Admins</CardTitle>
+            <UserCog className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{(stats?.totalAdmins ?? 0).toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">
+              {stats && stats.totalUsers > 0 
+                ? `${((stats.totalAdmins / stats.totalUsers) * 100).toFixed(1)}% of users` 
+                : "0% of users"}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Creators</CardTitle>
+            <Palette className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{(stats?.usersWithDesigns ?? 0).toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">
+              {stats && stats.totalUsers > 0 
+                ? `${((stats.usersWithDesigns / stats.totalUsers) * 100).toFixed(1)}% submitted designs` 
+                : "0% submitted designs"}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Designs</CardTitle>
+            <FileCode className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{(stats?.totalDesigns ?? 0).toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">
+              {stats && stats.usersWithDesigns > 0 
+                ? `Avg ${(stats.totalDesigns / stats.usersWithDesigns).toFixed(1)} per creator` 
+                : "No designs yet"}
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Filters */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex items-center gap-4">
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input 
-                placeholder="Search users..." 
-                className="pl-9"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <Select value={roleFilter} onValueChange={(value) => setRoleFilter(value || "all")}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by role" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Roles</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="user">User</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex items-center gap-3">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input 
+            placeholder="Search users..." 
+            className="pl-9 h-9"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <Select value={roleFilter} onValueChange={(value) => setRoleFilter(value || "all")}>
+          <SelectTrigger className="w-[140px] h-9">
+            <SelectValue placeholder="Role" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All</SelectItem>
+            <SelectItem value="admin">Admin</SelectItem>
+            <SelectItem value="user">User</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
       {/* Users Table */}
       <Card>

@@ -1,6 +1,5 @@
 import { Hono } from "hono"
 import { extname } from "path"
-import { auth } from "../auth"
 import {
   uploadFile,
   generateThumbnailKey,
@@ -29,9 +28,7 @@ const ALLOWED_IMAGE_TYPES = [
 
 // Upload image to R2
 app.post("/image", async (c) => {
-  const session = await auth.api.getSession({
-    headers: c.req.raw.headers,
-  })
+  const session = c.get("session")
 
   if (!session) {
     return unauthorized(c)
@@ -86,9 +83,7 @@ app.post("/image", async (c) => {
 
 // Upload HTML content to R2
 app.post("/html", async (c) => {
-  const session = await auth.api.getSession({
-    headers: c.req.raw.headers,
-  })
+  const session = c.get("session")
 
   if (!session) {
     return unauthorized(c)

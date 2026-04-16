@@ -1,7 +1,6 @@
 import { Hono } from "hono"
 import { eq, and, desc, count } from "drizzle-orm"
 import { randomUUID } from "crypto"
-import { auth } from "../auth"
 import { db } from "../db"
 import { star, design, user } from "../db/schema"
 import type { AuthContext } from "../types"
@@ -11,9 +10,7 @@ const app = new Hono<AuthContext>()
 
 // Get user's stars
 app.get("/", async (c) => {
-  const session = await auth.api.getSession({
-    headers: c.req.raw.headers,
-  })
+  const session = c.get("session")
 
   if (!session) {
     return unauthorized(c)
@@ -51,9 +48,7 @@ app.get("/", async (c) => {
 
 // Check if a design is starred by current user
 app.get("/check/:designId", async (c) => {
-  const session = await auth.api.getSession({
-    headers: c.req.raw.headers,
-  })
+  const session = c.get("session")
 
   if (!session) {
     return unauthorized(c)
@@ -97,9 +92,7 @@ app.get("/count/:designId", async (c) => {
 
 // Create a star (star a design)
 app.post("/", async (c) => {
-  const session = await auth.api.getSession({
-    headers: c.req.raw.headers,
-  })
+  const session = c.get("session")
 
   if (!session) {
     return unauthorized(c)
@@ -156,9 +149,7 @@ app.post("/", async (c) => {
 
 // Delete a star (unstar a design)
 app.delete("/:designId", async (c) => {
-  const session = await auth.api.getSession({
-    headers: c.req.raw.headers,
-  })
+  const session = c.get("session")
 
   if (!session) {
     return unauthorized(c)

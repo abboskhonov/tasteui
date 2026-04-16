@@ -1,6 +1,5 @@
 import { Hono } from "hono"
 import { eq } from "drizzle-orm"
-import { auth } from "../auth"
 import { db } from "../db"
 import { user } from "../db/schema"
 import type { AuthContext } from "../types"
@@ -56,9 +55,7 @@ const app = new Hono<AuthContext>()
 
 // Get current user info (with full profile)
 app.get("/me", async (c) => {
-  const session = await auth.api.getSession({
-    headers: c.req.raw.headers,
-  })
+  const session = c.get("session")
 
   if (!session) {
     return unauthorized(c)
@@ -108,9 +105,7 @@ app.get("/me", async (c) => {
 
 // Get full user profile
 app.get("/user/profile", async (c) => {
-  const session = await auth.api.getSession({
-    headers: c.req.raw.headers,
-  })
+  const session = c.get("session")
 
   if (!session) {
     return unauthorized(c)
@@ -154,9 +149,7 @@ app.get("/user/profile", async (c) => {
 
 // Update user profile
 app.put("/user/profile", async (c) => {
-  const session = await auth.api.getSession({
-    headers: c.req.raw.headers,
-  })
+  const session = c.get("session")
 
   if (!session) {
     return unauthorized(c)
@@ -217,9 +210,7 @@ app.put("/user/profile", async (c) => {
 // Check if username is available
 app.get("/user/check-username/:username", async (c) => {
   const username = c.req.param("username")
-  const session = await auth.api.getSession({
-    headers: c.req.raw.headers,
-  })
+  const session = c.get("session")
 
   try {
     let currentUsername: string | null = null

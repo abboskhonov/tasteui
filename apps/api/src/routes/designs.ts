@@ -1,7 +1,6 @@
 import { Hono } from "hono"
 import { eq, and, desc, count, like, or, sql, gte, inArray } from "drizzle-orm"
 import { randomUUID } from "crypto"
-import { auth } from "../auth"
 import { db } from "../db"
 import { user, design, designView, designDownload, star, bookmark, designInstall } from "../db/schema"
 import type { AuthContext } from "../types"
@@ -50,9 +49,7 @@ function parseFiles(filesJson: string | null): unknown[] | null {
 
 // Create a new design (with optional draft mode)
 app.post("/", validateBody(createDesignSchema), async (c) => {
-  const session = await auth.api.getSession({
-    headers: c.req.raw.headers,
-  })
+  const session = c.get("session")
 
   if (!session) {
     return unauthorized(c)
@@ -111,9 +108,7 @@ app.post("/", validateBody(createDesignSchema), async (c) => {
 
 // Get user's designs
 app.get("/my", async (c) => {
-  const session = await auth.api.getSession({
-    headers: c.req.raw.headers,
-  })
+  const session = c.get("session")
 
   if (!session) {
     return unauthorized(c)
@@ -390,9 +385,7 @@ app.get("/leaderboard/contributors", async (c) => {
 // Get single design by ID (for editing)
 app.get("/:id", async (c) => {
   const id = c.req.param("id")
-  const session = await auth.api.getSession({
-    headers: c.req.raw.headers,
-  })
+  const session = c.get("session")
 
   if (!session) {
     return unauthorized(c)
@@ -466,9 +459,7 @@ app.get("/:username/:slug", async (c) => {
   }
 
   // Get session for user-specific data (isStarred, isBookmarked)
-  const session = await auth.api.getSession({
-    headers: c.req.raw.headers,
-  })
+  const session = c.get("session")
   const currentUserId = session?.user?.id
 
   try {
@@ -631,10 +622,7 @@ app.post("/:id/view", async (c) => {
       return notFound(c, "Design")
     }
 
-    const session = await auth.api.getSession({
-      headers: c.req.raw.headers,
-    })
-
+    const session = c.get("session")
     const userId = session?.user?.id
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
 
@@ -707,10 +695,7 @@ app.post("/:id/download", async (c) => {
       return notFound(c, "Design")
     }
 
-    const session = await auth.api.getSession({
-      headers: c.req.raw.headers,
-    })
-
+    const session = c.get("session")
     const userId = session?.user?.id
 
     // Record the download
@@ -745,9 +730,7 @@ app.post("/:id/download", async (c) => {
 // Update design
 app.put("/:id", validateBody(updateDesignSchema), async (c) => {
   const id = c.req.param("id")
-  const session = await auth.api.getSession({
-    headers: c.req.raw.headers,
-  })
+  const session = c.get("session")
 
   if (!session) {
     return unauthorized(c)
@@ -802,9 +785,7 @@ app.put("/:id", validateBody(updateDesignSchema), async (c) => {
 // Toggle design visibility
 app.patch("/:id/visibility", async (c) => {
   const id = c.req.param("id")
-  const session = await auth.api.getSession({
-    headers: c.req.raw.headers,
-  })
+  const session = c.get("session")
 
   if (!session) {
     return unauthorized(c)
@@ -858,9 +839,7 @@ app.patch("/:id/visibility", async (c) => {
 // Delete design
 app.delete("/:id", async (c) => {
   const id = c.req.param("id")
-  const session = await auth.api.getSession({
-    headers: c.req.raw.headers,
-  })
+  const session = c.get("session")
 
   if (!session) {
     return unauthorized(c)

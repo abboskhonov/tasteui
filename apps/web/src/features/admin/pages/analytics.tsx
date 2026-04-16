@@ -28,7 +28,7 @@ function DailyBarChart({ data, labels, color = "bg-primary" }: {
   labels: string[];
   color?: string;
 }) {
-  const max = Math.max(...data, 1);
+  const max = Math.max(...(data?.length ? data : [0]), 1);
   
   return (
     <div className="space-y-2">
@@ -40,7 +40,7 @@ function DailyBarChart({ data, labels, color = "bg-primary" }: {
               <div 
                 className={`w-full ${color} rounded-t transition-all`}
                 style={{ height: `${Math.max(height, 4)}%` }}
-                title={`${labels[i]}: ${value.toLocaleString()}`}
+                title={`${labels[i]}: ${(value ?? 0).toLocaleString()}`}
               />
             </div>
           );
@@ -69,7 +69,7 @@ function VersionChart({ versions }: { versions: { version: string; count: number
           <div key={v.version} className="space-y-1">
             <div className="flex items-center justify-between text-sm">
               <span className="font-medium">{v.version || "unknown"}</span>
-              <span className="text-muted-foreground">{count.toLocaleString()} ({percentage.toFixed(1)}%)</span>
+              <span className="text-muted-foreground">{(count ?? 0).toLocaleString()} ({percentage.toFixed(1)}%)</span>
             </div>
             <div className="h-2 rounded-full bg-muted overflow-hidden">
               <div 
@@ -131,9 +131,9 @@ export function AdminAnalyticsPage() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{summary?.totalUsers.toLocaleString()}</div>
+            <div className="text-2xl font-bold">{(summary?.totalUsers ?? 0).toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
-              +{summary?.newUsersToday} new today
+              +{summary?.newUsersToday ?? 0} new today
             </p>
           </CardContent>
         </Card>
@@ -144,7 +144,7 @@ export function AdminAnalyticsPage() {
             <FileCode className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{summary?.totalDesigns.toLocaleString()}</div>
+            <div className="text-2xl font-bold">{(summary?.totalDesigns ?? 0).toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
               Submitted designs
             </p>
@@ -157,9 +157,9 @@ export function AdminAnalyticsPage() {
             <Download className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{summary?.totalCliInstalls.toLocaleString()}</div>
+            <div className="text-2xl font-bold">{(summary?.totalCliInstalls ?? 0).toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
-              +{summary?.installsToday} today
+              +{summary?.installsToday ?? 0} today
             </p>
           </CardContent>
         </Card>
@@ -170,9 +170,9 @@ export function AdminAnalyticsPage() {
             <Eye className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{summary?.totalViews.toLocaleString()}</div>
+            <div className="text-2xl font-bold">{(summary?.totalViews ?? 0).toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
-              +{summary?.viewsToday} today
+              +{summary?.viewsToday ?? 0} today
             </p>
           </CardContent>
         </Card>
@@ -225,17 +225,17 @@ export function AdminAnalyticsPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <p className="text-sm text-muted-foreground">Total Installs</p>
-                    <p className="text-2xl font-bold">{cliAnalytics?.totalInstalls.toLocaleString()}</p>
+                    <p className="text-2xl font-bold">{(cliAnalytics?.totalInstalls ?? 0).toLocaleString()}</p>
                   </div>
                   <div className="space-y-1">
                     <p className="text-sm text-muted-foreground">Unique Machines</p>
-                    <p className="text-2xl font-bold">{cliAnalytics?.uniqueInstalls.toLocaleString()}</p>
+                    <p className="text-2xl font-bold">{(cliAnalytics?.uniqueInstalls ?? 0).toLocaleString()}</p>
                   </div>
                 </div>
                 <div className="pt-4 border-t">
                   <p className="text-sm font-medium mb-2">Install Rate</p>
                   <p className="text-sm text-muted-foreground">
-                    Avg {Math.round((cliAnalytics?.dailyInstalls.reduce((a, b) => a + b, 0) || 0) / 7).toLocaleString()} installs per day
+                    Avg {(Math.round(((cliAnalytics?.dailyInstalls?.reduce((a, b) => a + b, 0) ?? 0)) / 7) || 0).toLocaleString()} installs per day
                   </p>
                 </div>
               </CardContent>
@@ -287,17 +287,17 @@ export function AdminAnalyticsPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <p className="text-sm text-muted-foreground">Total Views</p>
-                    <p className="text-2xl font-bold">{viewAnalytics?.totalViews.toLocaleString()}</p>
+                    <p className="text-2xl font-bold">{(viewAnalytics?.totalViews ?? 0).toLocaleString()}</p>
                   </div>
                   <div className="space-y-1">
                     <p className="text-sm text-muted-foreground">Unique Viewers</p>
-                    <p className="text-2xl font-bold">{viewAnalytics?.uniqueViewers.toLocaleString()}</p>
+                    <p className="text-2xl font-bold">{(viewAnalytics?.uniqueViewers ?? 0).toLocaleString()}</p>
                   </div>
                 </div>
                 <div className="pt-4 border-t">
                   <p className="text-sm font-medium mb-2">View Rate</p>
                   <p className="text-sm text-muted-foreground">
-                    Avg {Math.round((viewAnalytics?.dailyViews.reduce((a, b) => a + b, 0) || 0) / 7).toLocaleString()} views per day
+                    Avg {(Math.round(((viewAnalytics?.dailyViews?.reduce((a, b) => a + b, 0) ?? 0)) / 7) || 0).toLocaleString()} views per day
                   </p>
                 </div>
               </CardContent>
@@ -349,7 +349,7 @@ export function AdminAnalyticsPage() {
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="font-medium tabular-nums">{design.viewCount.toLocaleString()}</p>
+                        <p className="font-medium tabular-nums">{(design.viewCount ?? 0).toLocaleString()}</p>
                         <p className="text-xs text-muted-foreground">views</p>
                       </div>
                     </div>

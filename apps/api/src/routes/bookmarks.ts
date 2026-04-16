@@ -1,7 +1,6 @@
 import { Hono } from "hono"
 import { eq, and, desc } from "drizzle-orm"
 import { randomUUID } from "crypto"
-import { auth } from "../auth"
 import { db } from "../db"
 import { bookmark, design, user } from "../db/schema"
 import type { AuthContext } from "../types"
@@ -11,9 +10,7 @@ const app = new Hono<AuthContext>()
 
 // Get user's bookmarks
 app.get("/", async (c) => {
-  const session = await auth.api.getSession({
-    headers: c.req.raw.headers,
-  })
+  const session = c.get("session")
 
   if (!session) {
     return unauthorized(c)
@@ -51,9 +48,7 @@ app.get("/", async (c) => {
 
 // Check if a design is bookmarked
 app.get("/check/:designId", async (c) => {
-  const session = await auth.api.getSession({
-    headers: c.req.raw.headers,
-  })
+  const session = c.get("session")
 
   if (!session) {
     return unauthorized(c)
@@ -80,9 +75,7 @@ app.get("/check/:designId", async (c) => {
 
 // Create a bookmark
 app.post("/", async (c) => {
-  const session = await auth.api.getSession({
-    headers: c.req.raw.headers,
-  })
+  const session = c.get("session")
 
   if (!session) {
     return unauthorized(c)
@@ -138,9 +131,7 @@ app.post("/", async (c) => {
 
 // Delete a bookmark
 app.delete("/:designId", async (c) => {
-  const session = await auth.api.getSession({
-    headers: c.req.raw.headers,
-  })
+  const session = c.get("session")
 
   if (!session) {
     return unauthorized(c)

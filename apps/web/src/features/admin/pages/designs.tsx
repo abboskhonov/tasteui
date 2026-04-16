@@ -25,7 +25,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { 
   Search, 
-  Filter, 
   Eye, 
   Trash2, 
   Loader2, 
@@ -51,7 +50,7 @@ function DesignCard({
   design: AdminDesign
   onDelete: (design: { id: string; name: string }) => void
 }) {
-  const copies = Math.max(1, Math.floor(design.viewCount * 0.1));
+  const copies = Math.max(1, Math.floor((design.viewCount ?? 0) * 0.1));
   
   return (
     <div className="group relative rounded-xl bg-card ring-1 ring-border overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-foreground/5 hover:ring-border/80">
@@ -124,8 +123,8 @@ function DesignCard({
         </div>
         
         <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
-          <span className="tabular-nums">{design.viewCount.toLocaleString()} views</span>
-          <span className="tabular-nums">{copies.toLocaleString()} copies</span>
+          <span className="tabular-nums">{(design.viewCount ?? 0).toLocaleString()} views</span>
+          <span className="tabular-nums">{(copies ?? 0).toLocaleString()} copies</span>
         </div>
         
         <div className="mt-2 pt-2 border-t border-border/50 flex items-center justify-between">
@@ -181,7 +180,7 @@ function DesignTableRow({
           {design.status.charAt(0).toUpperCase() + design.status.slice(1)}
         </Badge>
       </td>
-      <td className="p-4 align-middle">{design.viewCount.toLocaleString()}</td>
+      <td className="p-4 align-middle">{(design.viewCount ?? 0).toLocaleString()}</td>
       <td className="p-4 align-middle text-muted-foreground">
         {new Date(design.createdAt).toLocaleDateString()}
       </td>
@@ -288,7 +287,7 @@ export function AdminDesignsPage() {
             Manage all submitted design skills
             {pagination && (
               <span className="ml-2 text-xs">
-                ({pagination.total.toLocaleString()} total)
+                ({(pagination?.total ?? 0).toLocaleString()} total)
               </span>
             )}
           </p>
@@ -296,76 +295,70 @@ export function AdminDesignsPage() {
       </div>
 
       {/* Filters */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="relative flex-1 min-w-[200px] max-w-sm">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input 
-                placeholder="Search designs..." 
-                className="pl-9"
-                value={searchTerm}
-                onChange={(e) => handleSearchChange(e.target.value)}
-              />
-            </div>
-            <Select value={statusFilter} onValueChange={(value) => handleStatusChange(value || "all")}>
-              <SelectTrigger className="w-[160px]">
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="approved">Approved</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="rejected">Rejected</SelectItem>
-                <SelectItem value="draft">Draft</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={pageSize.toString()} onValueChange={(v) => {
-              setPageSize(parseInt(v || "20"));
-              setCurrentPage(1);
-            }}>
-              <SelectTrigger className="w-[130px]">
-                <span className="text-xs text-muted-foreground mr-1">Show</span>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="10">10 per page</SelectItem>
-                <SelectItem value="20">20 per page</SelectItem>
-                <SelectItem value="50">50 per page</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            {/* View Mode Toggle */}
-            <div className="flex items-center bg-muted rounded-lg p-0.5">
-              <button
-                onClick={() => setViewMode("cards")}
-                className={cn(
-                  "px-3 py-1.5 rounded text-sm font-medium transition-all flex items-center gap-1.5",
-                  viewMode === "cards" 
-                    ? "bg-background text-foreground shadow-sm" 
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                <LayoutGrid className="h-4 w-4" />
-                Cards
-              </button>
-              <button
-                onClick={() => setViewMode("table")}
-                className={cn(
-                  "px-3 py-1.5 rounded text-sm font-medium transition-all flex items-center gap-1.5",
-                  viewMode === "table" 
-                    ? "bg-background text-foreground shadow-sm" 
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                <Table className="h-4 w-4" />
-                Table
-              </button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative flex-1 min-w-[200px] max-w-sm">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input 
+            placeholder="Search designs..." 
+            className="pl-9 h-9"
+            value={searchTerm}
+            onChange={(e) => handleSearchChange(e.target.value)}
+          />
+        </div>
+        <Select value={statusFilter} onValueChange={(value) => handleStatusChange(value || "all")}>
+          <SelectTrigger className="w-[130px] h-9">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All</SelectItem>
+            <SelectItem value="approved">Approved</SelectItem>
+            <SelectItem value="pending">Pending</SelectItem>
+            <SelectItem value="rejected">Rejected</SelectItem>
+            <SelectItem value="draft">Draft</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={pageSize.toString()} onValueChange={(v) => {
+          setPageSize(parseInt(v || "20"));
+          setCurrentPage(1);
+        }}>
+          <SelectTrigger className="w-[100px] h-9">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="10">10</SelectItem>
+            <SelectItem value="20">20</SelectItem>
+            <SelectItem value="50">50</SelectItem>
+          </SelectContent>
+        </Select>
+        
+        {/* View Mode Toggle */}
+        <div className="flex items-center bg-muted rounded-lg p-0.5 h-9">
+          <button
+            onClick={() => setViewMode("cards")}
+            className={cn(
+              "h-8 px-2.5 rounded text-sm font-medium transition-all flex items-center gap-1.5",
+              viewMode === "cards" 
+                ? "bg-background text-foreground shadow-sm" 
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <LayoutGrid className="h-4 w-4" />
+            <span className="hidden sm:inline">Cards</span>
+          </button>
+          <button
+            onClick={() => setViewMode("table")}
+            className={cn(
+              "h-8 px-2.5 rounded text-sm font-medium transition-all flex items-center gap-1.5",
+              viewMode === "table" 
+                ? "bg-background text-foreground shadow-sm" 
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <Table className="h-4 w-4" />
+            <span className="hidden sm:inline">Table</span>
+          </button>
+        </div>
+      </div>
 
       {/* Designs Display */}
       {viewMode === "cards" ? (
@@ -427,7 +420,7 @@ export function AdminDesignsPage() {
       {pagination && totalPages > 1 && (
         <div className="flex items-center justify-between">
           <div className="text-sm text-muted-foreground">
-            Showing {(currentPage - 1) * pageSize + 1} - {Math.min(currentPage * pageSize, pagination.total)} of {pagination.total.toLocaleString()} designs
+            Showing {(currentPage - 1) * pageSize + 1} - {Math.min(currentPage * pageSize, pagination?.total ?? 0)} of {(pagination?.total ?? 0).toLocaleString()} designs
           </div>
           <div className="flex items-center gap-2">
             <Button

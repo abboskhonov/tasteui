@@ -124,12 +124,12 @@ adminRoutes.get("/designs", async (c) => {
         d.slug,
         d.category,
         d.status,
-        d.review_message,
-        d.thumbnail_url,
-        d.view_count,
-        d.created_at,
-        d.updated_at,
-        d.user_id,
+        d.review_message as "reviewMessage",
+        d.thumbnail_url as "thumbnailUrl",
+        d.view_count as "viewCount",
+        d.created_at as "createdAt",
+        d.updated_at as "updatedAt",
+        d.user_id as "userId",
         COALESCE(u.username, u.name, 'Unknown') as author
       FROM ${design} d
       LEFT JOIN ${user} u ON u.id = d.user_id
@@ -371,9 +371,9 @@ adminRoutes.get("/analytics/top-designs", async (c) => {
         d.name,
         d.slug,
         d.category,
-        d.thumbnail_url,
-        d.view_count,
-        d.user_id,
+        d.thumbnail_url as "thumbnailUrl",
+        d.view_count as "viewCount",
+        d.user_id as "userId",
         COALESCE(u.username, u.name, 'Unknown') as author
       FROM ${design} d
       LEFT JOIN ${user} u ON u.id = d.user_id

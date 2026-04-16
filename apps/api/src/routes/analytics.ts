@@ -1,6 +1,5 @@
 import { Hono } from "hono"
 import { eq, and, count, sql } from "drizzle-orm"
-import { auth } from "../auth"
 import { db } from "../db"
 import { design, designView, star, designDownload } from "../db/schema"
 import type { AuthContext } from "../types"
@@ -22,9 +21,7 @@ function getLast7Days(): Date[] {
 
 // Get view analytics for user's designs (last 7 days)
 app.get("/views", async (c) => {
-  const session = await auth.api.getSession({
-    headers: c.req.raw.headers,
-  })
+  const session = c.get("session")
 
   if (!session) {
     return unauthorized(c)
@@ -88,9 +85,7 @@ app.get("/views", async (c) => {
 
 // Get star analytics for user's designs (last 7 days)
 app.get("/stars", async (c) => {
-  const session = await auth.api.getSession({
-    headers: c.req.raw.headers,
-  })
+  const session = c.get("session")
 
   if (!session) {
     return unauthorized(c)
@@ -154,9 +149,7 @@ app.get("/stars", async (c) => {
 
 // Get download analytics for user's designs (last 7 days)
 app.get("/downloads", async (c) => {
-  const session = await auth.api.getSession({
-    headers: c.req.raw.headers,
-  })
+  const session = c.get("session")
 
   if (!session) {
     return unauthorized(c)
@@ -220,9 +213,7 @@ app.get("/downloads", async (c) => {
 
 // Get combined analytics (views + stars + downloads) for user's designs (last 7 days)
 app.get("/summary", async (c) => {
-  const session = await auth.api.getSession({
-    headers: c.req.raw.headers,
-  })
+  const session = c.get("session")
 
   if (!session) {
     return unauthorized(c)
