@@ -13,8 +13,7 @@ import appCss from "../styles.css?url"
 import { getCurrentUserServerFn } from "@/lib/api/auth-server"
 import { QueryProvider } from "@/lib/query-provider"
 import { UserProvider } from "@/lib/user-context"
-import { PostHogProvider } from "@/lib/posthog-provider"
-import { PostHogPageView } from "@/lib/posthog-page-view"
+
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
 import { queryClient } from "@/router"
@@ -57,13 +56,11 @@ function RootComponent() {
     <UserProvider user={user}>
       <QueryProvider queryClient={queryClient}>
         <SessionHydrator initialUser={user}>
-          <PostHogProvider>
-            <ThemeProvider>
-              <RootDocument>
-                <Outlet />
-              </RootDocument>
-            </ThemeProvider>
-          </PostHogProvider>
+          <ThemeProvider>
+            <RootDocument>
+              <Outlet />
+            </RootDocument>
+          </ThemeProvider>
         </SessionHydrator>
       </QueryProvider>
     </UserProvider>
@@ -117,7 +114,6 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         {children}
-        <PostHogPageView />
         <Toaster position="bottom-right" />
         <TanStackDevtools
           config={{
