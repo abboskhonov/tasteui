@@ -69,7 +69,7 @@ export const DesignCard = memo(function DesignCard({ design }: DesignCardProps) 
     e.preventDefault();
     e.stopPropagation();
     
-    const command = `npx tokenui.sh add ${username}/${design.slug}`;
+    const command = `npx tasteui.dev add ${username}/${design.slug}`;
     navigator.clipboard.writeText(command).then(() => {
       setIsCopied(true);
       toast.success("Command copied to clipboard");

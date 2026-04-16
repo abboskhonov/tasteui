@@ -14,7 +14,7 @@ import { useCallback } from "react"
 export const Route = createFileRoute("/bookmarks")({
   component: BookmarksPage,
   head: () => ({
-    meta: [{ title: "Saved Skills - tokenui" }],
+    meta: [{ title: "Saved Skills - tasteui" }],
   }),
 })
 

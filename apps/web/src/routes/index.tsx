@@ -6,12 +6,12 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       {
-        title: "tokenui - Design layer for AI agents",
+        title: "tasteui - Design layer for AI agents",
       },
       {
         name: "description",
         content:
-          "tokenui is a design layer for AI agents, with reusable landing page skills, token-driven UI, and dev-focused workflow building blocks.",
+          "tasteui is a design layer for AI agents, with reusable landing page skills, token-driven UI, and dev-focused workflow building blocks.",
       },
     ],
   }),

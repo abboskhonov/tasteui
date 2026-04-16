@@ -4,7 +4,7 @@ import { StudioPage } from "@/features/studio"
 export const Route = createFileRoute("/studio")({
   head: () => ({
     meta: [
-      { title: "Studio - tokenui" },
+      { title: "Studio - tasteui" },
       { name: "description", content: "Manage your design skills" },
     ],
   }),

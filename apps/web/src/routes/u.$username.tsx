@@ -22,7 +22,7 @@ export const Route = createFileRoute("/u/$username")({
   head: ({ params }) => ({
     meta: [
       {
-        title: `${params.username} - tokenui`,
+        title: `${params.username} - tasteui`,
       },
     ],
   }),

@@ -10,7 +10,7 @@
     "db:migrate": "bun drizzle-kit migrate",
     "db:push": "bun drizzle-kit push",
     "db:studio": "bun drizzle-kit studio",
-    "db:backfill": "bun run src/scripts/backfill-data.ts"
+    "db:backfill-usernames": "bun run src/scripts/backfill-usernames.ts",
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1019.0",

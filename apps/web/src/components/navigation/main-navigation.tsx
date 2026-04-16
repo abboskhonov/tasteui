@@ -20,11 +20,11 @@ export const Navigation = memo(function Navigation() {
             <Link to="/" className="flex items-center gap-2">
               <img
                 src="/logo.webp"
-                alt="TokenUI"
+                alt="TasteUI"
                 className="h-7 w-7 rounded-lg object-cover"
               />
               <span className="text-lg font-semibold tracking-tight text-foreground">
-                tokenui
+                tasteui
               </span>
             </Link>
 

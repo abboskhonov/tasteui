@@ -78,6 +78,6 @@ export async function listCommand() {
     spinner.stop(c.red(`Failed: ${error instanceof Error ? error.message : 'Unknown error'}`));
     console.log();
     console.log(c.gray('Make sure your API is running at:'), c.cyan(apiUrl));
-    console.log(c.gray('Run'), c.cyan('tokenui config'), c.gray('to change the API URL.'));
+    console.log(c.gray('Run'), c.cyan('tasteui config'), c.gray('to change the API URL.'));
   }
 }

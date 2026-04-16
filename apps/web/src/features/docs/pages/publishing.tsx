@@ -20,7 +20,7 @@ export function DocsPublishingPage() {
   return (
     <DocsPage
       title="Publishing Skills"
-      description="Create, document, and share your design skills with the TokenUI community."
+      description="Create, document, and share your design skills with the TasteUI community."
       breadcrumbItems={[
         { label: "Docs", href: "/docs" },
         { label: "Publishing Skills" }
@@ -47,7 +47,7 @@ export function DocsPublishingPage() {
           Start by navigating to the <a href="/publish" className="text-foreground underline">Publish page</a> 
           or run the CLI command:
           <div className="mt-3">
-            <CodeBlock code="npx tokenui.sh publish" />
+            <CodeBlock code="npx tasteui.dev publish" />
           </div>
         </Step>
 
@@ -204,7 +204,7 @@ description: A brief description of what this skill does
       <Section>
         <Heading id="ownership-licensing">Ownership & Licensing</Heading>
         <Paragraph>
-          You retain ownership of your skills. By publishing, you grant TokenUI users a license 
+          You retain ownership of your skills. By publishing, you grant TasteUI users a license 
           to use your skill according to the license you specify. We recommend using MIT license 
           for maximum compatibility, but you can choose any license you prefer.
         </Paragraph>

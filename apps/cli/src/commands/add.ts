@@ -107,14 +107,14 @@ export async function addCommand(identifier: string) {
   if (!identifier) {
     console.log(c.red('Error: Skill identifier is required'));
     console.log();
-    console.log(c.gray('Usage: tokenui add <owner>/<slug>'));
-    console.log(c.gray('       tokenui add <slug>'));
+    console.log(c.gray('Usage: tasteui add <owner>/<slug>'));
+    console.log(c.gray('       tasteui add <slug>'));
     console.log();
     console.log(c.gray('Examples:'));
-    console.log(c.gray('  tokenui add abboskhonov/sasa'));
-    console.log(c.gray('  tokenui add claude-design-system'));
+    console.log(c.gray('  tasteui add abboskhonov/sasa'));
+    console.log(c.gray('  tasteui add claude-design-system'));
     console.log();
-    console.log(c.gray('Run "tokenui list" to see available skills'));
+    console.log(c.gray('Run "tasteui list" to see available skills'));
     return;
   }
 
@@ -160,7 +160,7 @@ export async function addCommand(identifier: string) {
       if (owner) {
         console.log(c.gray(`Tip: Make sure "${owner}" is the correct username and "${slug}" is the skill slug`));
       }
-      console.log(c.gray('Run "tokenui list" to see available skills and their owners'));
+      console.log(c.gray('Run "tasteui list" to see available skills and their owners'));
       return;
     }
 

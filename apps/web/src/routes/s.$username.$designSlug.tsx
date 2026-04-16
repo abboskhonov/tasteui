@@ -21,13 +21,13 @@ type TabType = "preview" | "code"
 // Generate page title from design data
 function generatePageTitle(design: Design | undefined, params: { username: string; designSlug: string }): string {
   if (design?.name) {
-    return `${design.name} by ${params.username} - tokenui`
+    return `${design.name} by ${params.username} - tasteui`
   }
   // Fallback to formatted slug while loading
   const formattedSlug = params.designSlug
     .replace(/-/g, " ")
     .replace(/\b\w/g, (c) => c.toUpperCase())
-  return `${formattedSlug} by ${params.username} - tokenui`
+  return `${formattedSlug} by ${params.username} - tasteui`
 }
 
 export const Route = createFileRoute("/s/$username/$designSlug")({
@@ -143,7 +143,7 @@ function SkillDetailPage() {
   }, [design?.id, isLoading, username, designSlug])
 
   const handleCopyInstall = useCallback(() => {
-    const command = displayDesign ? `npx tokenui.sh add ${displayDesign.author?.username || username}/${displayDesign.slug}` : ""
+    const command = displayDesign ? `npx tasteui.dev add ${displayDesign.author?.username || username}/${displayDesign.slug}` : ""
     handleCopy(command, "install")
   }, [displayDesign, username, handleCopy])
 

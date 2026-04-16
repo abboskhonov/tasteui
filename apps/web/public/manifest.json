@@ -1,6 +1,6 @@
 {
-  "short_name": "TanStack App",
-  "name": "Create TanStack App Sample",
+  "short_name": "TasteUI",
+  "name": "TasteUI - Design layer for AI agents",
   "icons": [
     {
       "src": "favicon.ico",

@@ -1,10 +1,10 @@
 {
-  "name": "tokenui.sh",
-  "version": "1.0.4",
+  "name": "tasteui.dev",
+  "version": "0.0.1",
   "description": "CLI for installing design system skills to coding agents (Claude, Cursor, etc.)",
   "type": "module",
   "bin": {
-    "tokenui.sh": "./dist/index.js"
+    "tasteui": "./dist/index.js"
   },
   "files": [
     "dist",
@@ -32,7 +32,7 @@
   },
   "license": "MIT",
   "keywords": [
-    "tokenui",
+    "tasteui",
     "design-system",
     "skills",
     "ai",
@@ -51,5 +51,5 @@
   "bugs": {
     "url": "https://github.com/abboskhonov/tokenui/issues"
   },
-  "homepage": "https://tokenui.dev"
+  "homepage": "https://tasteui.dev"
 }

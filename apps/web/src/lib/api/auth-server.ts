@@ -53,7 +53,7 @@ export const getCurrentUserServerFn = createServerFn({ method: "GET" })
 /**
  * Server function to check if current user is an admin
  * Add your email to ADMIN_EMAILS array to gain admin access
- * Example: const ADMIN_EMAILS = ["admin@tokenui.dev", "youremail@gmail.com"]
+ * Example: const ADMIN_EMAILS = ["admin@tasteui.dev", "youremail@gmail.com"]
  */
 export const requireAdminServerFn = createServerFn({ method: "GET" })
   .handler(async () => {
@@ -84,7 +84,7 @@ export const requireAdminServerFn = createServerFn({ method: "GET" })
       
       // Check if user has admin role
       // Add your email to this list to gain admin access
-      const ADMIN_EMAILS = ["admin@tokenui.dev"] 
+      const ADMIN_EMAILS = ["admin@tasteui.dev"] 
       const isAdmin = user.role === "admin" || ADMIN_EMAILS.includes(user.email)
       
       console.log("Admin check:", user.email, "isAdmin:", isAdmin, "role:", user.role)

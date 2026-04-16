@@ -61,7 +61,7 @@ export function DocsCLIPage() {
   return (
     <DocsPage
       title="CLI Reference"
-      description="Complete reference for the TokenUI command-line interface. Install and manage design skills directly from your terminal."
+      description="Complete reference for the TasteUI command-line interface. Install and manage design skills directly from your terminal."
       breadcrumbItems={[
         { label: "Docs", href: "/docs" },
         { label: "CLI Reference" }
@@ -77,11 +77,11 @@ export function DocsCLIPage() {
         
         <div className="space-y-3">
           <CodeBlock 
-            code="npx tokenui.sh <command>"
+            code="npx tasteui.dev <command>"
             filename="Recommended"
           />
           <CodeBlock 
-            code="npm install -g tokenui"
+            code="npm install -g tasteui"
             filename="Global Install (optional)"
           />
         </div>
@@ -93,8 +93,8 @@ export function DocsCLIPage() {
         <CommandSection
           title="add"
           description="Add a skill to your project. Installs the skill and all its dependencies."
-          command="npx tokenui.sh add <skill-name>"
-          example="npx tokenui.sh add button"
+          command="npx tasteui.dev add <skill-name>"
+          example="npx tasteui.dev add button"
           options={[
             { flag: "--path, -p", description: "Custom installation path" },
             { flag: "--force, -f", description: "Overwrite existing files" },
@@ -105,8 +105,8 @@ export function DocsCLIPage() {
         <CommandSection
           title="list"
           description="List all available skills in the gallery. Filter by category or search term."
-          command="npx tokenui.sh list"
-          example="npx tokenui.sh list --category forms"
+          command="npx tasteui.dev list"
+          example="npx tasteui.dev list --category forms"
           options={[
             { flag: "--category, -c", description: "Filter by category" },
             { flag: "--search, -s", description: "Search by keyword" },
@@ -117,15 +117,15 @@ export function DocsCLIPage() {
         <CommandSection
           title="info"
           description="Show detailed information about a specific skill."
-          command="npx tokenui.sh info <skill-name>"
-          example="npx tokenui.sh info modal"
+          command="npx tasteui.dev info <skill-name>"
+          example="npx tasteui.dev info modal"
         />
 
         <CommandSection
           title="remove"
           description="Remove a skill from your project."
-          command="npx tokenui.sh remove <skill-name>"
-          example="npx tokenui.sh remove button"
+          command="npx tasteui.dev remove <skill-name>"
+          example="npx tasteui.dev remove button"
           options={[
             { flag: "--force, -f", description: "Skip confirmation prompt" },
           ]}
@@ -134,8 +134,8 @@ export function DocsCLIPage() {
         <CommandSection
           title="update"
           description="Update skills to their latest versions."
-          command="npx tokenui.sh update"
-          example="npx tokenui.sh update button"
+          command="npx tasteui.dev update"
+          example="npx tasteui.dev update button"
           options={[
             { flag: "--all, -a", description: "Update all skills" },
           ]}
@@ -143,8 +143,8 @@ export function DocsCLIPage() {
 
         <CommandSection
           title="publish"
-          description="Publish a skill to the TokenUI gallery. Opens the publish page in your browser."
-          command="npx tokenui.sh publish"
+          description="Publish a skill to the TasteUI gallery. Opens the publish page in your browser."
+          command="npx tasteui.dev publish"
           options={[
             { flag: "--draft", description: "Save as draft instead of publishing" },
           ]}
@@ -152,9 +152,9 @@ export function DocsCLIPage() {
 
         <CommandSection
           title="init"
-          description="Initialize a new TokenUI-compatible project. Sets up the directory structure and configuration."
-          command="npx tokenui.sh init"
-          example="npx tokenui.sh init my-app"
+          description="Initialize a new TasteUI-compatible project. Sets up the directory structure and configuration."
+          command="npx tasteui.dev init"
+          example="npx tasteui.dev init my-app"
           options={[
             { flag: "--template, -t", description: "Use a starter template" },
             { flag: "--yes, -y", description: "Skip prompts with defaults" },
@@ -191,11 +191,11 @@ export function DocsCLIPage() {
       <Section>
         <Heading id="configuration">Configuration</Heading>
         <Paragraph>
-          Create a tokenui.json file in your project root to customize behavior:
+          Create a tasteui.json file in your project root to customize behavior:
         </Paragraph>
         
         <CodeBlock 
-          filename="tokenui.json"
+          filename="tasteui.json"
           code={`{
   "path": "./src/components",
   "typescript": true,
@@ -232,16 +232,16 @@ export function DocsCLIPage() {
         <Heading id="workflows">Common Workflows</Heading>
 
         <SubHeading id="workflows-multiple">Add multiple skills at once</SubHeading>
-        <CodeBlock code="npx tokenui.sh add button card modal input" />
+        <CodeBlock code="npx tasteui.dev add button card modal input" />
 
         <SubHeading id="workflows-search">Search and add skills interactively</SubHeading>
-        <CodeBlock code="npx tokenui.sh list --search form | npx tokenui.sh add" />
+        <CodeBlock code="npx tasteui.dev list --search form | npx tasteui.dev add" />
 
         <SubHeading id="workflows-update-all">Update all skills in your project</SubHeading>
-        <CodeBlock code="npx tokenui.sh update --all" />
+        <CodeBlock code="npx tasteui.dev update --all" />
 
         <SubHeading id="workflows-custom-path">Install to a custom directory</SubHeading>
-        <CodeBlock code="npx tokenui.sh add button --path ./app/ui" />
+        <CodeBlock code="npx tasteui.dev add button --path ./app/ui" />
       </Section>
     </DocsPage>
   )

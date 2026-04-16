@@ -149,7 +149,7 @@ export function Header() {
             <HugeiconsIcon icon={CommandLineIcon} className="size-4" />
           </div>
           <span className="text-base font-semibold text-foreground tracking-tight">
-            tokenui
+            tasteui
           </span>
         </Link>
 

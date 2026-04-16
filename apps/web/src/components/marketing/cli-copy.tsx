@@ -16,10 +16,13 @@ interface CLICopyProps {
  * Width stays consistent between states - no flickering on theme change
  *
  * @example
- * <CLICopy command="npx tokenui.sh add button" />
+ * <CLICopy command="npx tasteui.dev add button" />
+ *
+ * @example
+ * <CLICopy command="npx tasteui.dev add button" />
  */
 export const CLICopy = memo(function CLICopy({
-  command = "npx tokenui.sh add <skill>",
+  command = "npx tasteui.dev add <skill>",
   className
 }: CLICopyProps) {
   const [copied, setCopied] = useState(false);

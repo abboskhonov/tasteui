@@ -17,7 +17,7 @@ export function DocsOverviewPage() {
   return (
     <DocsPage
       title="Documentation"
-      description="Learn how to discover, install, and use design skills with your AI agents. TokenUI provides a curated collection of UI components and patterns."
+      description="Learn how to discover, install, and use design skills with your AI agents. TasteUI provides a curated collection of UI components and patterns."
       breadcrumbItems={[
         { label: "Docs", href: "/docs" },
         { label: "Overview" }
@@ -31,7 +31,7 @@ export function DocsOverviewPage() {
         </Paragraph>
         
         <CodeBlock 
-          code="npx tokenui.sh add <skill-name>"
+          code="npx tasteui.dev add <skill-name>"
           filename="Install any skill instantly"
         />
         
@@ -69,7 +69,7 @@ export function DocsOverviewPage() {
             Use the CLI to add skills to your project. The CLI handles dependencies, 
             file structure, and configuration automatically.
             <div className="mt-3">
-              <CodeBlock code="npx tokenui.sh add button" />
+              <CodeBlock code="npx tasteui.dev add button" />
             </div>
           </Step>
 
@@ -102,9 +102,9 @@ export function DocsOverviewPage() {
       <Section id="resources">
         <Heading id="resources">Resources</Heading>
         <List items={[
-          <><a href="https://github.com/abboskhonov/tokenui" className="text-foreground underline hover:no-underline">GitHub Repository</a> — Source code, issues, and contributions</>,
+          <><a href="https://github.com/abboskhonov/tasteui" className="text-foreground underline hover:no-underline">GitHub Repository</a> — Source code, issues, and contributions</>,
           <><a href="/docs/cli" className="text-foreground underline hover:no-underline">CLI Reference</a> — Complete command documentation</>,
-          <><a href="/docs/platform" className="text-foreground underline hover:no-underline">Platform</a> — Understanding the TokenUI platform</>,
+          <><a href="/docs/platform" className="text-foreground underline hover:no-underline">Platform</a> — Understanding the TasteUI platform</>,
           <><a href="/docs/faq" className="text-foreground underline hover:no-underline">FAQ</a> — Common questions and answers</>
         ]} />
       </Section>

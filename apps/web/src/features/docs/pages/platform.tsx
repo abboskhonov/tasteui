@@ -6,7 +6,7 @@ import { Section, Heading, SubHeading, Paragraph, List, Step } from "../componen
 import type { TOCItem } from "../components/table-of-contents"
 
 const tocItems: TOCItem[] = [
-  { id: "what-is-tokenui", text: "What is TokenUI?", level: 2 },
+  { id: "what-is-tasteui", text: "What is TasteUI?", level: 2 },
   { id: "how-it-works", text: "How It Works", level: 2 },
   { id: "core-features", text: "Core Features", level: 2 },
   { id: "skill-lifecycle", text: "Skill Lifecycle", level: 2 },
@@ -17,17 +17,17 @@ export function DocsPlatformPage() {
   return (
     <DocsPage
       title="Platform"
-      description="Understanding the TokenUI platform architecture, features, and how skills work."
+      description="Understanding the TasteUI platform architecture, features, and how skills work."
       breadcrumbItems={[
         { label: "Docs", href: "/docs" },
         { label: "Platform" }
       ]}
       tocItems={tocItems}
     >
-      <Section id="what-is-tokenui">
-        <Heading id="what-is-tokenui">What is TokenUI?</Heading>
+      <Section id="what-is-tasteui">
+        <Heading id="what-is-tasteui">What is TasteUI?</Heading>
         <Paragraph>
-          TokenUI is an open-source platform for discovering, sharing, and using design skills. 
+          TasteUI is an open-source platform for discovering, sharing, and using design skills. 
           It bridges the gap between AI coding agents and consistent UI implementation by providing 
           a standardized format for design systems, components, and coding patterns.
         </Paragraph>
@@ -47,7 +47,7 @@ export function DocsPlatformPage() {
             define how to implement specific UI patterns.
           </Step>
           <Step number={2} title="Publish">
-            Skills are published to the TokenUI gallery through the web interface or CLI. 
+            Skills are published to the TasteUI gallery through the web interface or CLI. 
             Each submission includes a demo preview, documentation, and optionally 
             multiple code files organized in a file tree.
           </Step>
@@ -57,7 +57,7 @@ export function DocsPlatformPage() {
           </Step>
           <Step number={4} title="Install">
             Once a skill is found, it can be installed using the CLI command 
-            <code className="mx-1 px-1.5 py-0.5 rounded bg-muted text-sm font-mono">npx tokenui.sh add {'<skill>'}</code>. 
+            <code className="mx-1 px-1.5 py-0.5 rounded bg-muted text-sm font-mono">npx tasteui.dev add {'<skill>'}</code>. 
             The CLI fetches the skill content and makes it available in your project.
           </Step>
           <Step number={5} title="Use">
@@ -122,7 +122,7 @@ export function DocsPlatformPage() {
       <Section id="resources">
         <Heading id="resources">Resources</Heading>
         <List items={[
-          <><a href="https://github.com/abboskhonov/tokenui" className="text-foreground underline hover:no-underline">GitHub Repository</a> — Source code, issues, and contributions</>,
+          <><a href="https://github.com/abboskhonov/tasteui" className="text-foreground underline hover:no-underline">GitHub Repository</a> — Source code, issues, and contributions</>,
           <><a href="/docs/cli" className="text-foreground underline hover:no-underline">CLI Reference</a> — Complete command documentation</>,
           <><a href="/docs/installing" className="text-foreground underline hover:no-underline">Installing Skills</a> — How to find and install skills</>,
           <><a href="/docs/publishing" className="text-foreground underline hover:no-underline">Publishing Skills</a> — Create and share your own skills</>

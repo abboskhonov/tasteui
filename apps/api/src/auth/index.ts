@@ -1,6 +1,66 @@
 import { betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { db } from "../db"
+import { eq } from "drizzle-orm"
+import { user } from "../db/schema"
+
+// Helper function to generate a unique username
+async function generateUniqueUsername(
+  baseUsername: string,
+  maxAttempts: number = 10
+): Promise<string> {
+  // Clean the base username:
+  // 1. Convert to lowercase
+  // 2. Replace spaces with nothing
+  // 3. Remove special characters but keep letters from any language (Unicode aware)
+  let cleanUsername = baseUsername
+    .toLowerCase()
+    .replace(/\s/g, "")  // Remove spaces
+    .replace(/[^\p{L}\p{N}]/gu, "")  // Keep all letters (any language) and numbers, remove special chars
+    .slice(0, 20)
+
+  // If empty after cleaning, use "user"
+  if (!cleanUsername) {
+    cleanUsername = "user"
+  }
+
+  console.log(`[GenerateUsername] Trying base: "${baseUsername}" -> cleaned: "${cleanUsername}"`)
+
+  // Try the clean username first
+  const existingUser = await db.query.user.findFirst({
+    where: eq(user.username, cleanUsername),
+  })
+
+  if (!existingUser) {
+    console.log(`[GenerateUsername] Username "${cleanUsername}" is available`)
+    return cleanUsername
+  }
+
+  console.log(`[GenerateUsername] Username "${cleanUsername}" is taken, trying with suffix...`)
+
+  // If taken, try adding random numbers
+  for (let i = 0; i < maxAttempts; i++) {
+    const randomSuffix = Math.floor(Math.random() * 10000)
+      .toString()
+      .padStart(4, "0")
+    const tryUsername = `${cleanUsername.slice(0, 16)}${randomSuffix}`
+
+    const existing = await db.query.user.findFirst({
+      where: eq(user.username, tryUsername),
+    })
+
+    if (!existing) {
+      console.log(`[GenerateUsername] Found available username: "${tryUsername}"`)
+      return tryUsername
+    }
+  }
+
+  // Fallback: use timestamp
+  const timestamp = Date.now().toString(36)
+  const fallbackUsername = `${cleanUsername.slice(0, 10)}${timestamp}`
+  console.log(`[GenerateUsername] Using fallback username: "${fallbackUsername}"`)
+  return fallbackUsername
+}
 
 // Lazy getter for env vars to ensure they're read fresh
 function getApiBaseUrl(): string {
@@ -42,7 +102,46 @@ const apiBaseUrl = getApiBaseUrl()
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg", // PostgreSQL
+    usePlural: false,
   }),
+  databaseHooks: {
+    user: {
+      create: {
+        before: async (userData, ctx) => {
+          console.log("[BetterAuth] User create hook triggered")
+          console.log("[BetterAuth] User data:", JSON.stringify(userData, null, 2))
+
+          // If username is already provided, don't generate one
+          if (userData.username) {
+            console.log("[BetterAuth] Username already provided:", userData.username)
+            return { data: userData, context: ctx }
+          }
+
+          // Generate username from name or email
+          let baseUsername: string
+          if (userData.name) {
+            baseUsername = userData.name
+          } else if (userData.email) {
+            baseUsername = userData.email.split("@")[0]
+          } else {
+            baseUsername = "user"
+          }
+
+          console.log("[BetterAuth] Generating username from:", baseUsername)
+          const uniqueUsername = await generateUniqueUsername(baseUsername)
+          console.log("[BetterAuth] Generated username:", uniqueUsername)
+
+          return {
+            data: {
+              ...userData,
+              username: uniqueUsername,
+            },
+            context: ctx,
+          }
+        },
+      },
+    },
+  },
   baseURL: apiBaseUrl,
   basePath: "/api/auth",
   socialProviders: {

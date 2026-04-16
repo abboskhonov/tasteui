@@ -62,7 +62,7 @@ export function DocsFAQPage() {
   return (
     <DocsPage
       title="FAQ"
-      description="Frequently asked questions about TokenUI. Can't find what you're looking for? Reach out to us on Discord or GitHub."
+      description="Frequently asked questions about TasteUI. Can't find what you're looking for? Reach out to us on Discord or GitHub."
       breadcrumbItems={[
         { label: "Docs", href: "/docs" },
         { label: "FAQ" }
@@ -73,25 +73,25 @@ export function DocsFAQPage() {
       <Section id="general">
         <Heading>General</Heading>
         
-        <FAQItem question="What is TokenUI?" defaultOpen={true}>
+        <FAQItem question="What is TasteUI?" defaultOpen={true}>
           <p>
-            TokenUI is a platform for discovering and sharing UI components and design patterns. 
+            TasteUI is a platform for discovering and sharing UI components and design patterns. 
             It provides a curated collection of "skills" — reusable code snippets, components, 
             and design tokens that help developers and AI agents build consistent interfaces.
           </p>
         </FAQItem>
 
-        <FAQItem question="Who is TokenUI for?">
+        <FAQItem question="Who is TasteUI for?">
           <p>
-            TokenUI is designed for both developers and AI agents. Whether you're building 
-            a prototype, a production app, or using an AI coding assistant, TokenUI provides 
+            TasteUI is designed for both developers and AI agents. Whether you're building 
+            a prototype, a production app, or using an AI coding assistant, TasteUI provides 
             ready-to-use components that follow best practices.
           </p>
         </FAQItem>
 
-        <FAQItem question="Is TokenUI free to use?">
+        <FAQItem question="Is TasteUI free to use?">
           <p>
-            Yes, all skills on TokenUI are free to use. The platform is open-source and 
+            Yes, all skills on TasteUI are free to use. The platform is open-source and 
             community-driven. Some skills may have specific licenses (MIT, Apache 2.0, etc.) 
             which are displayed on their detail pages.
           </p>
@@ -106,15 +106,15 @@ export function DocsFAQPage() {
           <p>
             No installation required for basic usage. You can use npx to run the CLI directly:
           </p>
-          <CodeBlock command="npx tokenui.sh add <skill-name>" />
+          <CodeBlock command="npx tasteui.dev add <skill-name>" />
           <p>
-            If you prefer, you can install the CLI globally with npm install -g tokenui.
+            If you prefer, you can install the CLI globally with npm install -g tasteui.
           </p>
         </FAQItem>
 
         <FAQItem question="What frameworks are supported?">
           <p>
-            TokenUI is built primarily for React applications using TypeScript and Tailwind CSS. 
+            TasteUI is built primarily for React applications using TypeScript and Tailwind CSS. 
             Many skills will work with other setups, but the best experience is with:
           </p>
           <ul className="list-disc pl-5 mt-2 space-y-1">
@@ -128,7 +128,7 @@ export function DocsFAQPage() {
           <p>
             Browse the gallery, find a skill you like, and run:
           </p>
-          <CodeBlock command="npx tokenui.sh add <skill-name>" />
+          <CodeBlock command="npx tasteui.dev add <skill-name>" />
           <p>
             The CLI will install the skill and all its dependencies to your project.
           </p>
@@ -175,11 +175,11 @@ export function DocsFAQPage() {
           <p>
             Use the update command to get the latest version:
           </p>
-          <CodeBlock command="npx tokenui.sh update <skill-name>" />
+          <CodeBlock command="npx tasteui.dev update <skill-name>" />
           <p>
             Or update all skills at once:
           </p>
-          <CodeBlock command="npx tokenui.sh update --all" />
+          <CodeBlock command="npx tasteui.dev update --all" />
         </FAQItem>
       </Section>
 
@@ -191,7 +191,7 @@ export function DocsFAQPage() {
           <p>
             Click the "Publish" button in the navigation, or run:
           </p>
-          <CodeBlock command="npx tokenui.sh publish" />
+          <CodeBlock command="npx tasteui.dev publish" />
           <p>
             Fill out the form with your skill details, upload a preview screenshot, 
             and submit. All submissions are reviewed before appearing in the gallery.
@@ -221,7 +221,7 @@ export function DocsFAQPage() {
 
         <FAQItem question="Who owns the skills I publish?">
           <p>
-            You retain ownership of your work. By publishing, you grant TokenUI users a 
+            You retain ownership of your work. By publishing, you grant TasteUI users a 
             license to use your skill according to the license you specify (MIT recommended). 
             You can remove your skills from the gallery at any time.
           </p>
@@ -232,21 +232,21 @@ export function DocsFAQPage() {
       <Section id="ai-agents">
         <Heading>AI & Agents</Heading>
         
-        <FAQItem question="Can AI agents use TokenUI?">
+        <FAQItem question="Can AI agents use TasteUI?">
           <p>
-            Yes! TokenUI is designed with AI agents in mind. The CLI provides structured 
+            Yes! TasteUI is designed with AI agents in mind. The CLI provides structured 
             output that agents can parse, and the skill format is designed to be machine-readable 
             with clear dependencies and usage patterns.
           </p>
         </FAQItem>
 
-        <FAQItem question="How do I use TokenUI with AI coding assistants?">
+        <FAQItem question="How do I use TasteUI with AI coding assistants?">
           <p>
-            When working with AI agents, you can reference TokenUI skills in your prompts:
+            When working with AI agents, you can reference TasteUI skills in your prompts:
           </p>
           <div className="my-3 rounded-lg bg-muted/50 p-3 border-l-2 border-border">
             <p className="text-sm italic">
-              "Create a login form using the tokenui form and button skills"
+              "Create a login form using the tasteui form and button skills"
             </p>
           </div>
           <p>
@@ -254,9 +254,9 @@ export function DocsFAQPage() {
           </p>
         </FAQItem>
 
-        <FAQItem question="Does TokenUI work with specific AI tools?">
+        <FAQItem question="Does TasteUI work with specific AI tools?">
           <p>
-            TokenUI is platform-agnostic. It works with any AI coding assistant that can:
+            TasteUI is platform-agnostic. It works with any AI coding assistant that can:
           </p>
           <ul className="list-disc pl-5 mt-2 space-y-1">
             <li>Run terminal commands (Claude, GPT-4, Copilot, etc.)</li>
@@ -278,9 +278,9 @@ export function DocsFAQPage() {
           <p>
             If npx isn't working, try installing the CLI globally:
           </p>
-          <CodeBlock command="npm install -g tokenui" />
+          <CodeBlock command="npm install -g tasteui" />
           <p>
-            Then use tokenui directly without npx.
+            Then use tasteui directly without npx.
           </p>
         </FAQItem>
 
@@ -306,7 +306,7 @@ export function DocsFAQPage() {
 
         <FAQItem question="How do I report a bug?">
           <p>
-            For CLI bugs, open an issue on the TokenUI GitHub repository with:
+            For CLI bugs, open an issue on the TasteUI GitHub repository with:
           </p>
           <ul className="list-disc pl-5 mt-2 space-y-1">
             <li>Your Node.js version</li>
@@ -328,7 +328,7 @@ export function DocsFAQPage() {
         </p>
         <div className="flex flex-col gap-2">
           <a 
-            href="https://discord.gg/tokenui" 
+            href="https://discord.gg/tasteui" 
             target="_blank" 
             rel="noopener noreferrer"
             className="text-sm text-foreground hover:underline"
@@ -336,7 +336,7 @@ export function DocsFAQPage() {
             Join our Discord →
           </a>
           <a 
-            href="https://github.com/tokenui/tokenui/issues" 
+            href="https://github.com/tasteui/tasteui/issues" 
             target="_blank" 
             rel="noopener noreferrer"
             className="text-sm text-foreground hover:underline"
@@ -344,7 +344,7 @@ export function DocsFAQPage() {
             GitHub Issues →
           </a>
           <a 
-            href="mailto:support@tokenui.dev" 
+            href="mailto:support@tasteui.dev" 
             className="text-sm text-foreground hover:underline"
           >
             Email support →

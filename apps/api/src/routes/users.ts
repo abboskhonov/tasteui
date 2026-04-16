@@ -1,10 +1,56 @@
-  import { Hono } from "hono"
+import { Hono } from "hono"
 import { eq } from "drizzle-orm"
 import { auth } from "../auth"
 import { db } from "../db"
 import { user } from "../db/schema"
 import type { AuthContext } from "../types"
 import { success, unauthorized, internalError, logError } from "../utils/errors"
+
+// Helper function to generate a unique username
+async function generateUniqueUsername(
+  baseUsername: string,
+  maxAttempts: number = 10
+): Promise<string> {
+  // Clean the base username:
+  // 1. Convert to lowercase
+  // 2. Replace spaces with nothing
+  // 3. Remove special characters but keep letters from any language (Unicode aware)
+  let cleanUsername = baseUsername
+    .toLowerCase()
+    .replace(/\s/g, "")  // Remove spaces
+    .replace(/[^\p{L}\p{N}]/gu, "")  // Keep all letters (any language) and numbers
+    .slice(0, 20)
+
+  if (!cleanUsername) {
+    cleanUsername = "user"
+  }
+
+  const existingUser = await db.query.user.findFirst({
+    where: eq(user.username, cleanUsername),
+  })
+
+  if (!existingUser) {
+    return cleanUsername
+  }
+
+  for (let i = 0; i < maxAttempts; i++) {
+    const randomSuffix = Math.floor(Math.random() * 10000)
+      .toString()
+      .padStart(4, "0")
+    const tryUsername = `${cleanUsername.slice(0, 16)}${randomSuffix}`
+
+    const existing = await db.query.user.findFirst({
+      where: eq(user.username, tryUsername),
+    })
+
+    if (!existing) {
+      return tryUsername
+    }
+  }
+
+  const timestamp = Date.now().toString(36)
+  return `${cleanUsername.slice(0, 10)}${timestamp}`
+}
 
 const app = new Hono<AuthContext>()
 
@@ -19,7 +65,7 @@ app.get("/me", async (c) => {
   }
 
   // Fetch full user record from database
-  const [userRecord] = await db
+  let [userRecord] = await db
     .select({
       id: user.id,
       email: user.email,
@@ -32,6 +78,30 @@ app.get("/me", async (c) => {
     .from(user)
     .where(eq(user.id, session.user.id))
     .limit(1)
+
+  // Safety net: Auto-generate username if missing
+  if (userRecord && (!userRecord.username || userRecord.username === "")) {
+    console.log("[/me] User missing username, auto-generating...")
+    let baseUsername: string
+    if (userRecord.name) {
+      baseUsername = userRecord.name
+    } else if (userRecord.email) {
+      baseUsername = userRecord.email.split("@")[0]
+    } else {
+      baseUsername = "user"
+    }
+
+    const uniqueUsername = await generateUniqueUsername(baseUsername)
+
+    // Update user with generated username
+    await db
+      .update(user)
+      .set({ username: uniqueUsername })
+      .where(eq(user.id, userRecord.id))
+
+    userRecord = { ...userRecord, username: uniqueUsername }
+    console.log("[/me] Generated and saved username:", uniqueUsername)
+  }
 
   return success(c, { user: userRecord || session.user })
 })
@@ -46,7 +116,7 @@ app.get("/user/profile", async (c) => {
     return unauthorized(c)
   }
 
-  const [userRecord] = await db
+  let [userRecord] = await db
     .select()
     .from(user)
     .where(eq(user.id, session.user.id))
@@ -54,6 +124,29 @@ app.get("/user/profile", async (c) => {
 
   if (!userRecord) {
     return c.json({ error: "User not found" }, 404)
+  }
+
+  // Safety net: Auto-generate username if missing
+  if (!userRecord.username || userRecord.username === "") {
+    console.log("[/user/profile] User missing username, auto-generating...")
+    let baseUsername: string
+    if (userRecord.name) {
+      baseUsername = userRecord.name
+    } else if (userRecord.email) {
+      baseUsername = userRecord.email.split("@")[0]
+    } else {
+      baseUsername = "user"
+    }
+
+    const uniqueUsername = await generateUniqueUsername(baseUsername)
+
+    await db
+      .update(user)
+      .set({ username: uniqueUsername })
+      .where(eq(user.id, userRecord.id))
+
+    userRecord = { ...userRecord, username: uniqueUsername }
+    console.log("[/user/profile] Generated and saved username:", uniqueUsername)
   }
 
   return success(c, { user: userRecord })

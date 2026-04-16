@@ -5,7 +5,7 @@ export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
       {
-        title: "Login - tokenui",
+        title: "Login - tasteui",
       },
     ],
   }),

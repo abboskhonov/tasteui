@@ -41,7 +41,7 @@ export function DocsInstallingPage() {
         </Paragraph>
         
         <CodeBlock 
-          code="npx tokenui.sh add <skill-name>"
+          code="npx tasteui.dev add <skill-name>"
           filename="Install a skill"
         />
       </Section>
@@ -51,7 +51,7 @@ export function DocsInstallingPage() {
         
         <SubHeading id="browse-gallery">Browse the Gallery</SubHeading>
         <Paragraph>
-          Visit the <a href="/" className="text-foreground underline">TokenUI gallery</a> to browse 
+          Visit the <a href="/" className="text-foreground underline">TasteUI gallery</a> to browse 
           available skills. Each skill card shows:
         </Paragraph>
         <List items={[
@@ -66,7 +66,7 @@ export function DocsInstallingPage() {
           You can search for specific skills using the CLI:
         </Paragraph>
         <CodeBlock 
-          code="npx tokenui.sh list --search button"
+          code="npx tasteui.dev list --search button"
           filename="Search for button-related skills"
         />
 
@@ -75,7 +75,7 @@ export function DocsInstallingPage() {
           Skills are organized by category. Use the category filter to narrow down results:
         </Paragraph>
         <CodeBlock 
-          code="npx tokenui.sh list --category forms"
+          code="npx tasteui.dev list --category forms"
           filename="List all form-related skills"
         />
       </Section>
@@ -86,21 +86,21 @@ export function DocsInstallingPage() {
         <Step number={1} title="Install by Name">
           Install a specific skill by its name:
           <div className="mt-3">
-            <CodeBlock code="npx tokenui.sh add button" />
+            <CodeBlock code="npx tasteui.dev add button" />
           </div>
         </Step>
 
         <Step number={2} title="Install by Author/Skill">
           For skills with specific authors, use the full path:
           <div className="mt-3">
-            <CodeBlock code="npx tokenui.sh add username/skill-name" />
+            <CodeBlock code="npx tasteui.dev add username/skill-name" />
           </div>
         </Step>
 
         <Step number={3} title="Install Multiple">
           Install multiple skills at once:
           <div className="mt-3">
-            <CodeBlock code="npx tokenui.sh add button card modal input" />
+            <CodeBlock code="npx tasteui.dev add button card modal input" />
           </div>
         </Step>
       </Section>
@@ -113,7 +113,7 @@ export function DocsInstallingPage() {
           Install skills to a custom directory in your project:
         </Paragraph>
         <CodeBlock 
-          code="npx tokenui.sh add button --path ./app/components"
+          code="npx tasteui.dev add button --path ./app/components"
           filename="Install to custom directory"
         />
 
@@ -122,7 +122,7 @@ export function DocsInstallingPage() {
           Overwrite existing files if they already exist:
         </Paragraph>
         <CodeBlock 
-          code="npx tokenui.sh add button --force"
+          code="npx tasteui.dev add button --force"
           filename="Force overwrite existing files"
         />
 
@@ -131,7 +131,7 @@ export function DocsInstallingPage() {
           Preview what would be installed without making changes:
         </Paragraph>
         <CodeBlock 
-          code="npx tokenui.sh add button --dry-run"
+          code="npx tasteui.dev add button --dry-run"
           filename="Preview installation changes"
         />
       </Section>
@@ -149,7 +149,7 @@ export function DocsInstallingPage() {
         
         <Paragraph className="mt-4">
           By default, skills are installed to the <code className="px-1.5 py-0.5 rounded bg-muted text-sm font-mono">./.agents/skills/</code> directory. 
-          You can customize this in your <code className="px-1.5 py-0.5 rounded bg-muted text-sm font-mono">tokenui.json</code> configuration file.
+          You can customize this in your <code className="px-1.5 py-0.5 rounded bg-muted text-sm font-mono">tasteui.json</code> configuration file.
         </Paragraph>
       </Section>
 
@@ -163,7 +163,7 @@ export function DocsInstallingPage() {
         </Paragraph>
         <CodeBlock 
           code="# Example prompt
-Create a login form using the button and input skills from tokenui."
+Create a login form using the button and input skills from tasteui.dev."
           filename="Example AI prompt"
         />
 
@@ -181,7 +181,7 @@ Create a login form using the button and input skills from tokenui."
           To update a skill to its latest version:
         </Paragraph>
         <CodeBlock 
-          code="npx tokenui.sh update button"
+          code="npx tasteui.dev update button"
           filename="Update a specific skill"
         />
         
@@ -189,7 +189,7 @@ Create a login form using the button and input skills from tokenui."
           To update all installed skills at once:
         </Paragraph>
         <CodeBlock 
-          code="npx tokenui.sh update --all"
+          code="npx tasteui.dev update --all"
           filename="Update all skills"
         />
       </Section>
@@ -200,7 +200,7 @@ Create a login form using the button and input skills from tokenui."
           To remove a skill from your project:
         </Paragraph>
         <CodeBlock 
-          code="npx tokenui.sh remove button"
+          code="npx tasteui.dev remove button"
           filename="Remove a skill"
         />
         
@@ -208,7 +208,7 @@ Create a login form using the button and input skills from tokenui."
           Use the <code className="px-1.5 py-0.5 rounded bg-muted text-sm font-mono">--force</code> flag to skip the confirmation prompt:
         </Paragraph>
         <CodeBlock 
-          code="npx tokenui.sh remove button --force"
+          code="npx tasteui.dev remove button --force"
           filename="Remove without confirmation"
         />
       </Section>

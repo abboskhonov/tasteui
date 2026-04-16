@@ -1,48 +1,48 @@
-# TokenUI CLI
+# TasteUI CLI
 
 Command-line interface for installing design system skills to your coding agents.
 
 ## Installation
 
 ```bash
-npx tokenui
+npx tasteui.dev
 ```
 
 ## Usage
 
 ```bash
 # Show help with beautiful banner
-npx tokenui
+npx tasteui.dev
 
 # List available design skills
-npx tokenui list
+npx tasteui.dev list
 
 # Install a skill (always to ./.agents/skills/)
-npx tokenui add abboskhonov/claude-design-system
+npx tasteui.dev add abboskhonov/claude-design-system
 
 # Configure API endpoint (optional)
-npx tokenui config
+npx tasteui.dev config
 ```
 
 ## No Authentication Required
 
 The CLI works out of the box without any configuration:
 
-- **`tokenui list`** - Browse public design skills (no auth needed)
-- **`tokenui add <owner>/<slug>`** - Install skills (no auth needed)
+- **`tasteui list`** - Browse public design skills (no auth needed)
+- **`tasteui add <owner>/<slug>`** - Install skills (no auth needed)
 
 ## How Installation Works
 
-When you run `tokenui add <owner>/<slug>`, the CLI will:
+When you run `tasteui add <owner>/<slug>`, the CLI will:
 
-1. **Fetch** the skill from the TokenUI API
+1. **Fetch** the skill from the TasteUI API
 2. **Install** to `./.agents/skills/<skill-name>/` (always)
 3. **Optionally** install to additional agent directories
 
 ### Installation Flow
 
 ```bash
-$ tokenui add abboskhonov/claude-design-system
+$ tasteui add abboskhonov/claude-design-system
 
 ✓ Found: Claude Design System by abboskhonov
 
@@ -112,13 +112,13 @@ your-project/
 
 ## Configuration (Optional)
 
-The CLI stores optional configuration in `~/.config/tokenui/config.yaml`:
+The CLI stores optional configuration in `~/.config/tasteui/config.yaml`:
 
 ```yaml
-apiUrl: https://api.tokenui.dev
+apiUrl: https://api.tasteui.dev
 ```
 
-Run `tokenui config` to customize the API URL.
+Run `tasteui config` to customize the API URL.
 
 ## API Integration
 

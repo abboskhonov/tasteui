@@ -41,7 +41,7 @@ export function SkillDetailSidebar({
   onStarClick,
   onBookmarkClick,
 }: SkillDetailSidebarProps) {
-  const installationCommand = `npx tokenui.sh add ${design.author?.username || username}/${design.slug}`
+  const installationCommand = `npx tasteui.dev add ${design.author?.username || username}/${design.slug}`
   
   // Use prefetched starCount from design object as initial data
   // This allows instant display while still being able to refetch after mutations

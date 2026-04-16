@@ -12,7 +12,7 @@ export const Route = createFileRoute("/$")({
   head: () => ({
     meta: [
       {
-        title: "404 - Page Not Found | tokenui",
+        title: "404 - Page Not Found | tasteui",
       },
     ],
   }),

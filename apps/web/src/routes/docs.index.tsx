@@ -58,7 +58,7 @@ function DocsOverviewContent() {
         <h1 className="text-4xl font-bold tracking-tight">Documentation</h1>
         <p className="text-lg text-muted-foreground">
           Learn how to discover, install, and use design skills with your AI agents. 
-          TokenUI provides a curated collection of UI components and patterns.
+          TasteUI provides a curated collection of UI components and patterns.
         </p>
       </div>
 
@@ -70,7 +70,7 @@ function DocsOverviewContent() {
         </p>
         
         <CodeBlock 
-          command="npx tokenui.sh add <skill-name>"
+          command="npx tasteui.dev add <skill-name>"
           description="Add any skill to your project instantly"
         />
         
@@ -140,7 +140,7 @@ function DocsOverviewContent() {
                 Use the CLI to add skills to your project. The CLI handles dependencies, 
                 file structure, and configuration automatically.
               </p>
-              <CodeBlock command="npx tokenui.sh add button" />
+              <CodeBlock command="npx tasteui.dev add button" />
             </div>
           </div>
 
@@ -163,7 +163,7 @@ function DocsOverviewContent() {
       <section className="space-y-6">
         <h2 className="text-2xl font-semibold tracking-tight">Publishing Designs</h2>
         <p className="text-muted-foreground">
-          Have a design system or component you want to share? Publish it to the TokenUI gallery 
+          Have a design system or component you want to share? Publish it to the TasteUI gallery 
           so others can discover and use it.
         </p>
         

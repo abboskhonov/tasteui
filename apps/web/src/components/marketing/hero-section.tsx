@@ -186,7 +186,7 @@ export function HeroSection({ initialDesigns }: HeroSectionProps) {
               <p className="text-base text-muted-foreground leading-relaxed mb-6 max-w-md">
                 Drop-in design skills for your coding agent. No setup, no configuration — just describe what you need and ship production-ready components in seconds.
               </p>
-              <CLICopy command="npx tokenui.sh add <skill>" />
+              <CLICopy command="npx tasteui.dev add <skill>" />
             </div>
           </div>
 

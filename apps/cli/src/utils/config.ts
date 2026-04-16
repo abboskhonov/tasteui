@@ -9,11 +9,10 @@ export interface Config {
   token?: string;  // Optional - only needed for authenticated operations
 }
 
-// Default API URL - set to localhost for development
-// Change to production URL when ready: https://api.tokenui.dev
-export const DEFAULT_API_URL = 'http://localhost:3001';
+// Default API URL - production
+export const DEFAULT_API_URL = 'https://api.tasteui.dev';
 
-const CONFIG_DIR = join(homedir(), '.config', 'tokenui');
+const CONFIG_DIR = join(homedir(), '.config', 'tasteui');
 const CONFIG_FILE = join(CONFIG_DIR, 'config.yaml');
 
 export async function getConfig(): Promise<Config> {

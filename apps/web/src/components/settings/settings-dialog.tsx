@@ -361,7 +361,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                       ) : usernameCheck?.available && !usernameCheck.current && formData.username && formData.username.length >= 3 && !usernameError ? (
                         <p className="text-xs text-green-500">Available</p>
                       ) : (
-                        <p className="text-xs text-muted-foreground">tokenui.dev/@{formData.username || "username"}</p>
+                        <p className="text-xs text-muted-foreground">tasteui.dev/@{formData.username || "username"}</p>
                       )}
                     </div>
                   </div>
@@ -523,7 +523,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                   <div>
                     <h3 className="text-base font-semibold mb-1">Theme</h3>
                     <p className="text-sm text-muted-foreground">
-                      Choose how tokenui looks for you.
+                      Choose how tasteui looks for you.
                     </p>
                   </div>
                   

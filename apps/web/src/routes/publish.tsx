@@ -5,7 +5,7 @@ export const Route = createFileRoute("/publish")({
   head: () => ({
     meta: [
       {
-        title: "Publish - tokenui",
+        title: "Publish - tasteui",
       },
     ],
   }),

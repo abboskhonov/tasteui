@@ -11,7 +11,7 @@ export function Footer() {
       <div className="flex items-center gap-3 text-xs text-muted-foreground">
         <span>© 2026</span>
         <span className="text-border">·</span>
-        <span>tokenui.sh</span>
+        <span>tasteui.dev</span>
       </div>
       
       <div className="flex items-center gap-1">
@@ -21,7 +21,7 @@ export function Footer() {
           </Button>
         </Link>
         <a 
-          href="https://x.com/tokenui" 
+          href="https://x.com/tasteui" 
           target="_blank" 
           rel="noopener noreferrer"
         >
