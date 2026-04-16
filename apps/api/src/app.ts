@@ -22,6 +22,7 @@ import bookmarkRoutes from "./routes/bookmarks"
 import starRoutes from "./routes/stars"
 import adminRoutes from "./routes/admin"
 import cliRoutes from "./routes/cli"
+import sitemapRoutes from "./routes/sitemap"
 
 // Load environment variables
 config()
@@ -31,6 +32,9 @@ const app = new Hono<AuthContext>()
 
 // Root health check for Railway (before any middleware)
 app.get("/", (c) => c.json({ status: "ok" }))
+
+// Sitemap route - public, no rate limiting needed
+app.route("/sitemap.xml", sitemapRoutes)
 
 // Global middleware
 app.use("*", corsConfig)

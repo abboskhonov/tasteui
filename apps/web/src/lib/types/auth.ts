@@ -12,6 +12,7 @@ export interface User {
   youtube: string | null
   instagram: string | null
   emailVerified: boolean
+  role?: string | null
   createdAt: string
   updatedAt: string
 }
@@ -35,8 +36,6 @@ export interface ProfileUpdateData {
   github?: string
   x?: string
   telegram?: string
-  youtube?: string
-  instagram?: string
   image?: string
 }
 

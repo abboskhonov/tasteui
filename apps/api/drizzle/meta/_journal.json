@@ -99,6 +99,13 @@
       "when": 1776320111484,
       "tag": "0013_gigantic_gauntlet",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1776356949973,
+      "tag": "0014_omniscient_black_bolt",
+      "breakpoints": true
     }
   ]
 }

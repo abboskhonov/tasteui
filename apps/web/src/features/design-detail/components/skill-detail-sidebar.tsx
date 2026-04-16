@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import type { Design } from "@/lib/types/design"
 import type { FileNode } from "@/features/publish/components/file-tree"
-import type { SessionUser } from "@/lib/api/auth-server"
+import type { User } from "@/lib/types/auth"
 import { useStarCount, useTrackDownload } from "@/lib/queries/designs"
 import JSZip from "jszip"
 import { useState, useEffect, useRef } from "react"
@@ -21,7 +21,7 @@ import { toast } from "sonner"
 interface SkillDetailSidebarProps {
   design: Design
   username: string
-  user: SessionUser | null
+  user: User | null
   isCopied: string | null
   isStarredState: boolean
   isBookmarkedState: boolean

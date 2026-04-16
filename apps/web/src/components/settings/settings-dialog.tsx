@@ -25,8 +25,6 @@ import {
   ImageUploadIcon,
   Alert01Icon,
   GlobeIcon,
-  YoutubeIcon,
-  InstagramIcon,
 } from "@hugeicons/core-free-icons"
 import type { ProfileUpdateData } from "@/lib/types/auth"
 import { cn } from "@/lib/utils"
@@ -70,8 +68,6 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
         github: user.github || "",
         x: user.x || "",
         telegram: user.telegram || "",
-        youtube: user.youtube || "",
-        instagram: user.instagram || "",
         image: user.image || "",
       })
       setDebouncedUsername(user.username || "")
@@ -430,24 +426,6 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                           className="pl-9"
                         />
                       </div>
-                      <div className="relative">
-                        <HugeiconsIcon icon={YoutubeIcon} className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                        <Input
-                          placeholder="YouTube"
-                          value={formData.youtube || ""}
-                          onChange={(e) => handleChange("youtube", e.target.value)}
-                          className="pl-9"
-                        />
-                      </div>
-                      <div className="relative">
-                        <HugeiconsIcon icon={InstagramIcon} className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                        <Input
-                          placeholder="Instagram"
-                          value={formData.instagram || ""}
-                          onChange={(e) => handleChange("instagram", e.target.value)}
-                          className="pl-9"
-                        />
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -488,31 +466,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                       </div>
                     )}
                     
-                    {formData.youtube && (
-                      <div className="flex items-center gap-3 py-2">
-                        <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
-                          <HugeiconsIcon icon={YoutubeIcon} className="size-4 text-muted-foreground" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm truncate">{formData.youtube}</div>
-                          <div className="text-xs text-muted-foreground">YouTube</div>
-                        </div>
-                        <span className="text-xs text-green-500">Connected</span>
-                      </div>
-                    )}
-                    
-                    {formData.instagram && (
-                      <div className="flex items-center gap-3 py-2">
-                        <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
-                          <HugeiconsIcon icon={InstagramIcon} className="size-4 text-muted-foreground" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm truncate">{formData.instagram}</div>
-                          <div className="text-xs text-muted-foreground">Instagram</div>
-                        </div>
-                        <span className="text-xs text-green-500">Connected</span>
-                      </div>
-                    )}
+
                   </div>
                 </div>
               </div>

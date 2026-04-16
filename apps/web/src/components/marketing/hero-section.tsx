@@ -327,15 +327,11 @@ export function HeroSection({ initialDesigns }: HeroSectionProps) {
                 {/* Infinite scroll trigger - only show when "all" is selected or more items might exist */}
                 {(activeTab === "all" || hasNextPage) && (
                   <div ref={loadMoreRef} className="flex justify-center py-8">
-                    {isFetchingNextPage ? (
+                    {isFetchingNextPage && (
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <div className="size-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
                         Loading more...
                       </div>
-                    ) : hasNextPage ? (
-                      <div className="text-sm text-muted-foreground">Scroll for more</div>
-                    ) : (
-                      <div className="text-sm text-muted-foreground">No more skills</div>
                     )}
                   </div>
                 )}

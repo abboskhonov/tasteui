@@ -130,6 +130,7 @@ app.get("/my", async (c) => {
 })
 
 // Get public designs with pagination
+// Cached at edge: 30s max-age, 5min stale-while-revalidate for fast SSR
 app.get("/", validateQuery(designQuerySchema), async (c) => {
   const query = getValidatedQuery<typeof designQuerySchema._type>(c)
   const { category, search, limit, offset } = query
@@ -194,6 +195,10 @@ app.get("/", validateQuery(designQuerySchema), async (c) => {
       .limit(limit)
       .offset(offset)
 
+    // Cache public designs at edge - 30s fresh, 5min stale acceptable
+    // Search/category queries bypass cache via query params naturally
+    c.header("Cache-Control", "public, max-age=30, stale-while-revalidate=300")
+    
     return success(c, {
       designs,
       pagination: { limit, offset, hasMore: designs.length === limit }
@@ -205,6 +210,7 @@ app.get("/", validateQuery(designQuerySchema), async (c) => {
 })
 
 // Get trending skills (most views in last 7 days)
+// Cached at edge: 60s max-age (trending changes more frequently)
 app.get("/leaderboard/trending", validateQuery(designQuerySchema), async (c) => {
   const query = getValidatedQuery<typeof designQuerySchema._type>(c)
   const { limit, offset } = query
@@ -243,6 +249,9 @@ app.get("/leaderboard/trending", validateQuery(designQuerySchema), async (c) => 
       .limit(limit)
       .offset(offset)
 
+    // Cache trending at edge - 60s fresh (changes frequently), 5min stale
+    c.header("Cache-Control", "public, max-age=60, stale-while-revalidate=300")
+
     return success(c, {
       designs: trendingDesigns,
       pagination: { limit, offset, hasMore: trendingDesigns.length === limit }
@@ -254,6 +263,7 @@ app.get("/leaderboard/trending", validateQuery(designQuerySchema), async (c) => 
 })
 
 // Get top rated skills (most stars)
+// Cached at edge: 5min max-age (stable ranking)
 app.get("/leaderboard/top", validateQuery(designQuerySchema), async (c) => {
   const query = getValidatedQuery<typeof designQuerySchema._type>(c)
   const { limit, offset } = query
@@ -286,6 +296,9 @@ app.get("/leaderboard/top", validateQuery(designQuerySchema), async (c) => {
       .limit(limit)
       .offset(offset)
 
+    // Cache top rated at edge - 5min fresh (stable), 10min stale
+    c.header("Cache-Control", "public, max-age=300, stale-while-revalidate=600")
+
     return success(c, {
       designs: topDesigns,
       pagination: { limit, offset, hasMore: topDesigns.length === limit }
@@ -297,6 +310,7 @@ app.get("/leaderboard/top", validateQuery(designQuerySchema), async (c) => {
 })
 
 // Get newest skills
+// Cached at edge: 30s max-age (changes as new skills added)
 app.get("/leaderboard/newest", validateQuery(designQuerySchema), async (c) => {
   const query = getValidatedQuery<typeof designQuerySchema._type>(c)
   const { limit, offset } = query
@@ -326,6 +340,9 @@ app.get("/leaderboard/newest", validateQuery(designQuerySchema), async (c) => {
       .limit(limit)
       .offset(offset)
 
+    // Cache newest at edge - 30s fresh (changes frequently), 5min stale
+    c.header("Cache-Control", "public, max-age=30, stale-while-revalidate=300")
+
     return success(c, {
       designs: newestDesigns,
       pagination: { limit, offset, hasMore: newestDesigns.length === limit }
@@ -337,6 +354,7 @@ app.get("/leaderboard/newest", validateQuery(designQuerySchema), async (c) => {
 })
 
 // Get top contributors (users with most skills and stars) - OPTIMIZED VERSION
+// Cached at edge: 5min max-age (stable ranking)
 app.get("/leaderboard/contributors", async (c) => {
   const limit = Math.min(parseInt(c.req.query("limit") || "10"), 20)
 
@@ -365,6 +383,9 @@ app.get("/leaderboard/contributors", async (c) => {
       ORDER BY s.total_stars DESC NULLS LAST, COUNT(d.id) DESC
       LIMIT ${limit}
     `)
+
+    // Cache contributors at edge - 5min fresh (stable), 10min stale
+    c.header("Cache-Control", "public, max-age=300, stale-while-revalidate=600")
 
     return success(c, {
       contributors: contributors.rows.map((c: any) => ({

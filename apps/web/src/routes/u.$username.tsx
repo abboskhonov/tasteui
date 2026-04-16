@@ -1,31 +1,124 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { useUserProfile } from "@/lib/queries/users"
-import { useBookmarks, useStars } from "@/lib/queries/designs"
 import { useState } from "react"
-import { useProfileSearch } from "@/features/user-profile/hooks"
 import type { TabType } from "@/features/user-profile/components"
 import {
+  BookmarkCard,
+  DesignsGrid,
+  ProfileError,
   ProfileHeader,
   ProfileInfo,
+  ProfileNotFound,
+  ProfileSkeleton,
   ProfileTabs,
   SearchInput,
-  DesignsGrid,
-  BookmarkCard,
   StarCard,
-  ProfileSkeleton,
-  ProfileError,
-  ProfileNotFound,
 } from "@/features/user-profile/components"
+import { useProfileSearch } from "@/features/user-profile/hooks"
+import type { Bookmark, Star } from "@/lib/types/design"
+import { api } from "@/lib/api/client"
+import { useUserProfile, type UserProfileResponse } from "@/lib/queries/users"
+import { useBookmarks, useStars } from "@/lib/queries/designs"
 
 export const Route = createFileRoute("/u/$username")({
   component: UserProfilePage,
-  head: ({ params }) => ({
-    meta: [
-      {
-        title: `${params.username} - tasteui`,
-      },
-    ],
-  }),
+  loader: async ({ params }) => {
+    // Fetch user profile data server-side for SEO
+    const response = await api.get<UserProfileResponse>(`/api/users/${params.username}`)
+    return { profile: response }
+  },
+  head: ({ loaderData, params }) => {
+    const user = loaderData?.profile?.user
+    const stats = loaderData?.profile?.stats
+    
+    // Build title
+    const displayName = user?.name || params.username
+    const title = `${displayName} (${params.username}) - tasteui`
+    
+    // Build description from bio or fallback
+    let description = user?.bio
+    if (!description && stats) {
+      const skills = stats.components || 0
+      description = `View ${skills} design ${skills === 1 ? 'skill' : 'skills'} by ${displayName} on tasteui. Browse and install reusable design skills for your projects.`
+    } else if (!description) {
+      description = `View design skills by ${displayName} on tasteui. Browse and install reusable landing page skills, token-driven UI, and dev-focused building blocks.`
+    }
+    
+    // Get profile image for OG
+    const ogImage = user?.image || "https://tasteui.dev/og-image.png"
+    const canonicalUrl = `https://tasteui.dev/u/${params.username}`
+    
+    return {
+      meta: [
+        {
+          title,
+        },
+        {
+          name: "description",
+          content: description,
+        },
+        {
+          name: "og:title",
+          content: title,
+        },
+        {
+          name: "og:description",
+          content: description,
+        },
+        {
+          name: "og:type",
+          content: "profile",
+        },
+        {
+          name: "og:url",
+          content: canonicalUrl,
+        },
+        {
+          name: "og:image",
+          content: ogImage,
+        },
+        {
+          name: "og:site_name",
+          content: "tasteui",
+        },
+        {
+          name: "profile:username",
+          content: params.username,
+        },
+        {
+          name: "profile:first_name",
+          content: user?.name?.split(' ')[0] || '',
+        },
+        {
+          name: "profile:last_name",
+          content: user?.name?.split(' ').slice(1).join(' ') || '',
+        },
+        {
+          name: "twitter:card",
+          content: "summary",
+        },
+        {
+          name: "twitter:title",
+          content: title,
+        },
+        {
+          name: "twitter:description",
+          content: description,
+        },
+        {
+          name: "twitter:image",
+          content: ogImage,
+        },
+        {
+          name: "canonical",
+          content: canonicalUrl,
+        },
+        {
+          name: "robots",
+          content: "index, follow",
+        },
+      ],
+    }
+  },
   // No blocking loader - navigate immediately and show skeleton
   errorComponent: () => <ProfileError />,
   notFoundComponent: () => <ProfileNotFound />,
@@ -33,10 +126,14 @@ export const Route = createFileRoute("/u/$username")({
 
 function UserProfilePage() {
   const { username } = Route.useParams()
-  const { data: profileData, isLoading, error } = useUserProfile(username)
+  const { profile: loaderProfileData } = Route.useLoaderData()
+  const { data: fetchedProfileData, isLoading, error } = useUserProfile(username)
   const { data: bookmarks = [] } = useBookmarks()
   const { data: stars = [] } = useStars()
   const [activeTab, setActiveTab] = useState<TabType>("skills")
+  
+  // Use loader data immediately for instant rendering, then hydrate with fresh data
+  const profileData = fetchedProfileData || loaderProfileData
   
   // Search only applies to skills tab
   const { searchQuery, setSearchQuery, filteredDesigns } = useProfileSearch(
@@ -96,9 +193,7 @@ function UserProfilePage() {
   )
 }
 
-import type { Bookmark, Star } from "@/lib/types/design"
-
-function BookmarksGrid({ bookmarks }: { bookmarks: Bookmark[] }) {
+function BookmarksGrid({ bookmarks }: { bookmarks: Array<Bookmark> }) {
   if (bookmarks.length === 0) {
     return (
       <div className="py-12 text-center">
@@ -116,7 +211,7 @@ function BookmarksGrid({ bookmarks }: { bookmarks: Bookmark[] }) {
   )
 }
 
-function StarsGrid({ stars }: { stars: Star[] }) {
+function StarsGrid({ stars }: { stars: Array<Star> }) {
   if (stars.length === 0) {
     return (
       <div className="py-12 text-center">

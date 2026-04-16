@@ -86,9 +86,9 @@ export const DesignCard = memo(function DesignCard({ design }: DesignCardProps) 
     >
       <article className="group relative cursor-pointer">
         {/* Device Frame Wrapper - subtle tint to distinguish from bg */}
-        <div className="relative p-1.5 md:p-2 rounded-xl md:rounded-2xl bg-muted/30 ring-1 ring-border/60">
+        <div className="relative p-1.5 md:p-2 rounded-xl md:rounded-2xl bg-muted/30 ring-1 ring-border/40">
           {/* Inner Thumbnail Container */}
-          <div className="relative aspect-video overflow-hidden rounded-md md:rounded-lg bg-muted ring-1 ring-border/30">
+          <div className="relative aspect-video overflow-hidden rounded-md md:rounded-lg bg-muted">
           {design.thumbnailUrl ? (
             <img
               src={design.thumbnailUrl}
@@ -162,11 +162,16 @@ export const DesignCard = memo(function DesignCard({ design }: DesignCardProps) 
           </div>
           
           {/* Card name with install count - inside wrapper below thumbnail */}
-          <div className="mt-2 px-1 pb-1 flex items-center justify-between gap-2">
-            <h3 className="text-sm font-medium text-foreground truncate">
-              {design.name}
-            </h3>
-             <div className="flex items-center gap-1 text-muted-foreground shrink-0">
+          <div className="mt-2 px-2 py-1.5 flex items-center justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <h3 className="text-sm font-medium text-foreground truncate leading-tight">
+                {design.name}
+              </h3>
+              <p className="text-xs text-muted-foreground truncate">
+                {username}
+              </p>
+            </div>
+            <div className="flex items-center gap-1 text-muted-foreground shrink-0">
               <HugeiconsIcon icon={Download02Icon} className="size-3.5" />
               <span className="text-xs font-medium tabular-nums">
                 {(design.installCount ?? 0).toLocaleString()}

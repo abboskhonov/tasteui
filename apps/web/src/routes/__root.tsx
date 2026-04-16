@@ -6,11 +6,9 @@ import {
 } from "@tanstack/react-router"
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools"
 import { TanStackDevtools } from "@tanstack/react-devtools"
-import { useEffect, useState } from "react"
 
 import appCss from "../styles.css?url"
 
-import { getCurrentUserServerFn } from "@/lib/api/auth-server"
 import { QueryProvider } from "@/lib/query-provider"
 import { UserProvider } from "@/lib/user-context"
 
@@ -30,7 +28,47 @@ export const Route = createRootRoute({
         content: "width=device-width, initial-scale=1",
       },
       {
-        title: "tasteui",
+        title: "tasteui - Drop-in design skills for your coding agent",
+      },
+      {
+        name: "description",
+        content: "Drop-in design skills for your coding agent. No setup, no configuration — just describe what you need and ship production-ready components in seconds.",
+      },
+      {
+        name: "theme-color",
+        content: "#000000",
+      },
+      {
+        name: "color-scheme",
+        content: "dark light",
+      },
+      {
+        name: "robots",
+        content: "index, follow",
+      },
+      {
+        name: "author",
+        content: "tasteui",
+      },
+      {
+        name: "og:type",
+        content: "website",
+      },
+      {
+        name: "og:site_name",
+        content: "tasteui",
+      },
+      {
+        name: "og:locale",
+        content: "en_US",
+      },
+      {
+        name: "twitter:card",
+        content: "summary_large_image",
+      },
+      {
+        name: "twitter:site",
+        content: "@tasteui",
       },
     ],
     links: [
@@ -38,52 +76,47 @@ export const Route = createRootRoute({
         rel: "stylesheet",
         href: appCss,
       },
+      {
+        rel: "canonical",
+        href: "https://tasteui.dev",
+      },
+      {
+        rel: "icon",
+        type: "image/svg+xml",
+        href: "/favicon.svg",
+      },
+      {
+        rel: "apple-touch-icon",
+        href: "/apple-touch-icon.png",
+      },
+      {
+        rel: "manifest",
+        href: "/site.webmanifest",
+      },
     ],
   }),
-  // Fetch user data on the server - this runs server-side during SSR
-  loader: async () => {
-    const user = await getCurrentUserServerFn()
-    return { user }
-  },
+  // No blocking server-side loaders - fetch user client-side for faster TTFB
   component: RootComponent,
 })
 
 function RootComponent() {
-  // Get the server-fetched user from the route loader
-  const { user } = Route.useLoaderData()
-
   return (
-    <UserProvider user={user} isLoading={false}>
-      <QueryProvider queryClient={queryClient}>
-        <SessionHydrator initialUser={user}>
-          <ThemeProvider>
-            <RootDocument>
-              <Outlet />
-            </RootDocument>
-          </ThemeProvider>
-        </SessionHydrator>
-      </QueryProvider>
-    </UserProvider>
+    <QueryProvider queryClient={queryClient}>
+      <SessionProvider>
+        <ThemeProvider>
+          <RootDocument>
+            <Outlet />
+          </RootDocument>
+        </ThemeProvider>
+      </SessionProvider>
+    </QueryProvider>
   )
 }
 
-// This component runs inside QueryProvider to fetch client-side session
-function SessionHydrator({ 
-  children, 
-  initialUser 
-}: { 
-  children: React.ReactNode
-  initialUser: any 
-}) {
+// Fetches session client-side and provides user context
+function SessionProvider({ children }: { children: React.ReactNode }) {
   const { data: session, isLoading } = useSession()
-  const [user, setUser] = useState(initialUser)
-  
-  useEffect(() => {
-    // If client session is different from server user, update it
-    if (session?.user && JSON.stringify(session.user) !== JSON.stringify(initialUser)) {
-      setUser(session.user)
-    }
-  }, [session, initialUser])
+  const user = session?.user || null
   
   return (
     <UserProvider user={user} isLoading={isLoading}>

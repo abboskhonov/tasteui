@@ -1,20 +1,20 @@
 import { createFileRoute, useLocation } from "@tanstack/react-router"
-import { useQueryClient, useQuery } from "@tanstack/react-query"
-import { useTrackView, designKeys, useDesignFiles } from "@/lib/queries/designs"
-import { useState, useCallback, useEffect } from "react"
-import { useDesignActions } from "@/features/design-detail/hooks"
-import {
-  SkillDetailHeader,
-  SkillDetailSidebar,
-  PreviewContent,
-  CodeView,
-  CodeViewSkeleton,
-  SkillDetailSkeleton,
-  SkillDetailError,
-  SkillNotFound,
-} from "@/features/design-detail/components"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useCallback, useEffect, useState } from "react"
 import type { Design } from "@/lib/types/design"
 import { api } from "@/lib/api/client"
+import {
+  CodeView,
+  CodeViewSkeleton,
+  PreviewContent,
+  SkillDetailError,
+  SkillDetailHeader,
+  SkillDetailSidebar,
+  SkillDetailSkeleton,
+  SkillNotFound,
+} from "@/features/design-detail/components"
+import { useDesignActions } from "@/features/design-detail/hooks"
+import { designKeys, useDesignFiles, useTrackView } from "@/lib/queries/designs"
 
 type TabType = "preview" | "code"
 
@@ -30,15 +30,112 @@ function generatePageTitle(design: Design | undefined, params: { username: strin
   return `${formattedSlug} by ${params.username} - tasteui`
 }
 
+// Generate meta description from design data
+function generatePageDescription(design: Design | undefined, params: { username: string; designSlug: string }): string {
+  if (design?.description) {
+    return design.description
+  }
+  if (design?.name) {
+    return `${design.name} - a reusable design skill by ${params.username} on tasteui. Browse and install this skill in your projects.`
+  }
+  return `Browse design skills by ${params.username} on tasteui. Reusable landing page skills, token-driven UI, and dev-focused building blocks.`
+}
+
+// Generate OG image URL from design data
+function generateOgImage(design: Design | undefined): string {
+  if (design?.thumbnailUrl) {
+    return design.thumbnailUrl
+  }
+  return "https://tasteui.dev/og-image.png"
+}
+
+// Generate canonical URL
+function generateCanonicalUrl(params: { username: string; designSlug: string }): string {
+  return `https://tasteui.dev/s/${params.username}/${params.designSlug}`
+}
+
 export const Route = createFileRoute("/s/$username/$designSlug")({
   component: SkillDetailPage,
-  head: ({ params }) => ({
-    meta: [
-      {
-        title: generatePageTitle(undefined, params),
-      },
-    ],
-  }),
+  loader: async ({ params }) => {
+    // Fetch design data server-side for SEO
+    const response = await api.get<{ design: Design }>(`/api/designs/${params.username}/${params.designSlug}`)
+    return { design: response.design }
+  },
+  head: ({ loaderData, params }) => {
+    const design = loaderData?.design
+    const title = generatePageTitle(design, params)
+    const description = generatePageDescription(design, params)
+    const ogImage = generateOgImage(design)
+    const canonicalUrl = generateCanonicalUrl(params)
+    
+    return {
+      meta: [
+        {
+          title,
+        },
+        {
+          name: "description",
+          content: description,
+        },
+        {
+          name: "og:title",
+          content: title,
+        },
+        {
+          name: "og:description",
+          content: description,
+        },
+        {
+          name: "og:type",
+          content: "article",
+        },
+        {
+          name: "og:url",
+          content: canonicalUrl,
+        },
+        {
+          name: "og:image",
+          content: ogImage,
+        },
+        {
+          name: "og:site_name",
+          content: "tasteui",
+        },
+        {
+          name: "og:author",
+          content: params.username,
+        },
+        {
+          name: "twitter:card",
+          content: "summary_large_image",
+        },
+        {
+          name: "twitter:title",
+          content: title,
+        },
+        {
+          name: "twitter:description",
+          content: description,
+        },
+        {
+          name: "twitter:image",
+          content: ogImage,
+        },
+        {
+          name: "twitter:creator",
+          content: `@${params.username}`,
+        },
+        {
+          name: "canonical",
+          content: canonicalUrl,
+        },
+        {
+          name: "robots",
+          content: "index, follow",
+        },
+      ],
+    }
+  },
   // No blocking loader - navigate immediately and show skeleton while loading
   // Data is already prefetched by the design card's intersection observer + hover
   errorComponent: () => <SkillDetailError />,
@@ -135,8 +232,8 @@ function SkillDetailPage() {
             queryClient.invalidateQueries({ queryKey: designKeys.detail(username, designSlug) })
           }
         },
-        onError: (error) => {
-          console.error("Failed to track view:", error)
+        onError: (err) => {
+          console.error("Failed to track view:", err)
         }
       })
     }
