@@ -253,14 +253,14 @@ export function SkillDetailSidebar({
         <div className="space-y-3">
           <h3 className="text-sm font-semibold">Installation</h3>
           <div 
-            className="group relative rounded-lg bg-muted px-4 py-3 font-mono text-xs cursor-pointer hover:bg-muted/80 transition-colors"
+            className="group relative rounded-lg bg-muted px-4 py-3 font-mono text-xs cursor-pointer hover:bg-muted/80 transition-colors overflow-hidden"
             onClick={onCopyInstall}
           >
-            <code className="flex items-center gap-1.5 pr-8">
-              <span className="text-green-600 dark:text-green-400">npx</span>
+            <code className="flex items-center gap-1.5 whitespace-nowrap overflow-x-auto scrollbar-hide pr-10">
+              <span className="text-green-600 dark:text-green-400 shrink-0">npx</span>
               <span className="text-foreground">{installationCommand}</span>
             </code>
-            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 bg-muted">
               <HugeiconsIcon 
                 icon={isCopied === "install" ? Tick02Icon : Copy01Icon} 
                 className={cn("size-3.5", isCopied === "install" && "text-green-500")}
