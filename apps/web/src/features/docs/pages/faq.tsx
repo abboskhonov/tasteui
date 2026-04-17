@@ -148,9 +148,15 @@ export function DocsFaqPage() {
               </div>
             </FaqItem>
 
+            <FaqItem question="Why is there a verification process?">
+              <Paragraph className="text-muted-foreground">
+                Verification helps us maintain quality and prevent abuse. It ensures skills are complete, safe, and follow our guidelines before they appear in the gallery. This keeps the ecosystem trustworthy for everyone using design skills.
+              </Paragraph>
+            </FaqItem>
+
             <FaqItem question="How long does review take?">
               <Paragraph className="text-muted-foreground">
-                Typically 1-2 business days. We check that the skill is complete, the aesthetic is well-defined, 
+                We review them as fast as we can, typically within 4 hours. We check that the skill is complete, the aesthetic is well-defined,
                 and the documentation is clear enough for AI agents to follow.
               </Paragraph>
             </FaqItem>

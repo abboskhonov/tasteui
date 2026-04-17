@@ -100,7 +100,6 @@ export function ProfileSidebar({ user, username, stats }: ProfileSidebarProps) {
           >
             <UsersIcon className="size-4" />
             <span className="font-semibold text-foreground">{stats.followers}</span>
-            <span>followers</span>
           </a>
           <span className="text-muted-foreground">·</span>
           <a 
