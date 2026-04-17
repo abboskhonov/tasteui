@@ -2,4 +2,4 @@
 User-agent: *
 Disallow:
 
-Sitemap: https://tasteui.dev/api/sitemap.xml
+Sitemap: https://api.tasteui.dev/sitemap.xml
