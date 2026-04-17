@@ -4,7 +4,7 @@ import { z } from "zod"
 export const createDesignSchema = z.object({
   name: z.string().min(1, "Name is required").max(100, "Name too long (max 100 characters)"),
   slug: z.string().optional(),
-  description: z.string().max(500, "Description too long (max 500 characters)").optional(),
+  description: z.string().max(2000, "Description too long (max 2000 characters)").optional(),
   category: z.string().min(1, "Category is required").max(50, "Category too long"),
   content: z.string().min(1, "Content is required").max(100000, "Content too large (max 100KB)"),
   demoUrl: z.string().url("Invalid demo URL").max(500, "Demo URL too long").optional().nullable(),
