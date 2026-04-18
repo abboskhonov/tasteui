@@ -250,3 +250,27 @@
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* ============================================
+   COLLAPSIBLE ANIMATIONS - Base UI Pattern
+   ============================================ */
+
+[data-slot="collapsible-content"] {
+  /* Use Base UI's CSS variable for height animation */
+  height: var(--collapsible-panel-height);
+  overflow: hidden;
+  transition: height 0.25s cubic-bezier(0.25, 0.1, 0.25, 1),
+              opacity 0.25s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+/* Starting style - before opening animation */
+[data-slot="collapsible-content"][data-starting-style] {
+  height: 0;
+  opacity: 0;
+}
+
+/* Ending style - before closing animation */
+[data-slot="collapsible-content"][data-ending-style] {
+  height: 0;
+  opacity: 0;
+}

@@ -25,12 +25,12 @@ interface FaqItemProps {
 function FaqItem({ question, children }: FaqItemProps) {
   return (
     <Collapsible className="border-b border-border/50 last:border-b-0">
-      <CollapsibleTrigger className="flex w-full items-center justify-between py-4 text-left text-sm font-medium text-foreground transition-colors hover:text-foreground/80 [&[data-state=open]>svg]:rotate-180">
+      <CollapsibleTrigger className="flex w-full items-center justify-between py-4 text-left text-sm font-medium text-foreground transition-colors hover:text-foreground/80 [&[data-panel-open]>svg]:rotate-180">
         {question}
         <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200" />
       </CollapsibleTrigger>
-      <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
-        <div className="pb-4 pt-0 text-sm text-muted-foreground">
+      <CollapsibleContent>
+        <div className="pb-4 pt-0">
           {children}
         </div>
       </CollapsibleContent>

@@ -1,18 +1,36 @@
-import { Collapsible as CollapsiblePrimitive } from "@base-ui/react/collapsible"
+"use client"
 
-function Collapsible({ ...props }: CollapsiblePrimitive.Root.Props) {
+import * as React from "react"
+import { Collapsible as CollapsiblePrimitive } from "@base-ui/react/collapsible"
+import { cn } from "@/lib/utils"
+
+function Collapsible({
+  ...props
+}: React.ComponentProps<typeof CollapsiblePrimitive.Root>) {
   return <CollapsiblePrimitive.Root data-slot="collapsible" {...props} />
 }
 
-function CollapsibleTrigger({ ...props }: CollapsiblePrimitive.Trigger.Props) {
+function CollapsibleTrigger({
+  ...props
+}: React.ComponentProps<typeof CollapsiblePrimitive.Trigger>) {
   return (
     <CollapsiblePrimitive.Trigger data-slot="collapsible-trigger" {...props} />
   )
 }
 
-function CollapsibleContent({ ...props }: CollapsiblePrimitive.Panel.Props) {
+function CollapsibleContent({
+  className,
+  children,
+  ...props
+}: React.ComponentProps<typeof CollapsiblePrimitive.Panel>) {
   return (
-    <CollapsiblePrimitive.Panel data-slot="collapsible-content" {...props} />
+    <CollapsiblePrimitive.Panel
+      data-slot="collapsible-content"
+      className={cn("text-sm text-muted-foreground", className)}
+      {...props}
+    >
+      {children}
+    </CollapsiblePrimitive.Panel>
   )
 }
 
