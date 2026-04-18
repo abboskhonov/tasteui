@@ -165,7 +165,7 @@ export function HeroSection({ initialDesigns }: HeroSectionProps) {
                 className="text-[2.5rem] leading-[1.15] tracking-tight text-foreground md:text-5xl"
                 style={{ fontWeight: 550 }}
               >
-                The design layer for your coding agent.
+                Design systems agents understand.
               </h1>
             </div>
 
