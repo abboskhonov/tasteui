@@ -6,8 +6,8 @@ WORKDIR /app
 # Copy everything from apps/api
 COPY apps/api/ .
 
-# Install dependencies
-RUN bun install --frozen-lockfile
+# Install dependencies (without frozen-lockfile to allow updates)
+RUN bun install
 
 # Expose the port Railway will use
 EXPOSE 3001
