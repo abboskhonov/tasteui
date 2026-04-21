@@ -395,7 +395,7 @@ function ContributorCard({ contributor }: ContributorCardProps) {
   return (
     <div
       onClick={() => navigate({ to: "/u/$username", params: { username: contributor.username } })}
-      className="group flex items-center gap-3 p-3 rounded-xl bg-card ring-1 ring-foreground/10 hover:ring-foreground/20 transition-all cursor-pointer"
+      className="group flex items-center gap-3 p-3 rounded-xl bg-card ring-1 ring-foreground/10 hover:ring-foreground/20 transition-[ring-color] cursor-pointer"
     >
       {/* Avatar */}
       <div className="relative h-10 w-10 shrink-0 rounded-full overflow-hidden ring-1 ring-foreground/10">

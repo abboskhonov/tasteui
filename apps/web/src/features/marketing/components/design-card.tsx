@@ -140,7 +140,7 @@ export function DesignCard({ design, onVisible, index = 0 }: DesignCardProps) {
       onMouseEnter={handleMouseEnter}
     >
       {/* Thumbnail Container - moves up on hover */}
-      <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-muted ring-1 ring-border/50 transition-all duration-300 ease-out group-hover:-translate-y-3 group-hover:shadow-lg group-hover:shadow-foreground/5 group-hover:ring-border group-hover:scale-[1.02]">
+      <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-muted ring-1 ring-border/50 transition-[shadow,transform,ring-color] duration-300 ease-out group-hover:-translate-y-3 group-hover:shadow-lg group-hover:shadow-foreground/5 group-hover:ring-border group-hover:scale-[1.02]">
         <div className="h-full w-full">
           {design.thumbnailUrl ? (
             <img 

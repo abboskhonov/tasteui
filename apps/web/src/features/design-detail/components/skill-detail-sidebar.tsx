@@ -18,6 +18,7 @@ import {
   Clock01Icon,
 } from "@hugeicons/core-free-icons"
 import { useEffect, useRef, useState } from "react"
+
 import { toast } from "sonner"
 import type { Design } from "@/lib/types/design"
 import type { User } from "@/lib/types/auth"
@@ -58,6 +59,9 @@ export function SkillDetailSidebar({
   
   const { data: serverStarCount } = useStarCount(design.id, design.starCount ?? 0)
   const [optimisticAdjustment, setOptimisticAdjustment] = useState<number>(0)
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false)
+  const [isClamped, setIsClamped] = useState(false)
+  const descriptionRef = useRef<HTMLParagraphElement>(null)
   const trackDownload = useTrackDownload()
   const prevServerCountRef = useRef(serverStarCount)
   
@@ -67,6 +71,15 @@ export function SkillDetailSidebar({
       prevServerCountRef.current = serverStarCount
     }
   }, [serverStarCount])
+
+  useEffect(() => {
+    if (descriptionRef.current && !isDescriptionExpanded) {
+      const el = descriptionRef.current
+      if (el.scrollHeight > el.clientHeight) {
+        setIsClamped(true)
+      }
+    }
+  }, [design.description])
   
   const displayStarCount = (serverStarCount ?? 0) + optimisticAdjustment
 
@@ -173,7 +186,19 @@ export function SkillDetailSidebar({
 
   // Desktop sidebar
   return (
-    <aside className="w-full lg:w-[340px] lg:h-full lg:border-r border-border bg-background lg:overflow-y-auto lg:shrink-0">
+    <aside className="w-full lg:w-[340px] lg:h-full lg:border-r border-border bg-background lg:overflow-y-auto lg:shrink-0 minimal-scrollbar">
+      <style>{`
+        .minimal-scrollbar::-webkit-scrollbar {
+          width: 3px;
+        }
+        .minimal-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .minimal-scrollbar::-webkit-scrollbar-thumb {
+          background: hsl(var(--border) / 0.6);
+          border-radius: 3px;
+        }
+      `}</style>
       <div className="p-4 lg:p-6 space-y-6 lg:space-y-8">
         {/* Title + Description */}
         <div className="space-y-2 lg:space-y-3">
@@ -184,9 +209,25 @@ export function SkillDetailSidebar({
             {design.name}
           </h1>
           {design.description && (
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              {design.description}
-            </p>
+            <div className="space-y-1">
+              <p
+                ref={descriptionRef}
+                className={cn(
+                  "text-sm text-muted-foreground leading-relaxed",
+                  !isDescriptionExpanded && "line-clamp-4"
+                )}
+              >
+                {design.description}
+              </p>
+              {isClamped && (
+                <button
+                  onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                  className="text-xs text-muted-foreground hover:text-foreground transition-colors font-medium"
+                >
+                  {isDescriptionExpanded ? "Show less" : "Show more"}
+                </button>
+              )}
+            </div>
           )}
         </div>
 

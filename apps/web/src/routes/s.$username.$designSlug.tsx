@@ -1,6 +1,6 @@
 import { createFileRoute, useLocation } from "@tanstack/react-router"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import type { Design } from "@/lib/types/design"
 import { api } from "@/lib/api/client"
 import {
@@ -13,6 +13,7 @@ import {
   SkillDetailMobileSheet,
   SkillDetailSkeleton,
   SkillNotFound,
+  HtmlCodeView,
 } from "@/features/design-detail/components"
 import { useDesignActions } from "@/features/design-detail/hooks"
 import { designKeys, useDesignFiles, useTrackView } from "@/lib/queries/designs"
@@ -247,6 +248,26 @@ function SkillDetailPage() {
   // Mobile sidebar state
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
 
+  // Preview fullscreen state
+  const [isPreviewFullscreen, setIsPreviewFullscreen] = useState(false)
+  const previewContainerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handler = () => {
+      setIsPreviewFullscreen(!!document.fullscreenElement)
+    }
+    document.addEventListener("fullscreenchange", handler)
+    return () => document.removeEventListener("fullscreenchange", handler)
+  }, [])
+
+  const handleTogglePreviewFullscreen = useCallback(() => {
+    if (!document.fullscreenElement) {
+      previewContainerRef.current?.requestFullscreen()
+    } else {
+      document.exitFullscreen()
+    }
+  }, [])
+
   if (error) {
     console.error("Route error:", error)
     return <SkillDetailError />
@@ -274,6 +295,8 @@ function SkillDetailPage() {
         onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
         isShowingHtml={activeTab === "html"}
         onToggleHtml={() => setActiveTab(activeTab === "html" ? "preview" : "html")}
+        isPreviewFullscreen={isPreviewFullscreen}
+        onTogglePreviewFullscreen={handleTogglePreviewFullscreen}
       />
 
       <div className="flex flex-col lg:flex-row h-[calc(100vh-48px)] lg:h-[calc(100vh-48px)]">
@@ -309,21 +332,14 @@ function SkillDetailPage() {
 
         <main className="flex-1 min-h-0 overflow-hidden">
           {activeTab === "preview" ? (
-            <PreviewContent
-              design={displayDesign}
-              previewTheme="light"
-            />
-          ) : activeTab === "html" ? (
-            <div className="h-full flex flex-col bg-background">
-              <div className="p-3 border-b border-border bg-muted/50 flex items-center gap-2 shrink-0">
-                <span className="text-xs font-medium text-muted-foreground font-mono truncate">index.html</span>
-              </div>
-              <div className="flex-1 overflow-auto bg-background">
-                <pre className="p-4 text-sm font-mono text-foreground/90 whitespace-pre-wrap leading-relaxed">
-                  {displayDesign?.content || "// No HTML available"}
-                </pre>
-              </div>
+            <div ref={previewContainerRef} className="h-full w-full">
+              <PreviewContent
+                design={displayDesign}
+                previewTheme="light"
+              />
             </div>
+          ) : activeTab === "html" ? (
+            <HtmlCodeView html={displayDesign?.demoHtml || ""} />
           ) : isFilesLoading ? (
             <CodeViewSkeleton />
           ) : (

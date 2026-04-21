@@ -105,7 +105,7 @@ function BookmarkCard({ bookmark, onRemove }: BookmarkCardProps) {
       >
         <article className="relative cursor-pointer">
           {/* Thumbnail */}
-          <div className="relative aspect-video overflow-hidden rounded-xl bg-muted ring-1 ring-border/50 transition-all duration-300 ease-out group-hover:-translate-y-2 group-hover:ring-border/80">
+          <div className="relative aspect-video overflow-hidden rounded-xl bg-muted ring-1 ring-border/50 transition-[shadow,transform,ring-color] duration-300 ease-out group-hover:-translate-y-2 group-hover:ring-border/80">
             {bookmark.designThumbnailUrl ? (
               <img
                 src={bookmark.designThumbnailUrl}

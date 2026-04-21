@@ -68,7 +68,7 @@ export function StudioFilters({
             placeholder="Search components..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="h-9 w-64 rounded-lg bg-muted pl-9 pr-3 text-sm outline-none ring-1 ring-border transition-all placeholder:text-muted-foreground focus:ring-foreground/20"
+            className="h-9 w-64 rounded-lg bg-muted pl-9 pr-3 text-sm outline-none ring-1 ring-border transition-[ring-color] placeholder:text-muted-foreground focus:ring-foreground/20"
           />
         </div>
         <Link to="/publish">

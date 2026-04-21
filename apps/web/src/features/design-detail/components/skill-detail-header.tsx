@@ -2,6 +2,8 @@ import { Link } from "@tanstack/react-router"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { 
   ArrowLeft01Icon,
+  ArrowExpandDiagonal01Icon,
+  ArrowShrink01Icon,
   CodeIcon,
   Folder01Icon,
   FolderOpenIcon,
@@ -17,6 +19,8 @@ interface SkillDetailHeaderProps {
   onOpenMobileSidebar?: () => void
   isShowingHtml?: boolean
   onToggleHtml?: () => void
+  isPreviewFullscreen?: boolean
+  onTogglePreviewFullscreen?: () => void
 }
 
 export function SkillDetailHeader({
@@ -27,6 +31,8 @@ export function SkillDetailHeader({
   onOpenMobileSidebar,
   isShowingHtml,
   onToggleHtml,
+  isPreviewFullscreen,
+  onTogglePreviewFullscreen,
 }: SkillDetailHeaderProps) {
   return (
     <header className="sticky top-0 z-50 h-12 border-b border-border bg-background/95 backdrop-blur-xl">
@@ -75,6 +81,23 @@ export function SkillDetailHeader({
             >
               <HugeiconsIcon icon={CodeIcon} className="size-3.5" />
               <span className="hidden sm:inline">{isShowingHtml ? "Hide HTML" : "HTML"}</span>
+            </Button>
+          )}
+          {/* Fullscreen Preview */}
+          {!isShowingFiles && !isShowingHtml && onTogglePreviewFullscreen && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 text-xs gap-1.5 px-2"
+              onClick={onTogglePreviewFullscreen}
+            >
+              <HugeiconsIcon
+                icon={isPreviewFullscreen ? ArrowShrink01Icon : ArrowExpandDiagonal01Icon}
+                className="size-3.5"
+              />
+              <span className="hidden sm:inline">
+                {isPreviewFullscreen ? "Exit" : "Fullscreen"}
+              </span>
             </Button>
           )}
           {/* Toggle files - text hidden on smallest screens */}

@@ -61,7 +61,7 @@ function DesignCard({
   const copies = Math.max(1, Math.floor((design.viewCount ?? 0) * 0.1));
   
   return (
-    <div className="group relative rounded-xl bg-card ring-1 ring-border overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-foreground/5 hover:ring-border/80">
+    <div className="group relative rounded-xl bg-card ring-1 ring-border overflow-hidden transition-[shadow,transform,ring-color] duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-foreground/5 hover:ring-border/80">
       {/* Thumbnail */}
       <div className="relative aspect-[4/3] overflow-hidden bg-muted">
         {design.thumbnailUrl ? (

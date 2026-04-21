@@ -2,6 +2,7 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/inter";
+@import "prismjs/themes/prism-tomorrow.min.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -273,4 +274,11 @@
 [data-slot="collapsible-content"][data-ending-style] {
   height: 0;
   opacity: 0;
+}
+
+/* PrismJS overrides to match app UI */
+pre[class*="language-"],
+code[class*="language-"] {
+  background: transparent !important;
+  text-shadow: none !important;
 }

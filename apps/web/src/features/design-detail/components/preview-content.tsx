@@ -1,8 +1,9 @@
 import { HugeiconsIcon } from "@hugeicons/react"
-import { File01Icon } from "@hugeicons/core-free-icons"
+import { File01Icon, ArrowShrink01Icon } from "@hugeicons/core-free-icons"
 import { cn } from "@/lib/utils"
 import { useState, useEffect, useRef, useMemo } from "react"
 import type { Design } from "@/lib/types/design"
+import { Button } from "@/components/ui/button"
 
 interface PreviewContentProps {
   design: Design
@@ -57,7 +58,14 @@ export function PreviewContent({
   previewTheme,
 }: PreviewContentProps) {
   const [isLoading, setIsLoading] = useState(true)
+  const [isFullscreen, setIsFullscreen] = useState(false)
   const iframeRef = useRef<HTMLIFrameElement>(null)
+
+  useEffect(() => {
+    const handler = () => setIsFullscreen(!!document.fullscreenElement)
+    document.addEventListener("fullscreenchange", handler)
+    return () => document.removeEventListener("fullscreenchange", handler)
+  }, [])
 
   // Create blob URL from demoHtml content with zoom styles injected
   const demoUrl = useMemo(() => {
@@ -87,6 +95,20 @@ export function PreviewContent({
       <div className="h-full w-full">
         {demoUrl ? (
           <div className="w-full h-full relative">
+            {/* Exit fullscreen button */}
+            {isFullscreen && (
+              <div className="absolute top-3 right-3 z-20">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="h-8 gap-1.5 px-2.5 text-xs bg-background/90 backdrop-blur-sm"
+                  onClick={() => document.exitFullscreen()}
+                >
+                  <HugeiconsIcon icon={ArrowShrink01Icon} className="size-3.5" />
+                  Exit fullscreen
+                </Button>
+              </div>
+            )}
             {/* Loading skeleton */}
             {isLoading && (
               <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/80 backdrop-blur-sm">
