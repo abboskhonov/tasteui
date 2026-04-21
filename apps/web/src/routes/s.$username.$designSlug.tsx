@@ -17,7 +17,7 @@ import {
 import { useDesignActions } from "@/features/design-detail/hooks"
 import { designKeys, useDesignFiles, useTrackView } from "@/lib/queries/designs"
 
-type TabType = "preview" | "code"
+type TabType = "preview" | "code" | "html"
 
 // Generate page title from design data
 function generatePageTitle(design: Design | undefined, params: { username: string; designSlug: string }): string {
@@ -272,6 +272,8 @@ function SkillDetailPage() {
         isShowingFiles={activeTab === "code"}
         onToggleFiles={() => setActiveTab(activeTab === "preview" ? "code" : "preview")}
         onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
+        isShowingHtml={activeTab === "html"}
+        onToggleHtml={() => setActiveTab(activeTab === "html" ? "preview" : "html")}
       />
 
       <div className="flex flex-col lg:flex-row h-[calc(100vh-48px)] lg:h-[calc(100vh-48px)]">
@@ -311,6 +313,17 @@ function SkillDetailPage() {
               design={displayDesign}
               previewTheme="light"
             />
+          ) : activeTab === "html" ? (
+            <div className="h-full flex flex-col bg-background">
+              <div className="p-3 border-b border-border bg-muted/50 flex items-center gap-2 shrink-0">
+                <span className="text-xs font-medium text-muted-foreground font-mono truncate">index.html</span>
+              </div>
+              <div className="flex-1 overflow-auto bg-background">
+                <pre className="p-4 text-sm font-mono text-foreground/90 whitespace-pre-wrap leading-relaxed">
+                  {displayDesign?.content || "// No HTML available"}
+                </pre>
+              </div>
+            </div>
           ) : isFilesLoading ? (
             <CodeViewSkeleton />
           ) : (

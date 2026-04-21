@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { 
   ArrowLeft01Icon,
+  CodeIcon,
   Folder01Icon,
   FolderOpenIcon,
   Menu01Icon,
@@ -14,6 +15,8 @@ interface SkillDetailHeaderProps {
   isShowingFiles: boolean
   onToggleFiles: () => void
   onOpenMobileSidebar?: () => void
+  isShowingHtml?: boolean
+  onToggleHtml?: () => void
 }
 
 export function SkillDetailHeader({
@@ -22,6 +25,8 @@ export function SkillDetailHeader({
   isShowingFiles,
   onToggleFiles,
   onOpenMobileSidebar,
+  isShowingHtml,
+  onToggleHtml,
 }: SkillDetailHeaderProps) {
   return (
     <header className="sticky top-0 z-50 h-12 border-b border-border bg-background/95 backdrop-blur-xl">
@@ -60,6 +65,18 @@ export function SkillDetailHeader({
 
         {/* Right: Minimalist actions */}
         <div className="flex items-center gap-1">
+          {/* Toggle HTML */}
+          {onToggleHtml && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 text-xs gap-1.5 px-2"
+              onClick={onToggleHtml}
+            >
+              <HugeiconsIcon icon={CodeIcon} className="size-3.5" />
+              <span className="hidden sm:inline">{isShowingHtml ? "Hide HTML" : "HTML"}</span>
+            </Button>
+          )}
           {/* Toggle files - text hidden on smallest screens */}
           <Button
             variant="ghost"

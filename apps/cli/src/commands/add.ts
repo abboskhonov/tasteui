@@ -5,6 +5,7 @@ import { makeApiRequest } from '../utils/api.js';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { banner } from '../utils/banner.js';
+import { trackInstall } from '../utils/tracking.js';
 
 // File node type matching the web app
 interface FileNode {
@@ -218,7 +219,12 @@ export async function addCommand(identifier: string) {
     const fileCount = skill.files ? countFiles(skill.files) : 0;
     installSpinner.stop(c.green(`Installed ${fileCount + 1} file(s) to ./.agents/skills/${skillName}/`));
     console.log();
-    
+
+    // Track the install in the background (fire and forget)
+    trackInstall(skill.id).catch(() => {
+      // Silently ignore tracking errors
+    });
+
     p.note(`The skill is now available in your coding agents!`, 'Success');
 
   } catch (error) {
