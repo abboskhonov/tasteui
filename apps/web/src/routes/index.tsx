@@ -58,7 +58,7 @@ export const Route = createFileRoute("/")({
         },
         {
           name: "og:image",
-          content: "https://tasteui.dev/og-image.png",
+          content: "https://tasteui.dev/og-image.webp",
         },
         {
           name: "og:site_name",
@@ -78,7 +78,7 @@ export const Route = createFileRoute("/")({
         },
         {
           name: "twitter:image",
-          content: "https://tasteui.dev/og-image.png",
+          content: "https://tasteui.dev/og-image.webp",
         },
         {
           name: "keywords",
