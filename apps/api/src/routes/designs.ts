@@ -484,7 +484,7 @@ app.get("/:id", async (c) => {
   }
 
   try {
-    const [designRecord] = await db
+      const [designRecord] = await db
       .select({
         id: design.id,
         name: design.name,
@@ -493,6 +493,7 @@ app.get("/:id", async (c) => {
         category: design.category,
         content: design.content,
         demoUrl: design.demoUrl,
+        demoHtml: design.demoHtml,
         thumbnailUrl: design.thumbnailUrl,
         status: design.status,
         viewCount: design.viewCount,
