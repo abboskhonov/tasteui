@@ -60,7 +60,7 @@ export function ComponentInfoSidebar({
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder='e.g. "Glassmorphism"'
+              placeholder='e.g. "SaaS Dashboard"'
               className={`h-8 text-sm pr-8 ${
                 !isEditing && name.trim() 
                   ? nameExists 

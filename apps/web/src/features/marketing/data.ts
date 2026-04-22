@@ -46,16 +46,22 @@ export const sidebarItems: SidebarItem[] = [
 ]
 
 export const categories: Category[] = [
-  { name: "Minimalist", count: 0 },
-  { name: "Neobrutalist", count: 0 },
-  { name: "Glassmorphism", count: 0 },
-  { name: "Cyberpunk", count: 0 },
-  { name: "Claymorphism", count: 0 },
-  { name: "Neumorphism", count: 0 },
-  { name: "Retro", count: 0 },
-  { name: "3D", count: 0 },
-  { name: "Animated", count: 0 },
-  { name: "Gradient", count: 0 },
+  { name: "SaaS", count: 0 },
+  { name: "Business", count: 0 },
+  { name: "E-commerce", count: 0 },
+  { name: "Portfolio", count: 0 },
+  { name: "Marketing", count: 0 },
+  { name: "Fitness", count: 0 },
+  { name: "Education", count: 0 },
+  { name: "Events", count: 0 },
+  { name: "Food", count: 0 },
+  { name: "Home", count: 0 },
+  { name: "Lifestyle", count: 0 },
+  { name: "Travel", count: 0 },
+  { name: "Utility", count: 0 },
+  { name: "Services", count: 0 },
+  { name: "Agency", count: 0 },
+  { name: "Other", count: 0 },
 ]
 
 // Export for type checking against backend

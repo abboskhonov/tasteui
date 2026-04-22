@@ -2,7 +2,7 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/inter";
-@import "prismjs/themes/prism-tomorrow.min.css";
+@import "prismjs/themes/prism.min.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -281,4 +281,65 @@ pre[class*="language-"],
 code[class*="language-"] {
   background: transparent !important;
   text-shadow: none !important;
+}
+
+/* Dark mode syntax highlighting overrides */
+.dark pre[class*="language-"] code[class*="language-"],
+.dark pre[class*="language-"] code[class*="language-"] .token {
+  color: #ccc;
+}
+
+.dark pre[class*="language-"] code[class*="language-"] .token.comment,
+.dark pre[class*="language-"] code[class*="language-"] .token.prolog,
+.dark pre[class*="language-"] code[class*="language-"] .token.doctype,
+.dark pre[class*="language-"] code[class*="language-"] .token.cdata {
+  color: #999;
+}
+
+.dark pre[class*="language-"] code[class*="language-"] .token.punctuation {
+  color: #ccc;
+}
+
+.dark pre[class*="language-"] code[class*="language-"] .token.property,
+.dark pre[class*="language-"] code[class*="language-"] .token.tag,
+.dark pre[class*="language-"] code[class*="language-"] .token.boolean,
+.dark pre[class*="language-"] code[class*="language-"] .token.number,
+.dark pre[class*="language-"] code[class*="language-"] .token.constant,
+.dark pre[class*="language-"] code[class*="language-"] .token.symbol,
+.dark pre[class*="language-"] code[class*="language-"] .token.deleted {
+  color: #f92672;
+}
+
+.dark pre[class*="language-"] code[class*="language-"] .token.selector,
+.dark pre[class*="language-"] code[class*="language-"] .token.attr-name,
+.dark pre[class*="language-"] code[class*="language-"] .token.string,
+.dark pre[class*="language-"] code[class*="language-"] .token.char,
+.dark pre[class*="language-"] code[class*="language-"] .token.builtin,
+.dark pre[class*="language-"] code[class*="language-"] .token.inserted {
+  color: #a6e22e;
+}
+
+.dark pre[class*="language-"] code[class*="language-"] .token.operator,
+.dark pre[class*="language-"] code[class*="language-"] .token.entity,
+.dark pre[class*="language-"] code[class*="language-"] .token.url,
+.dark pre[class*="language-"] code[class*="language-"] .language-css .token.string,
+.dark pre[class*="language-"] code[class*="language-"] .style .token.string {
+  color: #f8f8f2;
+}
+
+.dark pre[class*="language-"] code[class*="language-"] .token.atrule,
+.dark pre[class*="language-"] code[class*="language-"] .token.attr-value,
+.dark pre[class*="language-"] code[class*="language-"] .token.keyword {
+  color: #66d9ef;
+}
+
+.dark pre[class*="language-"] code[class*="language-"] .token.function,
+.dark pre[class*="language-"] code[class*="language-"] .token.class-name {
+  color: #e6db74;
+}
+
+.dark pre[class*="language-"] code[class*="language-"] .token.regex,
+.dark pre[class*="language-"] code[class*="language-"] .token.important,
+.dark pre[class*="language-"] code[class*="language-"] .token.variable {
+  color: #fd971f;
 }

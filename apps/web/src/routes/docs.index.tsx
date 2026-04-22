@@ -106,13 +106,13 @@ function IntroductionPage() {
         <div className="space-y-6">
           <Step number={1} title="Browse design inspirations">
             Explore skills from brands that match your aesthetic. 
-            Each skill captures the essence: "Minimalist. Generous whitespace. Purple gradients and weight-300 elegance." 
-            Or "Cinematic dark theme. Signature green accent. Code-forward developer aesthetic."
+            Each skill captures the essence: "SaaS dashboard. Clean data tables, subtle borders, and weight-500 headers."
+            Or "Marketing landing page. Bold headlines, social proof blocks, and high-contrast CTAs."
           </Step>
           <Step number={2} title="Install the design system">
             Run the CLI to add the skill to your project:
             <div className="mt-3">
-              <CodeBlock code="npx tasteui.dev add jane/striped-minimalism" />
+              <CodeBlock code="npx tasteui.dev add jane/saas-dashboard" />
             </div>
           </Step>
           <Step number={3} title="Let AI build matching UI">

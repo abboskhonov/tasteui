@@ -9,6 +9,7 @@
     "db:push": "bun drizzle-kit push",
     "db:studio": "bun drizzle-kit studio",
     "db:backfill-usernames": "bun run src/scripts/backfill-usernames.ts",
+    "db:backfill-categories": "bun run src/scripts/backfill-categories.ts",
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1019.0",
